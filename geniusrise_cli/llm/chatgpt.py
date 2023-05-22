@@ -100,7 +100,7 @@ class ChatGPT:
                 log.info(f"Fine-tuning job {job_id} failed.")
                 return job
             else:
-                for i in tqdm(range(check_interval), desc="Waiting for fine-tuning to complete", ncols=100):
+                for _ in tqdm(range(check_interval), desc="Waiting for fine-tuning to complete", ncols=100):
                     sleep(1)
 
     def delete_fine_tuned_model(self, model_id: str):
