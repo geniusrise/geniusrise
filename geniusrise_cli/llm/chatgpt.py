@@ -90,7 +90,7 @@ class ChatGPT:
         """
         return openai.FineTune.retrieve(job_id)
 
-    def wait_for_fine_tuning(self, job_id: str, check_interval: int = 60) -> None:
+    def wait_for_fine_tuning(self, job_id: str, check_interval: int = 60) -> Optional[openai.FineTune]:
         """Wait for a fine-tuning job to complete, checking the status every `check_interval` seconds."""
         while True:
             job = self.get_fine_tuning_job(job_id)
