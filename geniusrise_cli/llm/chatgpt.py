@@ -51,7 +51,7 @@ class ChatGPT:
         prompt_loss_weight: str,
         training_file: str,
         validation_file: Optional[str] = None,
-    ) -> str:
+    ) -> openai.FineTuning:
         """
         Fine-tune the model with the given parameters and training data.
         The training data and optional validation data are uploaded to OpenAI's servers.
@@ -84,13 +84,13 @@ class ChatGPT:
 
         return fine_tune_job
 
-    def get_fine_tuning_job(self, job_id: str):
+    def get_fine_tuning_job(self, job_id: str) -> openai.FineTune:
         """
         Get the status of a fine-tuning job.
         """
         return openai.FineTune.retrieve(job_id)
 
-    def wait_for_fine_tuning(self, job_id: str, check_interval: int = 60):
+    def wait_for_fine_tuning(self, job_id: str, check_interval: int = 60) -> None:
         """Wait for a fine-tuning job to complete, checking the status every `check_interval` seconds."""
         while True:
             job = self.get_fine_tuning_job(job_id)
@@ -104,6 +104,6 @@ class ChatGPT:
                 for _ in tqdm(range(check_interval), desc="Waiting for fine-tuning to complete", ncols=100):
                     sleep(1)
 
-    def delete_fine_tuned_model(self, model_id: str):
+    def delete_fine_tuned_model(self, model_id: str) -> openai.FineTune:
         """Delete a fine-tuned model."""
         return openai.FineTune.delete(model_id)
