@@ -23,5 +23,5 @@
   "prettier.trailingComma": "es5",
   "python.linting.mypyEnabled": true,
   "python.linting.mypyArgs": ["--strict"],
-  "editor.tabSize": 4,
+  "editor.tabSize": 4
 }
