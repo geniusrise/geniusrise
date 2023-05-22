@@ -1,6 +1,7 @@
 import openai
 from openai.cli import FineTune
 from time import sleep
+import pandas as pd
 from tqdm import tqdm
 
 from typing import Optional
@@ -20,21 +21,21 @@ class ChatGPT:
 
     def __init__(
         self,
-        api_type: Optional[str],
-        api_key: Optional[str],
-        api_base: Optional[str],
-        api_version: Optional[str],
+        api_type: Optional[str] = None,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_version: Optional[str] = None,
     ) -> None:
         """
         Initialize the ChatGPT class with the given OpenAI API parameters.
         If a parameter is not provided, it will be fetched from the configuration.
         """
-        openai.api_type = api_type if api_type else config.api_type  # type: ignore
-        openai.api_key = api_key if api_key else config.api_key  # type: ignore
-        openai.api_base = api_base if api_base else config.api_base  # type: ignore
-        openai.api_version = api_version if api_version else config.api_version  # type: ignore
+        openai.api_type = api_type if api_type else config.OPENAI_API_TYPE
+        openai.api_key = api_key if api_key else config.OPENAI_API_KEY
+        openai.api_base = api_base if api_base else config.OPENAI_API_BASE_URL
+        openai.api_version = api_version if api_version else config.OPENAI_API_VERSION
 
-    def preprocess_for_fine_tuning(self, data: FineTuningData) -> dict:
+    def preprocess_for_fine_tuning(self, data: FineTuningData) -> pd.DataFrame:
         """
         Preprocess the given data for fine-tuning.
         """
@@ -50,7 +51,7 @@ class ChatGPT:
         prompt_loss_weight: str,
         training_file: str,
         validation_file: Optional[str] = None,
-    ):
+    ) -> str:
         """
         Fine-tune the model with the given parameters and training data.
         The training data and optional validation data are uploaded to OpenAI's servers.
@@ -76,7 +77,7 @@ class ChatGPT:
         fine_tune_params = {k: v for k, v in fine_tune_params.items() if v is not None}
 
         # Make the fine-tuning request
-        fine_tune_job = openai.FineTuning.create(**fine_tune_params)
+        fine_tune_job = openai.FineTune.create(**fine_tune_params)
 
         # Log the job ID
         log.info(f"Started fine-tuning job with ID {fine_tune_job.id}")
@@ -87,7 +88,7 @@ class ChatGPT:
         """
         Get the status of a fine-tuning job.
         """
-        return openai.FineTuning.retrieve(job_id)
+        return openai.FineTune.retrieve(job_id)
 
     def wait_for_fine_tuning(self, job_id: str, check_interval: int = 60):
         """Wait for a fine-tuning job to complete, checking the status every `check_interval` seconds."""
@@ -105,4 +106,4 @@ class ChatGPT:
 
     def delete_fine_tuned_model(self, model_id: str):
         """Delete a fine-tuned model."""
-        return openai.FineTunedModel.delete(model_id)
+        return openai.FineTune.delete(model_id)

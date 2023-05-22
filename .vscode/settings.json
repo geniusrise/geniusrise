@@ -22,6 +22,6 @@
   "prettier.bracketSpacing": false,
   "prettier.trailingComma": "es5",
   "python.linting.mypyEnabled": true,
-  "python.linting.mypyArgs": ["--strict"],
+  "python.linting.mypyArgs": [],
   "editor.tabSize": 4
 }
