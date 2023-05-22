@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 
 class ChatGPT:
     """
-    A class to interact with OpenAI's GPT-3 model, including fine-tuning the model.
+    A class to interact with OpenAI's GPT models, including fine-tuning the models.
     """
 
     def __init__(
@@ -51,7 +51,7 @@ class ChatGPT:
         prompt_loss_weight: str,
         training_file: str,
         validation_file: Optional[str] = None,
-    ) -> openai.FineTuning:
+    ) -> openai.FineTune:
         """
         Fine-tune the model with the given parameters and training data.
         The training data and optional validation data are uploaded to OpenAI's servers.
@@ -80,7 +80,7 @@ class ChatGPT:
         fine_tune_job = openai.FineTune.create(**fine_tune_params)
 
         # Log the job ID
-        log.info(f"Started fine-tuning job with ID {fine_tune_job.id}")
+        log.info(f"🚀 Started fine-tuning job with ID {fine_tune_job.id}")
 
         return fine_tune_job
 
@@ -95,10 +95,10 @@ class ChatGPT:
         while True:
             job = self.get_fine_tuning_job(job_id)
             if job.status == "succeeded":
-                log.info(f"Fine-tuning job {job_id} succeeded.")
+                log.info(f"🎉 Fine-tuning job {job_id} succeeded.")
                 return job
             elif job.status == "failed":
-                log.info(f"Fine-tuning job {job_id} failed.")
+                log.info(f"😭 Fine-tuning job {job_id} failed.")
                 return job
             else:
                 for _ in tqdm(range(check_interval), desc="Waiting for fine-tuning to complete", ncols=100):
