@@ -1,11 +1,11 @@
-import openai
-from openai.cli import FineTune
-from time import sleep
-import pandas as pd
-from tqdm import tqdm
-
-from typing import Optional
 import logging
+from time import sleep
+from typing import List, Optional
+
+import openai
+import pandas as pd
+from openai.cli import FineTune
+from tqdm import tqdm
 
 from geniusrise_cli import config
 from geniusrise_cli.llm.base import LLM
@@ -41,6 +41,13 @@ class ChatGPT(LLM):
         Preprocess the given data for fine-tuning.
         """
         return OpenAIPreprocessor.prepare_fine_tuning_data(data=data)
+
+    def generate_prompts(self, data: List[str], model: str, what: str) -> pd.DataFrame:
+        """
+        Generate prompts for the given data.
+        """
+        prompts = OpenAIPreprocessor.generate_prompts(strings=data, model=model, what=what)
+        return pd.DataFrame.from_records(prompts.dict()["data"])
 
     def fine_tune(
         self,

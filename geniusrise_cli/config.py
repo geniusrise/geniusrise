@@ -1,4 +1,5 @@
 import os
+
 import direnv  # type: ignore
 
 direnv.load()

@@ -1,5 +1,6 @@
-import pydantic
 from typing import List
+
+import pydantic
 
 
 class FineTuningDataItem(pydantic.BaseModel):

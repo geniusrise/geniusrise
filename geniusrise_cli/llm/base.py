@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import Optional
-from geniusrise_cli.llm.types import FineTuningData
+from typing import List, Optional
+
 import pandas as pd
+
+from geniusrise_cli.llm.types import FineTuningData
 
 
 class LLM(ABC):
@@ -23,6 +25,13 @@ class LLM(ABC):
     def preprocess_for_fine_tuning(self, data: FineTuningData) -> pd.DataFrame:
         """
         Preprocess the given data for fine-tuning.
+        """
+        pass
+
+    @abstractmethod
+    def generate_prompts(self, data: List[str], model: str, what: str) -> pd.DataFrame:
+        """
+        Generate prompts from the data that can be used for fine tuning.
         """
         pass
 

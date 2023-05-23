@@ -1,7 +1,12 @@
-import pandas as pd
-from openai.validators import get_validators, apply_necessary_remediation, apply_optional_remediation
-from geniusrise_cli.llm.types import FineTuningData
 import logging
+from typing import List
+
+import openai
+import pandas as pd
+from openai.validators import apply_necessary_remediation, apply_optional_remediation, get_validators
+
+from geniusrise_cli.llm.types import FineTuningData, FineTuningDataItem
+from geniusrise_cli.preprocessing.prompts import generate_prompts_from_x
 
 log = logging.getLogger(__name__)
 
@@ -10,6 +15,25 @@ class OpenAIPreprocessor:
     """
     A class to preprocess data for fine-tuning OpenAI's GPT-3 model.
     """
+
+    @staticmethod
+    def generate_prompts(what: str, strings: List[str], model: str = "gpt-3.5-turbo") -> FineTuningData:
+        """
+        Generate prompts for fine-tuning using OpenAI's GPT-3 model.
+        """
+        fine_tuning_data = []
+        for string in strings:
+            response = openai.ChatCompletion.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": f"{generate_prompts_from_x(x=what)}{string}"},
+                ],
+            )
+            for _ in range(10):
+                prompt = FineTuningDataItem(prompt=string, completion=response["choices"][0]["message"]["content"])
+                fine_tuning_data.append(prompt)
+        return FineTuningData(data=fine_tuning_data)
 
     @staticmethod
     def prepare_fine_tuning_data(data: FineTuningData, apply_optional_remediations: bool = False) -> pd.DataFrame:
