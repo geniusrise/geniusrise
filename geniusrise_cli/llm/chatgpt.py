@@ -8,13 +8,14 @@ from typing import Optional
 import logging
 
 from geniusrise_cli import config
+from geniusrise_cli.llm.base import LLM
 from geniusrise_cli.llm.types import FineTuningData
 from geniusrise_cli.preprocessing.openai import OpenAIPreprocessor
 
 log = logging.getLogger(__name__)
 
 
-class ChatGPT:
+class ChatGPT(LLM):
     """
     A class to interact with OpenAI's GPT models, including fine-tuning the models.
     """
@@ -30,10 +31,10 @@ class ChatGPT:
         Initialize the ChatGPT class with the given OpenAI API parameters.
         If a parameter is not provided, it will be fetched from the configuration.
         """
-        openai.api_type = api_type if api_type else config.OPENAI_API_TYPE
-        openai.api_key = api_key if api_key else config.OPENAI_API_KEY
-        openai.api_base = api_base if api_base else config.OPENAI_API_BASE_URL
-        openai.api_version = api_version if api_version else config.OPENAI_API_VERSION
+        openai.api_type = api_type if api_type else config.OPENAI_API_TYPE  # type: ignore
+        openai.api_key = api_key if api_key else config.OPENAI_API_KEY  # type: ignore
+        openai.api_base = api_base if api_base else config.OPENAI_API_BASE_URL  # type: ignore
+        openai.api_version = api_version if api_version else config.OPENAI_API_VERSION  # type: ignore
 
     def preprocess_for_fine_tuning(self, data: FineTuningData) -> pd.DataFrame:
         """
