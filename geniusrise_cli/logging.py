@@ -1,5 +1,7 @@
 import logging
+
 import colorlog
+
 from geniusrise_cli.config import LOGLEVEL
 
 
