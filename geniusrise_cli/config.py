@@ -24,3 +24,4 @@ PALM_KEY = os.environ.get("PALM_KEY", "")
 # Data sources
 
 GITHUB_ACCESS_TOKEN = os.environ.get("GITHUB_ACCESS_TOKEN", "")
+GITLAB_ACCESS_TOKEN = os.environ.get("GITLAB_ACCESS_TOKEN", "")
