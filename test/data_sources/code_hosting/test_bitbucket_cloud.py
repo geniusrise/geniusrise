@@ -2,9 +2,6 @@ from unittest.mock import patch
 from geniusrise_cli.data_sources.code_hosting.bitbucket_cloud import BitbucketCloudDataFetcher
 
 
-from geniusrise_cli.data_sources.code_hosting.bitbucket_cloud import BitbucketCloudDataFetcher
-
-
 def test_fetch_code():
     fetcher = BitbucketCloudDataFetcher(repo_name="team-test", workspace="monoidspace", username="monoidspace-admin")
     code_files = fetcher.fetch_code()

@@ -1,7 +1,6 @@
 import requests
 from typing import List
 import os
-import git
 import tempfile
 import subprocess
 import base64
