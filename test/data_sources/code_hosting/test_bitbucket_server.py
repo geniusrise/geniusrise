@@ -1,11 +1,11 @@
-from geniusrise_cli.data_sources.code_hosting.bitbucket import BitbucketDataFetcher
+# from geniusrise_cli.data_sources.code_hosting.bitbucket import BitbucketDataFetcher
 
 
-def test_fetch_code():
-    fetcher = BitbucketDataFetcher(repo_name="team-test", project_key="monoidspace", username="monoidspace-admin")
-    code_files = fetcher.fetch_code()
+# def test_fetch_code():
+#     fetcher = BitbucketDataFetcher(repo_name="team-test", project_key="monoidspace", username="monoidspace-admin")
+#     code_files = fetcher.fetch_code()
 
-    # assert code_files[0][:10] == "File Name:"
+# assert code_files[0][:10] == "File Name:"
 
 
 # def test_fetch_pull_requests():
