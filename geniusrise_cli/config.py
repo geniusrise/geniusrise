@@ -25,3 +25,11 @@ PALM_KEY = os.environ.get("PALM_KEY", "")
 
 GITHUB_ACCESS_TOKEN = os.environ.get("GITHUB_ACCESS_TOKEN", "")
 GITLAB_ACCESS_TOKEN = os.environ.get("GITLAB_ACCESS_TOKEN", "")
+
+# Atlassian
+
+BITBUCKET_ACCESS_TOKEN = os.environ.get("BITBUCKET_ACCESS_TOKEN", "")
+BITBUCKET_URL = os.environ.get("BITBUCKET_URL", "https://bitbucket.org")
+
+JIRA_ACCESS_TOKEN = os.environ.get("JIRA_ACCESS_TOKEN", "")
+JIRA_URL = os.environ.get("JIRA_URL", "https://jira.atlassian.net")
