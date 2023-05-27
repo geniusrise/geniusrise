@@ -1,0 +1,35 @@
+version: '3.7'
+
+services:
+    gitlab:
+        image: 'gitlab/gitlab-ce:latest'
+        restart: always
+        hostname: 'gitlab.example.com'
+        environment:
+            GITLAB_OMNIBUS_CONFIG: |
+                external_url 'http://gitlab.example.com'
+        ports:
+            - '80:80'
+            - '443:443'
+            - '22:22'
+        volumes:
+            - './gitlab/config:/etc/gitlab'
+            - './gitlab/logs:/var/log/gitlab'
+            - './gitlab/data:/var/opt/gitlab'
+
+    bitbucket:
+        image: 'atlassian/bitbucket-server:latest'
+        restart: always
+        volumes:
+            - './bitbucket:/var/atlassian/application-data/bitbucket'
+        ports:
+            - '7990:7990'
+            - '7999:7999'
+
+    jira:
+        image: 'cptactionhank/atlassian-jira:latest'
+        restart: always
+        volumes:
+            - './jira:/var/atlassian/jira'
+        ports:
+            - '8080:8080'
