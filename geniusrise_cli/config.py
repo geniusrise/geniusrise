@@ -35,3 +35,7 @@ JIRA_ACCESS_TOKEN = os.environ.get("JIRA_ACCESS_TOKEN", "")
 JIRA_URL = os.environ.get("JIRA_URL", "https://jira.atlassian.net")
 JIRA_USERNAME = os.environ.get("JIRA_USERNAME", "")
 JIRA_PASSWORD = os.environ.get("JIRA_PASSWORD", "")
+
+CLICKUP_API_TOKEN = os.environ.get("CLICKUP_API_TOKEN", "")
+
+ASANA_PERSONAL_ACCESS_TOKEN = os.environ.get("ASANA_PERSONAL_ACCESS_TOKEN", "")
