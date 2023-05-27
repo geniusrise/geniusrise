@@ -1,5 +1,6 @@
 from atlassian import Jira
 from typing import List
+import os
 
 from geniusrise_cli.config import JIRA_URL, JIRA_USERNAME, JIRA_ACCESS_TOKEN
 
@@ -25,10 +26,10 @@ class JiraDataFetcher:
                 ]
                 story_points = issue["fields"].get("customfield_10004")
                 issue_data = (
-                    f"Project Key: {project['key']}\n"
-                    f"Issue Key: {issue['key']}\n"
-                    f"Summary: {issue['fields']['summary']}\n"
-                    f"Story Points: {story_points}\n"
+                    f"Project Key: {project['key']}{os.linesep}"
+                    f"Issue Key: {issue['key']}{os.linesep}"
+                    f"Summary: {issue['fields']['summary']}{os.linesep}"
+                    f"Story Points: {story_points}{os.linesep}"
                     f"Status Changes: {', '.join(status_change_data)}"
                 )
                 all_issue_data.append(issue_data)
@@ -40,10 +41,10 @@ class JiraDataFetcher:
         for project in projects:
             print(project)
             project_data.append(
-                f"Project Key: {project['key']}\n"
-                f"Project Name: {project['name']}\n"
-                f"Project Components: {', '.join(self.__fetch_project_components(project['key']))}\n"
-                f"Project Versions: {', '.join(self.__fetch_project_versions(project['key']))}\n"
+                f"Project Key: {project['key']}{os.linesep}"
+                f"Project Name: {project['name']}{os.linesep}"
+                f"Project Components: {', '.join(self.__fetch_project_components(project['key']))}{os.linesep}"
+                f"Project Versions: {', '.join(self.__fetch_project_versions(project['key']))}{os.linesep}"
                 f"Assignable Users: {', '.join(self.__fetch_assignable_users_for_project(project['key']))}"
             )
         return project_data
@@ -89,12 +90,12 @@ class JiraDataFetcher:
                     )
 
                 sprint_details = (
-                    f"Board Name: {board_name}\n"
-                    f"Board Owner: {board_owner}\n"
-                    f"Sprint Name: {sprint_name}\n"
-                    f"Sprint Start Date: {sprint_start_date}\n"
-                    f"Sprint End Date: {sprint_end_date}\n"
-                    f"Sprint Goal: {sprint_goal}\n"
+                    f"Board Name: {board_name}{os.linesep}"
+                    f"Board Owner: {board_owner}{os.linesep}"
+                    f"Sprint Name: {sprint_name}{os.linesep}"
+                    f"Sprint Start Date: {sprint_start_date}{os.linesep}"
+                    f"Sprint End Date: {sprint_end_date}{os.linesep}"
+                    f"Sprint Goal: {sprint_goal}{os.linesep}"
                     f"Issues: {', '.join(issue_data)}"
                 )
                 all_details.append(sprint_details)
