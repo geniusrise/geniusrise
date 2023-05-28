@@ -119,6 +119,8 @@ end note
 
 ```
 
+![ft](./assets/fine-tuning.png)
+
 ## 🚀 Getting Started
 
 To get started with `geniusrise-cli`, clone the repository and install the
