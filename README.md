@@ -72,6 +72,9 @@ sources, piping them into various LLMs to generate prompts, and then using these
 prompts to fine-tune the target model. Here's a PlantUML diagram to illustrate
 the process:
 
+<details>
+  <summary>🔽</summary>
+
 ```plantuml
 @startuml
 skinparam monochrome false
@@ -111,6 +114,8 @@ end note
 @enduml
 
 ```
+
+</details>
 
 ![ft](./assets/fine-tuning.png)
 
