@@ -1,6 +1,3 @@
-Absolutely, here's how you could add a section on the fine-tuning process with
-PlantUML diagrams:
-
 # 🚀 Geniusrise-CLI
 
 Welcome to Geniusrise-CLI, a powerful command-line tool that is part of the
@@ -86,11 +83,7 @@ skinparam component {
 }
 skinparam database {
   BackgroundColor #F4A460
-  BorderColor #8B4513
-}
-skinparam actor {
-  BackgroundColor #ADD8E6
-  BorderColor #0000FF
+  BorderColor #8B4513./assets/fine-tuning.png
 }
 skinparam arrow {
   Color #000000
