@@ -1,4 +1,4 @@
-# 🚀 Geniusrise-CLI
+# 🧠 Geniusrise-CLI
 
 Welcome to Geniusrise-CLI, a powerful command-line tool that is part of the
 Geniusrise project. This tool is designed to pull data from various sources,
