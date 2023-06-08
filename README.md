@@ -12,10 +12,60 @@ The `geniusrise-cli` tool is structured into several modules, each responsible
 for a specific task:
 
 - `main.py`: The main entry point for the tool.
-- `bard.py`: Handles a specific LLM.
-- `chatgpt.py`: Handles the ChatGPT LLM.
-- `base.py`: Base module for the LLM.
+- `config.py`: Contains configuration settings for the tool.
+- `logging.py`: Handles logging for the tool.
 - `cmdline.py`: Handles command line arguments and options.
+
+### Preprocessing
+
+The preprocessing module is responsible for formatting data for use with
+different language learning models:
+
+- `huggingface.py`: Preprocessing for Hugging Face models.
+- `openai.py`: Preprocessing for OpenAI models.
+- `google_palm.py`: Preprocessing for Google PALM models.
+- `prompts.py`: Handles the creation of prompts for the models.
+
+### Data Sources
+
+The data sources module contains submodules for each type of data source that
+the tool can pull data from. Each submodule contains scripts for different
+platforms within that category:
+
+- `document_management`: Scripts for platforms like Confluence, Google Drive,
+  Dropbox, and Notion.
+- `project_management`: Scripts for platforms like Jira, ClickUp, Asana, and
+  Basecamp.
+- `communication`: Scripts for platforms like Discord, Slack, and Microsoft
+  Teams.
+- `code_hosting`: Scripts for platforms like Bitbucket Cloud, GitHub, GitLab,
+  Bitbucket Server, and Static.
+- `customer_support`: Scripts for platforms like Intercom, Freshdesk, and
+  Zendesk.
+- `crm`: Scripts for platforms like Zoho, Salesforce, and Hubspot.
+
+### Compute DAG
+
+The compute DAG (Directed Acyclic Graph) module contains scripts for handling
+the computation graph of the tool:
+
+- `node.py`: Handles the nodes of the computation graph.
+- `edge.py`: Handles the edges of the computation graph.
+- `dsl.py`: Contains the domain-specific language for the computation graph.
+- `types.py`: Contains the types used in the computation graph.
+
+### LLM
+
+The LLM (Language Learning Models) module contains scripts for handling
+different language learning models:
+
+- `huggingface.py`: Handles the Hugging Face model.
+- `chatgpt.py`: Handles the ChatGPT model.
+- `bard.py`: Handles the Bard model.
+- `base.py`: Base module for the LLMs.
+- `types.py`: Contains the types used in the LLMs.
+- `utils`: Contains utility scripts for the LLMs, like `training_args.py` for
+  handling training arguments.
 
 ## 🌐 Data Platforms
 
