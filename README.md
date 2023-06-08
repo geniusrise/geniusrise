@@ -1,3 +1,25 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+**Table of Contents**
+
+- [🧠 Geniusrise-CLI](#-geniusrise-cli)
+  - [📚 Structure](#-structure)
+    - [Preprocessing](#preprocessing)
+    - [Data Sources](#data-sources)
+    - [Compute DAG](#compute-dag)
+    - [LLM](#llm)
+  - [🌐 Data Platforms](#-data-platforms)
+  - [🎯 Application of Fine-Tuned LLMs](#-application-of-fine-tuned-llms)
+  - [🔄 Preprocessing](#-preprocessing)
+  - [🎛️ Fine-Tuning Process](#️-fine-tuning-process)
+  - [🚀 Getting Started](#-getting-started)
+  - [🤝 Contributing](#-contributing)
+  - [📜 License](#-license)
+  - [📞 Contact](#-contact)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # 🧠 Geniusrise-CLI
 
 ![gr](./assets/geri-3.png)
