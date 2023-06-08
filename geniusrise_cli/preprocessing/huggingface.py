@@ -1,5 +1,6 @@
 from itertools import chain
 from datasets import load_dataset
+from typing import Optional
 
 
 class HuggingFacePreprocessor:
@@ -10,42 +11,29 @@ class HuggingFacePreprocessor:
     @staticmethod
     def preprocess_for_fine_tuning(
         tokenizer,
-        dataset_name=None,
-        dataset_config_name=None,
-        cache_dir=None,
-        use_auth_token=None,
-        streaming=False,
-        train_file=None,
-        validation_file=None,
-        text_column_name="text",
-        block_size=128,
-        preprocessing_num_workers=None,
-        overwrite_cache=False,
+        data_dir: str,
+        train_test_split: Optional[float] = 0.0,
+        cache_dir: Optional[str] = None,
+        use_auth_token: Optional[bool] = None,
+        block_size: int = 128,
+        preprocessing_num_workers: Optional[int] = 1,
+        overwrite_cache: bool = False,
     ):
         # Load the dataset
-        if dataset_name is not None:
-            raw_datasets = load_dataset(
-                dataset_name,
-                dataset_config_name,
-                cache_dir=cache_dir,
-                use_auth_token=True if use_auth_token else None,
-                streaming=streaming,
-            )
-        else:
-            data_files = {}
-            if train_file is not None:
-                data_files["train"] = train_file
-            if validation_file is not None:
-                data_files["validation"] = validation_file
-            extension = train_file.split(".")[-1] if train_file is not None else validation_file.split(".")[-1]
-            if extension == "txt":
-                extension = "text"
-            raw_datasets = load_dataset(
-                extension,
-                data_files=data_files,
-                cache_dir=cache_dir,
-                use_auth_token=True if use_auth_token else None,
-            )
+        data_files = {}
+        if train_file is not None:
+            data_files["train"] = train_file
+        if validation_file is not None:
+            data_files["validation"] = validation_file
+        extension = train_file.split(".")[-1] if train_file is not None else validation_file.split(".")[-1]
+        if extension == "txt":
+            extension = "text"
+        raw_datasets = load_dataset(
+            extension,
+            data_files=data_files,
+            cache_dir=cache_dir,
+            use_auth_token=True if use_auth_token else None,
+        )
 
         # Tokenize the text
         def tokenize_function(examples):
