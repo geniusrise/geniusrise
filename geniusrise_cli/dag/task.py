@@ -2,6 +2,8 @@ import logging
 import random
 import string
 from typing import Any
+import os
+import tempfile
 
 import boto3
 from airflow.models import BaseOperator
@@ -75,6 +77,51 @@ class Task(BaseOperator):
             Any: The result of the task.
         """
         pass  # Override this method in subclasses
+
+    def sync_to_s3(self, data_dir: str) -> None:
+        """
+        Stores the contents of the given directory in the output_folder in the S3 bucket.
+
+        Args:
+            data_dir (str): The directory containing the data to store.
+        """
+        if not self.output_folder:
+            self.trace.error("Output folder not set")
+            raise ValueError("Output folder not set")
+        try:
+            for root, _, files in os.walk(data_dir):
+                for file in files:
+                    local_file = os.path.join(root, file)
+                    s3_file = os.path.join(self.output_folder, local_file.replace(data_dir + "/", ""))
+                    self.s3.upload_file(local_file, self.bucket, s3_file)
+            self.trace.info(f"Stored data in output folder {self.output_folder}")
+        except (BotoCoreError, ClientError) as e:
+            self.trace.error(f"Error storing data in S3: {e}")
+            raise
+
+    def sync_to_local(self) -> str:
+        """
+        Reads data from the input_folder of the S3 bucket, stores it locally, and returns the local directory name.
+
+        Returns:
+            str: The name of the local directory where the data was stored.
+        """
+        if not self.input_folder:
+            self.trace.error("No input folder specified")
+            raise Exception("No input folder specified")
+        try:
+            local_dir = tempfile.mkdtemp()
+            paginator = self.s3.get_paginator("list_objects_v2")
+            for page in paginator.paginate(Bucket=self.bucket, Prefix=self.input_folder):
+                for obj in page.get("Contents", []):
+                    local_file = os.path.join(local_dir, obj["Key"].replace(self.input_folder + "/", ""))
+                    os.makedirs(os.path.dirname(local_file), exist_ok=True)
+                    self.s3.download_file(self.bucket, obj["Key"], local_file)
+            self.trace.info(f"Read data from input folder {self.input_folder}")
+            return local_dir
+        except (BotoCoreError, ClientError) as e:
+            self.trace.error(f"Error reading data from S3: {e}")
+            raise
 
 
 class Source(Task):
