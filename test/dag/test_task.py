@@ -2,6 +2,7 @@
 import os
 
 import boto3
+import tempfile
 from botocore.exceptions import BotoCoreError, ClientError
 from moto import mock_s3
 from typing import Any
@@ -128,3 +129,50 @@ def test_file_sink():
     sink.write()
     data = open(f"{sink.input_folder}/output.txt").read()
     assert data == "🟣 test data 🟣"
+
+
+@mock_s3
+def test_sync_to_s3():
+    # Create a mock S3 bucket
+    conn = boto3.resource("s3", region_name="us-east-1")
+    conn.create_bucket(Bucket="test_bucket")
+
+    # Create a Task
+    task = Task(task_id="test_task", bucket="test_bucket", name="test_task")
+
+    # Create a temporary directory and a file in it
+    with tempfile.TemporaryDirectory() as temp_dir:
+        with open(os.path.join(temp_dir, "test_file.txt"), "w") as f:
+            f.write("✳️ test data ✳️")
+
+        # Store the data in the S3 bucket
+        task.sync_to_s3(temp_dir)  # Check that the file was stored in the S3 bucket
+
+        s3_file = conn.Object("test_bucket", f"{task.output_folder}/test_file.txt")
+        assert s3_file.get()["Body"].read().decode("utf-8") == "✳️ test data ✳️"
+
+
+@mock_s3
+def test_sync_to_local():
+    # Create a mock S3 bucket
+    conn = boto3.resource("s3", region_name="us-east-1")
+    conn.create_bucket(Bucket="test_bucket")
+
+    # Create a Task
+    task = Task(task_id="test_task", bucket="test_bucket", name="test_task")
+
+    # Create a temporary directory and a file in it
+    with tempfile.TemporaryDirectory() as temp_dir:
+        with open(os.path.join(temp_dir, "test_file.txt"), "w") as f:
+            f.write("✳️ test data ✳️")
+
+        # Store the data in the S3 bucket
+        task.sync_to_s3(temp_dir)
+
+        # Read the data from the S3 bucket
+        task.input_folder = task.output_folder
+        read_dir = task.sync_to_local()
+
+        # Check that the file was read from the S3 bucket
+        with open(os.path.join(read_dir, "test_file.txt"), "r") as f:
+            assert f.read() == "✳️ test data ✳️"
