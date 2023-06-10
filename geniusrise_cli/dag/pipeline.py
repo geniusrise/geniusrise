@@ -1,6 +1,7 @@
-from airflow.models import DAG
-from typing import Any
 import logging
+from typing import Any
+
+from airflow.models import DAG
 
 
 class Pipeline(DAG):

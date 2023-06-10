@@ -1,6 +1,7 @@
-from github import Github
-from typing import List
 import os
+from typing import List
+
+from github import Github
 
 from geniusrise_cli.config import GITHUB_ACCESS_TOKEN
 from geniusrise_cli.data_sources.code_hosting.static import valid_extensions

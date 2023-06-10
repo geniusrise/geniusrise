@@ -1,8 +1,9 @@
-from atlassian import Jira
-from typing import List
 import os
+from typing import List
 
-from geniusrise_cli.config import JIRA_URL, JIRA_USERNAME, JIRA_ACCESS_TOKEN
+from atlassian import Jira
+
+from geniusrise_cli.config import JIRA_ACCESS_TOKEN, JIRA_URL, JIRA_USERNAME
 
 
 class JiraDataFetcher:
