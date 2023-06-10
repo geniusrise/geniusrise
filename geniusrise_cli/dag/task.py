@@ -99,25 +99,27 @@ class Task(BaseOperator):
             self.trace.error(f"Error storing data in S3: {e}")
             raise
 
-    def sync_to_local(self) -> str:
+    def sync_to_local(self, data_dir=None) -> str:
         """
         Reads data from the input_folder of the S3 bucket, stores it locally, and returns the local directory name.
 
         Returns:
             str: The name of the local directory where the data was stored.
         """
-        if not self.input_folder:
+        if not data_dir:
+            data_dir = self.input_folder
+        if not data_dir:
             self.trace.error("No input folder specified")
             raise Exception("No input folder specified")
         try:
             local_dir = tempfile.mkdtemp()
             paginator = self.s3.get_paginator("list_objects_v2")
-            for page in paginator.paginate(Bucket=self.bucket, Prefix=self.input_folder):
+            for page in paginator.paginate(Bucket=self.bucket, Prefix=data_dir):
                 for obj in page.get("Contents", []):
-                    local_file = os.path.join(local_dir, obj["Key"].replace(self.input_folder + "/", ""))
+                    local_file = os.path.join(local_dir, obj["Key"].replace(data_dir + "/", ""))
                     os.makedirs(os.path.dirname(local_file), exist_ok=True)
                     self.s3.download_file(self.bucket, obj["Key"], local_file)
-            self.trace.info(f"Read data from input folder {self.input_folder}")
+            self.trace.info(f"Read data from input folder {data_dir}")
             return local_dir
         except (BotoCoreError, ClientError) as e:
             self.trace.error(f"Error reading data from S3: {e}")
