@@ -1,11 +1,12 @@
 # import pytest
-from moto import mock_s3
-from geniusrise_cli.dag.task import Task, Source, Sink
-from botocore.exceptions import BotoCoreError, ClientError
+import os
 
 # from airflow.utils.context import Context
 import boto3
-import os
+from botocore.exceptions import BotoCoreError, ClientError
+from moto import mock_s3
+
+from geniusrise_cli.dag.task import Sink, Source, Task
 
 # Set AWS credentials for moto
 os.environ["AWS_ACCESS_KEY_ID"] = "testing"
