@@ -1,7 +1,7 @@
 from itertools import chain
 from datasets import load_dataset
 from typing import Optional
-
+import logging
 
 class HuggingFacePreprocessor:
     """
@@ -12,6 +12,7 @@ class HuggingFacePreprocessor:
     def preprocess_for_fine_tuning(
         tokenizer,
         data_dir: str,
+        data_type: str,
         train_test_split: Optional[float] = 0.0,
         cache_dir: Optional[str] = None,
         use_auth_token: Optional[bool] = None,
@@ -21,13 +22,17 @@ class HuggingFacePreprocessor:
     ):
         # Load the dataset
         data_files = {}
+        if data_type not in ["csv", "json", "pandas", "parquet", "text", "imagefolder", "audiofolder"]:
+
+
         if train_file is not None:
             data_files["train"] = train_file
         if validation_file is not None:
             data_files["validation"] = validation_file
-        extension = train_file.split(".")[-1] if train_file is not None else validation_file.split(".")[-1]
+        extension = train_file.split(".")[-1]
         if extension == "txt":
             extension = "text"
+
         raw_datasets = load_dataset(
             extension,
             data_files=data_files,
