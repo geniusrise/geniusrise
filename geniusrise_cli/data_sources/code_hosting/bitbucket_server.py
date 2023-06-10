@@ -1,6 +1,7 @@
-from atlassian import Bitbucket
-from typing import List
 import os
+from typing import List
+
+from atlassian import Bitbucket
 
 from geniusrise_cli.config import BITBUCKET_ACCESS_TOKEN, BITBUCKET_URL
 from geniusrise_cli.data_sources.code_hosting.static import valid_extensions

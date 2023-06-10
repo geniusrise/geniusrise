@@ -1,11 +1,12 @@
+import logging
+import random
+import string
+from typing import Any
+
+import boto3
 from airflow.models import BaseOperator
 from airflow.utils.context import Context
-from typing import Any
-import logging
-import boto3
 from botocore.exceptions import BotoCoreError, ClientError
-import string
-import random
 
 
 def rand_str():
