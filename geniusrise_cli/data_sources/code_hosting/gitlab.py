@@ -1,6 +1,7 @@
-import gitlab
 import os
 from typing import List
+
+import gitlab
 
 from geniusrise_cli.config import GITLAB_ACCESS_TOKEN
 from geniusrise_cli.data_sources.code_hosting.static import valid_extensions

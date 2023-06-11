@@ -1,6 +1,7 @@
-import requests
 import os
 from typing import List
+
+import requests
 
 from geniusrise_cli.config import CLICKUP_API_TOKEN
 

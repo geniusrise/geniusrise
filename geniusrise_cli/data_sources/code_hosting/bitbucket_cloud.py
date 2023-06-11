@@ -1,9 +1,10 @@
-import requests
-from typing import List
-import os
-import tempfile
-import subprocess
 import base64
+import os
+import subprocess
+import tempfile
+from typing import List
+
+import requests
 
 from geniusrise_cli.config import BITBUCKET_ACCESS_TOKEN
 from geniusrise_cli.data_sources.code_hosting.static import valid_extensions
@@ -39,7 +40,7 @@ class BitbucketCloudDataFetcher:
             )
 
             # Walk through the repository directory, read the files
-            for root, dirs, files in os.walk(tmp_dir):
+            for root, _, files in os.walk(tmp_dir):
                 for file in files:
                     if any(file.endswith(ext) for ext in valid_extensions):
                         with open(os.path.join(root, file)) as f:
