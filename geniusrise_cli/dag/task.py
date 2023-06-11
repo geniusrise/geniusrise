@@ -94,7 +94,7 @@ class Task(BaseOperator):
                     local_file = os.path.join(root, file)
                     s3_file = os.path.join(self.output_folder, local_file.replace(data_dir + "/", ""))
                     self.s3.upload_file(local_file, self.bucket, s3_file)
-            self.trace.info(f"Stored data in output folder {self.output_folder}")
+            self.trace.info(f"Synced data to S3: {data_dir} -> s3://{self.output_folder}")
         except (BotoCoreError, ClientError) as e:
             self.trace.error(f"Error storing data in S3: {e}")
             raise
@@ -119,7 +119,7 @@ class Task(BaseOperator):
                     local_file = os.path.join(local_dir, obj["Key"].replace(data_dir + "/", ""))
                     os.makedirs(os.path.dirname(local_file), exist_ok=True)
                     self.s3.download_file(self.bucket, obj["Key"], local_file)
-            self.trace.info(f"Read data from input folder {data_dir}")
+            self.trace.info(f"Synced data from S3: s3://{data_dir} -> {local_dir}")
             return local_dir
         except (BotoCoreError, ClientError) as e:
             self.trace.error(f"Error reading data from S3: {e}")
