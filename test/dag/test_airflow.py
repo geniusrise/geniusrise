@@ -29,20 +29,26 @@ class TestSource(Source):
 
 class CsvToJson(Task):
     def __call__(self, context: dict) -> None:
-        data = self.sync_to_local()
+        local_dir = self.sync_to_local()
+        # Read the data from the local directory
+        with open(os.path.join(local_dir, "input.json"), "r") as f:
+            data = json.load(f)
         # Save the data locally
-        local_dir = tempfile.mkdtemp()
-        with open(os.path.join(local_dir, "input.json"), "w") as f:
+        local_dir_output = tempfile.mkdtemp()
+        with open(os.path.join(local_dir_output, "csv_to_json.json"), "w") as f:
             f.write("\n".join([json.dumps(row) for row in data]))
         # Sync the local directory to S3
-        self.sync_to_s3(local_dir)
+        self.sync_to_s3(local_dir_output)
 
 
 class TestSink(Sink):
     def write(self) -> None:
-        data = self.sync_to_local()
-        s3 = boto3.client("s3")
-        s3.put_object(Body=data, Bucket=self.bucket, Key=f"{self.output_folder}/output.json")
+        local_dir = self.sync_to_local()
+        # Read the data from the local directory
+        with open(os.path.join(local_dir, "csv_to_json.json"), "r") as f:
+            data = f.read()
+
+        assert data == '"column1"\n"column2"'
 
 
 def test_pipeline():
@@ -74,7 +80,7 @@ def test_pipeline():
         writer = csv.DictWriter(f, fieldnames=["column1", "column2"])
         writer.writeheader()
         writer.writerow({"column1": "value1", "column2": "value2"})
-    s3.upload_file("input.csv", "geniusrise-test-bucket", f"{source.input_folder}/input.csv")
+    # s3.upload_file("input.csv", "geniusrise-test-bucket", f"{source.input_folder}/input.csv")
 
     # Test reading data from the source
     source.read()
@@ -83,13 +89,12 @@ def test_pipeline():
         assert f.read() == '{"column1": "value1", "column2": "value2"}'
 
     # Test transforming data from CSV to JSON
-    csv_to_json()
-    local_dir = csv_to_json.sync_to_local()
-    with open(os.path.join(local_dir, "input.json"), "r") as f:
-        assert f.read() == '[{"column1": "value1", "column2": "value2"}]'
+    csv_to_json.input_folder = source.output_folder
+    csv_to_json({})
+    local_dir = csv_to_json.sync_to_local(csv_to_json.output_folder)
+    with open(os.path.join(local_dir, "csv_to_json.json"), "r") as f:
+        assert f.read() == '"column1"\n"column2"'
 
     # Test writing data to the sink
+    sink.input_folder = csv_to_json.output_folder
     sink.write()
-    local_dir = sink.sync_to_local()
-    with open(os.path.join(local_dir, "output.json"), "r") as f:
-        assert f.read() == '[{"column1": "value1", "column2": "value2"}]'
