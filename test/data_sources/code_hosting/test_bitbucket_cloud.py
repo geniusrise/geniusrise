@@ -1,4 +1,5 @@
 from unittest.mock import patch
+
 from geniusrise_cli.data_sources.code_hosting.bitbucket_cloud import BitbucketCloudDataFetcher
 
 
