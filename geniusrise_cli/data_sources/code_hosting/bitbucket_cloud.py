@@ -1,104 +1,145 @@
-import requests
-from typing import List
 import os
-import tempfile
-import subprocess
+import json
+import logging
+import requests
 import base64
-
-from geniusrise_cli.config import BITBUCKET_ACCESS_TOKEN
-from geniusrise_cli.data_sources.code_hosting.static import valid_extensions
+from typing import Any
 
 
-class BitbucketCloudDataFetcher:
-    def __init__(self, repo_name: str, workspace: str, username: str):
-        print("BITBUCKET_ACCESS_TOKEN", BITBUCKET_ACCESS_TOKEN)
+class BitbucketDataFetcher:
+    def __init__(self, workspace: str, repo_slug: str, username: str, password: str, output_folder: str):
+        """
+        Initialize BitbucketDataFetcher with workspace, repository slug, username, password, and output folder.
 
-        self.base_url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo_name}"
+        :param workspace: Bitbucket workspace.
+        :param repo_slug: Slug of the repository.
+        :param username: Bitbucket username.
+        :param password: Bitbucket password.
+        :param output_folder: Folder to save the fetched data.
+        """
+        self.base_url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo_slug}"
+        self.auth = (username, password)
+        self.output_folder = output_folder
         self.headers = {
-            "Authorization": f"Basic {base64.b64encode(f'{username}:{BITBUCKET_ACCESS_TOKEN}'.encode()).decode()}",
+            "Authorization": f"Basic {base64.b64encode(f'{username}:{password}'.encode()).decode()}",
         }
-        self.workspace = workspace
-        self.repo_name = repo_name
-        self.username = username
 
-    def fetch_code(self) -> List[str]:
-        contents = []
+        # Setup logging
+        logging.basicConfig(level=logging.INFO)
+        self.logger = logging.getLogger(__name__)
 
-        # Create a temporary directory
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            # Clone the repository to the temporary directory
-            subprocess.run(
-                [
-                    "git",
-                    "clone",
-                    "--quiet",  # Suppress output
-                    f"https://{self.username}:{BITBUCKET_ACCESS_TOKEN}@bitbucket.org/{self.workspace}/{self.repo_name}.git",
-                    tmp_dir,
-                ],
-                check=True,  # Raise an exception if the command fails
-            )
+    def fetch_code(self):
+        """
+        Clone the repository to the output folder.
+        """
+        try:
+            repo_url = f"{self.base_url}"
+            response = requests.get(repo_url, auth=self.auth)
+            response.raise_for_status()
+            clone_url = response.json()["links"]["clone"][0]["href"]
+            os.system(f"git clone {clone_url} {self.output_folder}")
+            self.logger.info("Repository cloned successfully.")
+        except Exception as e:
+            self.logger.error(f"Error cloning repository: {e}")
 
-            # Walk through the repository directory, read the files
-            for root, dirs, files in os.walk(tmp_dir):
-                for file in files:
-                    if any(file.endswith(ext) for ext in valid_extensions):
-                        with open(os.path.join(root, file)) as f:
-                            content = f.read()
-                            contents.append(
-                                f"File Name: {os.path.relpath(os.path.join(root, file), tmp_dir)}{os.linesep}Content:{os.linesep}{content}"
-                            )
+    def fetch_pull_requests(self):
+        """
+        Fetch all pull requests and save each to a separate file.
+        """
+        try:
+            pr_url = f"{self.base_url}/pullrequests"
+            response = requests.get(pr_url, headers=self.headers)
+            response.raise_for_status()
+            for pr in response.json()["values"]:
+                self.save_to_file(pr, f"pull_request_{pr['id']}.json")
+            self.logger.info("Pull requests fetched successfully.")
+        except Exception as e:
+            self.logger.error(f"Error fetching pull requests: {e}")
 
-        return contents
+    def fetch_commits(self):
+        """
+        Fetch all commits and save each to a separate file.
+        """
+        try:
+            commits_url = f"{self.base_url}/commits"
+            response = requests.get(commits_url, headers=self.headers)
+            response.raise_for_status()
+            for commit in response.json()["values"]:
+                self.save_to_file(commit, f"commit_{commit['hash']}.json")
+            self.logger.info("Commits fetched successfully.")
+        except Exception as e:
+            self.logger.error(f"Error fetching commits: {e}")
 
-    def fetch_pull_requests(self) -> List[str]:
-        response = requests.get(f"{self.base_url}/pullrequests", headers=self.headers)
-        response.raise_for_status()
-        pull_requests = response.json()["values"]
-        pr_data = []
-        for pr in pull_requests:
-            pr_data.append(f"Title: {pr['title']}\nDescription: {pr['description']}")
-        return pr_data
+    def fetch_issues(self):
+        """
+        Fetch all issues and save each to a separate file.
+        """
+        try:
+            issues_url = f"{self.base_url}/issues"
+            response = requests.get(issues_url, headers=self.headers)
+            response.raise_for_status()
+            for issue in response.json()["values"]:
+                self.save_to_file(issue, f"issue_{issue['id']}.json")
+            self.logger.info("Issues fetched successfully.")
+        except Exception as e:
+            self.logger.error(f"Error fetching issues: {e}")
 
-    def fetch_commits(self) -> List[str]:
-        response = requests.get(f"{self.base_url}/commits", headers=self.headers)
-        response.raise_for_status()
-        commits = response.json()["values"]
-        commit_data = []
-        for commit in commits:
-            commit_data.append(f"Message: {commit['message']}")
-        return commit_data
+    def fetch_releases(self):
+        """
+        Fetch all releases and save each to a separate file.
+        """
+        try:
+            releases_url = f"{self.base_url}/refs/tags"
+            response = requests.get(releases_url, headers=self.headers)
+            response.raise_for_status()
+            for release in response.json()["values"]:
+                self.save_tofile(release, f"release_{release['name']}.json")
+            self.logger.info("Releases fetched successfully.")
+        except Exception as e:
+            self.logger.error(f"Error fetching releases: {e}")
 
-    def fetch_issues(self) -> List[str]:
-        response = requests.get(f"{self.base_url}/issues", headers=self.headers)
-        response.raise_for_status()
-        issues = response.json()["values"]
-        issue_data = []
-        for issue in issues:
-            issue_data.append(f"Title: {issue['title']}\nDescription: {issue['content']['raw']}")
-        return issue_data
+    def fetch_repo_details(self):
+        """
+        Fetch repository details and save to a file.
+        """
+        try:
+            repo_url = f"{self.base_url}"
+            response = requests.get(repo_url, headers=self.headers)
+            response.raise_for_status()
+            self.save_to_file(response.json(), "repo_details.json")
+            self.logger.info("Repository details fetched successfully.")
+        except Exception as e:
+            self.logger.error(f"Error fetching repository details: {e}")
 
-    def fetch_repo_details(self) -> List[str]:
-        response = requests.get(self.base_url, headers=self.headers)
-        response.raise_for_status()
-        repo = response.json()
-        repo_details = [
-            f"Repo Name: {repo['name']}\n"
-            f"Description: {repo['description']}\n"
-            f"Language: {repo['language']}\n"
-            f"Created on: {repo['created_on']}\n"
-            f"Updated on: {repo['updated_on']}\n"
-            f"Size: {repo['size']}\n"
-            f"Is private: {repo['is_private']}\n"
-            f"Has wiki: {repo['has_wiki']}\n"
-            f"Has issues: {repo['has_issues']}\n"
-        ]
-        return repo_details
+    def save_to_file(self, data: Any, filename: str):
+        """
+        Save data to a file in the output folder.
 
-    def fetch_releases(self) -> List[str]:
-        response = requests.get(f"{self.base_url}/refs/tags", headers=self.headers)
-        response.raise_for_status()
-        releases = response.json()["values"]
-        release_data = []
-        for release in releases:
-            release_data.append(f"Name: {release['name']}\nTarget hash: {release['target']['hash']}")
-        return release_data
+        :param data: Data to save.
+        :param filename: Name of the file to save the data.
+        """
+        try:
+            local_dir = os.path.join(self.output_folder, filename)
+            with open(local_dir, "w") as f:
+                json.dump(data, f)
+            self.logger.info(f"Data saved to {filename}.")
+        except Exception as e:
+            self.logger.error(f"Error saving data to file: {e}")
+
+    def get(self, resource_type: str) -> str:
+        """
+        Call the appropriate function based on the resource type, save the data, and return the status.
+
+        :param resource_type: Type of the resource to fetch.
+        :return: Status message.
+        """
+        fetch_method = getattr(self, f"fetch_{resource_type}", None)
+        if not fetch_method:
+            self.logger.error(f"Invalid resource type: {resource_type}")
+            return f"Invalid resource type: {resource_type}"
+        try:
+            fetch_method()
+            return f"{resource_type} fetched successfully."
+        except Exception as e:
+            self.logger.error(f"Error fetching {resource_type}: {e}")
+            return f"Error fetching {resource_type}: {e}"
