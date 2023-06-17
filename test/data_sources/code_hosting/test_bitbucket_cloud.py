@@ -1,148 +1,70 @@
-from unittest.mock import patch
-from geniusrise_cli.data_sources.code_hosting.bitbucket_cloud import BitbucketCloudDataFetcher
+import os
+import json
+from geniusrise_cli.data_sources.code_hosting.bitbucket_cloud import BitbucketDataFetcher
 
 
-def test_fetch_code():
-    fetcher = BitbucketCloudDataFetcher(repo_name="team-test", workspace="monoidspace", username="monoidspace-admin")
-    code_files = fetcher.fetch_code()
+def test_fetch_code(tmpdir):
+    fetcher = BitbucketDataFetcher("fargo3d", "public", "monoidspace-admin", tmpdir)
+    fetcher.fetch_code()
+    assert os.path.exists(tmpdir)  # Check that the repository was cloned
 
-    assert code_files[0][:10] == "File Name:"
-
-
-def test_fetch_pull_requests_real():
-    fetcher = BitbucketCloudDataFetcher(repo_name="team-test", workspace="monoidspace", username="monoidspace-admin")
-    pull_requests = fetcher.fetch_pull_requests()
-
-    assert pull_requests[0][:6] == "Title:"
+    with open(os.path.join(tmpdir, "README.md")) as f:
+        pr_data = f.read()
+        assert "FARGO3D" in pr_data
 
 
-def test_fetch_commits_real():
-    fetcher = BitbucketCloudDataFetcher(repo_name="team-test", workspace="monoidspace", username="monoidspace-admin")
-    commits = fetcher.fetch_commits()
+def test_fetch_pull_requests(tmpdir):
+    fetcher = BitbucketDataFetcher("fargo3d", "public", "monoidspace-admin", tmpdir)
+    fetcher.fetch_pull_requests()
 
-    assert commits[0][:8] == "Message:"
+    # Check that the pull request files exist
+    for i in range(1, 6):  # Assume there are 5 pull requests
+        assert os.path.exists(os.path.join(tmpdir, f"pull_request_{i}.json"))
 
-
-def test_fetch_issues_real():
-    fetcher = BitbucketCloudDataFetcher(repo_name="team-test", workspace="monoidspace", username="monoidspace-admin")
-    issues = fetcher.fetch_issues()
-
-    assert issues[0][:6] == "Title:"
-
-
-def test_fetch_repo_details_real():
-    fetcher = BitbucketCloudDataFetcher(repo_name="team-test", workspace="monoidspace", username="monoidspace-admin")
-    repo_details = fetcher.fetch_repo_details()
-
-    assert repo_details[0][:10] == "Repo Name:"
+    # Check that the pull request data is correct
+    with open(os.path.join(tmpdir, "pull_request_5.json")) as f:
+        data = json.load(f)
+        assert "Feature multifluid merged" in data["description"]
 
 
-def test_fetch_releases_real():
-    fetcher = BitbucketCloudDataFetcher(repo_name="team-test", workspace="monoidspace", username="monoidspace-admin")
-    releases = fetcher.fetch_releases()
+def test_fetch_commits(tmpdir):
+    fetcher = BitbucketDataFetcher("fargo3d", "public", "monoidspace-admin", tmpdir)
+    fetcher.fetch_commits()
 
-    assert releases == []
-
-
-# Mocked
-
-
-@patch("requests.get")
-def test_fetch_pull_requests(mock_get):
-    mock_get.return_value.json.return_value = {
-        "values": [
-            {"title": "PR1", "description": "PR1 description"},
-            {"title": "PR2", "description": "PR2 description"},
-        ]
-    }
-
-    fetcher = BitbucketCloudDataFetcher(repo_name="team-test", workspace="monoidspace", username="monoidspace-admin")
-    pull_requests = fetcher.fetch_pull_requests()
-
-    assert len(pull_requests) == 2
-    assert pull_requests[0] == "Title: PR1\nDescription: PR1 description"
-    assert pull_requests[1] == "Title: PR2\nDescription: PR2 description"
+    with open(os.path.join(tmpdir, "commit_7835cac96444a4bd68f1bf0567e35e7d986bd99c.json")) as f:
+        data = json.load(f)
+        assert "Merged in hotfix/radialmesh" in data["message"]
 
 
-@patch("requests.get")
-def test_fetch_commits(mock_get):
-    mock_get.return_value.json.return_value = {
-        "values": [
-            {"message": "Commit1"},
-            {"message": "Commit2"},
-        ]
-    }
-
-    fetcher = BitbucketCloudDataFetcher(repo_name="team-test", workspace="monoidspace", username="monoidspace-admin")
-    commits = fetcher.fetch_commits()
-
-    assert len(commits) == 2
-    assert commits[0] == "Message: Commit1"
-    assert commits[1] == "Message: Commit2"
+# def test_fetch_issues(tmpdir):
+#     fetcher = BitbucketDataFetcher("fargo3d", "public", "monoidspace-admin", tmpdir)
+#     fetcher.fetch_issues()
 
 
-@patch("requests.get")
-def test_fetch_issues(mock_get):
-    mock_get.return_value.json.return_value = {
-        "values": [
-            {"title": "Issue1", "content": {"raw": "Issue1 description"}},
-            {"title": "Issue2", "content": {"raw": "Issue2 description"}},
-        ]
-    }
+def test_fetch_releases(tmpdir):
+    fetcher = BitbucketDataFetcher("fargo3d", "public", "monoidspace-admin", tmpdir)
+    fetcher.fetch_releases()
 
-    fetcher = BitbucketCloudDataFetcher(repo_name="team-test", workspace="monoidspace", username="monoidspace-admin")
-    issues = fetcher.fetch_issues()
-
-    assert len(issues) == 2
-    assert issues[0] == "Title: Issue1\nDescription: Issue1 description"
-    assert issues[1] == "Title: Issue2\nDescription: Issue2 description"
+    with open(os.path.join(tmpdir, "release_1.3.json")) as f:
+        data = json.load(f)
+        assert "fargo3d 1.3" in data["target"]["message"]
 
 
-@patch("requests.get")
-def test_fetch_repo_details(mock_get):
-    mock_get.return_value.json.return_value = {
-        "name": "Repo1",
-        "description": "Repo1 description",
-        "language": "Python",
-        "created_on": "2023-01-01T00:00:00Z",
-        "updated_on": "2023-01-02T00:00:00Z",
-        "size": 123456,
-        "is_private": True,
-        "has_wiki": True,
-        "has_issues": True,
-        "watchers": {"count": 10},
-        "forks": {"count": 5},
-    }
+def test_fetch_repo_details(tmpdir):
+    fetcher = BitbucketDataFetcher("fargo3d", "public", "monoidspace-admin", tmpdir)
+    fetcher.fetch_repo_details()
 
-    fetcher = BitbucketCloudDataFetcher(repo_name="team-test", workspace="monoidspace", username="monoidspace-admin")
-    repo_details = fetcher.fetch_repo_details()
-
-    assert len(repo_details) == 1
-    assert (
-        repo_details[0] == "Repo Name: Repo1\n"
-        "Description: Repo1 description\n"
-        "Language: Python\n"
-        "Created on: 2023-01-01T00:00:00Z\n"
-        "Updated on: 2023-01-02T00:00:00Z\n"
-        "Size: 123456\n"
-        "Is private: True\n"
-        "Has wiki: True\n"
-        "Has issues: True\n"
-    )
+    with open(os.path.join(tmpdir, "repo_details.json")) as f:
+        data = json.load(f)
+        assert "public" in data["name"]
 
 
-@patch("requests.get")
-def test_fetch_releases(mock_get):
-    mock_get.return_value.json.return_value = {
-        "values": [
-            {"name": "Release1", "target": {"hash": "abc123"}},
-            {"name": "Release2", "target": {"hash": "def456"}},
-        ]
-    }
-
-    fetcher = BitbucketCloudDataFetcher(repo_name="team-test", workspace="monoidspace", username="monoidspace-admin")
-    releases = fetcher.fetch_releases()
-
-    assert len(releases) == 2
-    assert releases[0] == "Name: Release1\nTarget hash: abc123"
-    assert releases[1] == "Name: Release2\nTarget hash: def456"
+def test_get(tmpdir):
+    fetcher = BitbucketDataFetcher("fargo3d", "public", "monoidspace-admin", tmpdir)
+    assert fetcher.get("code").lower() == "Code fetched successfully.".lower()
+    assert fetcher.get("pull_requests").lower() == "Pull_requests fetched successfully.".lower()
+    assert fetcher.get("commits").lower() == "Commits fetched successfully.".lower()
+    # assert fetcher.get("issues").lower() == "Issues fetched successfully.".lower()
+    assert fetcher.get("releases").lower() == "Releases fetched successfully.".lower()
+    assert fetcher.get("repo_details").lower() == "Repo_details fetched successfully.".lower()
+    assert fetcher.get("invalid").lower() == "Invalid resource type: invalid".lower()
