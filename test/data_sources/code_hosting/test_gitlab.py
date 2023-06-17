@@ -15,8 +15,8 @@ def test_fetch_merge_requests(tmpdir):
 
     # Check that the merge request data is correct
     with open(os.path.join(tmpdir, "merge_request_204423908.json")) as f:
-        mr_data = json.load(f)
-        assert "Signed-off-by" in mr_data["description"]
+        data = json.load(f)
+        assert "Signed-off-by" in data["description"]
 
 
 def test_fetch_commits(tmpdir):
@@ -27,8 +27,8 @@ def test_fetch_commits(tmpdir):
     assert os.path.exists(os.path.join(tmpdir, "commit_c1c67abbaf91f624347bb3ae96eabe3a1b742478.json"))
 
     with open(os.path.join(tmpdir, "commit_c1c67abbaf91f624347bb3ae96eabe3a1b742478.json")) as f:
-        mr_data = json.load(f)
-        assert "Add file with a _flattable_" in mr_data["message"]
+        data = json.load(f)
+        assert "Add file with a _flattable_" in data["message"]
 
 
 def test_fetch_issues(tmpdir):
@@ -36,8 +36,8 @@ def test_fetch_issues(tmpdir):
     fetcher.fetch_issues()
 
     with open(os.path.join(tmpdir, "issue_129039368.json")) as f:
-        issue = json.load(f)
-        assert "Code Suggestions" in issue["title"]
+        data = json.load(f)
+        assert "Code Suggestions" in data["title"]
 
 
 def test_fetch_releases(tmpdir):
@@ -45,8 +45,8 @@ def test_fetch_releases(tmpdir):
     fetcher.fetch_releases()
 
     with open(os.path.join(tmpdir, "release_v9.9.json")) as f:
-        issue = json.load(f)
-        assert "Test" in issue["description"]
+        data = json.load(f)
+        assert "Test" in data["description"]
 
 
 def test_fetch_repo_details(tmpdir):
