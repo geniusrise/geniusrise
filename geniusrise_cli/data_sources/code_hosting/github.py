@@ -15,7 +15,6 @@ class GithubDataFetcher:
 
         :param repo_name: Name of the repository.
         :param output_folder: Folder to save the fetched data.
-        :param access_token: Github access token.
         """
         self.github = Github(GITHUB_ACCESS_TOKEN)
         self.repo = self.github.get_repo(repo_name)
