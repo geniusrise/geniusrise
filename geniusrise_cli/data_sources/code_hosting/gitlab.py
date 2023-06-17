@@ -47,7 +47,7 @@ class GitlabDataFetcher:
                     "updated_at": mr.updated_at,
                     "merged_at": mr.merged_at,
                     "closed_at": mr.closed_at,
-                    "diff": mr.diff(),
+                    "diff": [x["diff"] for i in mr.diffs.list() for x in mr.diffs.get(i.id).diffs],
                     "comments": [note.body for note in mr.notes.list(all=True)],
                 }
                 self.save_to_file(mr_dict, f"merge_request_{mr.id}.json")
@@ -103,14 +103,13 @@ class GitlabDataFetcher:
         try:
             for release in self.repo.releases.list(all=True):
                 release_dict = {
-                    "id": release.id,
                     "name": release.name,
                     "tag_name": release.tag_name,
                     "description": release.description,
                     "created_at": release.created_at,
                     "released_at": release.released_at,
                 }
-                self.save_to_file(release_dict, f"release_{release.id}.json")
+                self.save_to_file(release_dict, f"release_{release.tag_name}.json")
             self.log.info("Releases fetched successfully.")
         except Exception as e:
             self.log.error(f"Error fetching releases: {e}")
@@ -120,6 +119,7 @@ class GitlabDataFetcher:
         Fetch repository details and save to a file.
         """
         try:
+            self.fetch_code()
             with open(os.path.join(self.output_folder, "README.md"), "r") as readme_file:
                 readme_content = readme_file.read()
             repo_details = {
