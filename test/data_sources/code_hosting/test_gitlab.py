@@ -1,43 +1,67 @@
+import os
+import json
 from geniusrise_cli.data_sources.code_hosting.gitlab import GitlabDataFetcher
 
 
-def test_fetch_code():
-    fetcher = GitlabDataFetcher(repo_id="14136772")
-    code_files = fetcher.fetch_code()
-
-    assert code_files[0][:10] == "File Name:"
-
-
-def test_fetch_merge_requests():
-    fetcher = GitlabDataFetcher(repo_id="14136772")
-    merge_requests = fetcher.fetch_merge_requests()
-
-    assert merge_requests[0][:10] == "Title: Add"
+def test_fetch_code(tmpdir):
+    fetcher = GitlabDataFetcher("gitlab-org/gitlab-test-test", tmpdir)
+    fetcher.fetch_code()
+    assert os.path.exists(f"{tmpdir}/foo")  # Check that the repository was cloned
 
 
-def test_fetch_commits():
-    fetcher = GitlabDataFetcher(repo_id="14136772")
-    commits = fetcher.fetch_commits()
+def test_fetch_merge_requests(tmpdir):
+    fetcher = GitlabDataFetcher("gitlab-org/gitlab-test", tmpdir)
+    fetcher.fetch_merge_requests()
 
-    assert commits[0][:10] == "Commit Mes"
-
-
-def test_fetch_issues():
-    fetcher = GitlabDataFetcher(repo_id="14136772")
-    issues = fetcher.fetch_issues()
-
-    assert issues[0][:10] == "Title: lel"
+    # Check that the merge request data is correct
+    with open(os.path.join(tmpdir, "merge_request_204423908.json")) as f:
+        mr_data = json.load(f)
+        assert "Signed-off-by" in mr_data["description"]
 
 
-def test_fetch_repo_details():
-    fetcher = GitlabDataFetcher(repo_id="14136772")
-    repo_details = fetcher.fetch_repo_details()
+def test_fetch_commits(tmpdir):
+    fetcher = GitlabDataFetcher("gitlab-org/gitlab-test", tmpdir)
+    fetcher.fetch_commits()
 
-    assert repo_details[0][:10] == "Repo Name:"
+    # Check that the commit files exist
+    assert os.path.exists(os.path.join(tmpdir, "commit_c1c67abbaf91f624347bb3ae96eabe3a1b742478.json"))
+
+    with open(os.path.join(tmpdir, "commit_c1c67abbaf91f624347bb3ae96eabe3a1b742478.json")) as f:
+        mr_data = json.load(f)
+        assert "Add file with a _flattable_" in mr_data["message"]
 
 
-def test_fetch_releases():
-    fetcher = GitlabDataFetcher(repo_id="14136772")
-    releases = fetcher.fetch_releases()
+def test_fetch_issues(tmpdir):
+    fetcher = GitlabDataFetcher("gitlab-org/editor-extensions/gitlab-jetbrains-plugin", tmpdir)
+    fetcher.fetch_issues()
 
-    assert releases[0][:10] == "Release Na"
+    with open(os.path.join(tmpdir, "issue_129039368.json")) as f:
+        issue = json.load(f)
+        assert "Code Suggestions" in issue["title"]
+
+
+def test_fetch_releases(tmpdir):
+    fetcher = GitlabDataFetcher("gitlab-org/gitlab-test", tmpdir)
+    fetcher.fetch_releases()
+
+    with open(os.path.join(tmpdir, "release_v9.9.json")) as f:
+        issue = json.load(f)
+        assert "Test" in issue["description"]
+
+
+def test_fetch_repo_details(tmpdir):
+    fetcher = GitlabDataFetcher("gitlab-org/gitlab-test", tmpdir)
+    fetcher.fetch_repo_details()
+    # Check that the repo details file exists
+    assert os.path.exists(os.path.join(tmpdir, "repo_details.json"))
+
+
+def test_get(tmpdir):
+    fetcher = GitlabDataFetcher("gitlab-org/gitlab-test", tmpdir)
+    assert fetcher.get("code").lower() == "Code fetched successfully.".lower()
+    assert fetcher.get("merge_requests").lower() == "Merge_requests fetched successfully.".lower()
+    assert fetcher.get("commits").lower() == "Commits fetched successfully.".lower()
+    assert fetcher.get("issues").lower() == "Issues fetched successfully.".lower()
+    assert fetcher.get("releases").lower() == "Releases fetched successfully.".lower()
+    assert fetcher.get("repo_details").lower() == "repo_details fetched successfully.".lower()
+    assert fetcher.get("invalid").lower() == "Invalid resource type: invalid".lower()
