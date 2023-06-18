@@ -2,13 +2,14 @@ import requests
 import os
 import json
 import logging
-from typing import Any
+from typing import Any, List
 from docx import Document
 import pandas as pd
 import PyPDF2
+import base64
 from io import BytesIO
 
-from geniusrise_cli.config import JIRA_ACCESS_TOKEN, JIRA_BASE_URL
+from geniusrise_cli.config import JIRA_ACCESS_TOKEN, JIRA_BASE_URL, JIRA_USERNAME
 
 
 class JiraDataFetcher:
@@ -22,8 +23,10 @@ class JiraDataFetcher:
         self.base_url = JIRA_BASE_URL
         self.project_key = project_key
         self.output_folder = output_folder
+
+        credentials = base64.b64encode(f"{JIRA_USERNAME}:{JIRA_ACCESS_TOKEN}".encode("utf-8")).decode("utf-8")
         self.headers = {
-            "Authorization": f"Bearer {JIRA_ACCESS_TOKEN}",
+            "Authorization": f"Basic {credentials}",
             "Accept": "application/json",
         }
 
@@ -52,11 +55,14 @@ class JiraDataFetcher:
                     linked_issues = self.__fetch_linked_issues(issue["key"])
                     subtasks = self.__fetch_subtasks(issue["key"])
                     parent_issue = self.__fetch_parent_issue(issue["key"])
+                    work_logs = self.__fetch_work_logs(issue["key"])
 
                     issue_dict = {
                         "key": issue["key"],
                         "summary": issue["fields"]["summary"],
-                        "description": issue["fields"]["description"]["content"][0]["content"][0]["text"],
+                        "description": issue["fields"]["description"]["content"][0]["content"][0]["text"]
+                        if issue["fields"]["description"]
+                        else None,
                         "comments": [
                             comment["body"]["content"][0]["content"][0]["text"]
                             for comment in issue["fields"]["comment"]["comments"]
@@ -69,7 +75,9 @@ class JiraDataFetcher:
                         "linked_issues": linked_issues,
                         "subtasks": subtasks,
                         "parent_issue": parent_issue,
+                        "work_logs": work_logs,
                     }
+
                     self.save_to_file(issue_dict, f"issue_{issue['key']}.json")
                 start_at += len(issues)
             self.log.info("Issues fetched successfully.")
@@ -88,13 +96,25 @@ class JiraDataFetcher:
             linked_issues = issue["fields"]["issuelinks"]
             linked_issues_list = []
             for linked_issue in linked_issues:
-                linked_issue_dict = {
-                    "id": linked_issue["id"],
-                    "type": linked_issue["type"]["name"],
-                    "inwardIssue": linked_issue.get("inwardIssue", {}).get("key"),
-                    "outwardIssue": linked_issue.get("outwardIssue", {}).get("key"),
-                }
-                linked_issues_list.append(linked_issue_dict)
+                linked_issue_key = linked_issue.get("inwardIssue", {}).get("key") or linked_issue.get(
+                    "outwardIssue", {}
+                ).get("key")
+                if linked_issue_key:
+                    linked_issue_response = requests.get(
+                        f"{self.base_url}/rest/api/3/issue/{linked_issue_key}", headers=self.headers
+                    )
+                    linked_issue_response.raise_for_status()
+                    linked_issue_details = linked_issue_response.json()
+                    linked_issue_dict = {
+                        "id": linked_issue["id"],
+                        "type": linked_issue["type"]["name"],
+                        "key": linked_issue_key,
+                        "title": linked_issue_details["fields"]["summary"],
+                        "description": linked_issue_details["fields"]["description"]["content"][0]["content"][0]["text"]
+                        if linked_issue_details["fields"]["description"]
+                        else None,
+                    }
+                    linked_issues_list.append(linked_issue_dict)
             return linked_issues_list
         except Exception as e:
             self.log.error(f"Error fetching linked issues: {e}")
@@ -125,6 +145,30 @@ class JiraDataFetcher:
             self.log.error(f"Error fetching subtasks: {e}")
             return []
 
+    def __fetch_parent_issue(self, issue_key: str):
+        """
+        Fetch the parent issue for a specific issue.
+
+        :param issue_key: Key of the issue.
+        :return: Parent issue.
+        """
+        try:
+            response = requests.get(f"{self.base_url}/rest/api/3/issue/{issue_key}", headers=self.headers)
+            response.raise_for_status()
+            issue = response.json()
+            parent_issue = issue["fields"].get("parent")
+            if parent_issue:
+                parent_issue_dict = {
+                    "id": parent_issue["id"],
+                    "key": parent_issue["key"],
+                    "summary": parent_issue["fields"]["summary"],
+                }
+                return parent_issue_dict
+            return None
+        except Exception as e:
+            self.log.error(f"Error fetching parent issue: {e}")
+            return None
+
     def __fetch_linked_confluence_pages(self, issue_key: str):
         """
         Fetch linked Confluence pages for a specific issue.
@@ -140,8 +184,9 @@ class JiraDataFetcher:
             for link in remote_links:
                 if "application" in link and link["application"]["type"] == "com.atlassian.confluence":
                     page_id = link["object"]["url"].split("/")[-1]
+                    # TODO: fix this
                     page_response = requests.get(
-                        f"https://{JIRA_BASE_URL}/wiki/rest/api/content/{page_id}?expand=body.view",
+                        f"{self.base_url}/wiki/rest/api/content/{page_id}?expand=body.view",
                         headers=self.headers,
                     )
                     page_response.raise_for_status()
@@ -157,7 +202,7 @@ class JiraDataFetcher:
         Fetch project details and save to a file.
         """
         try:
-            response = requests.get(f"{self.base_url}/project/{self.project_key}", headers=self.headers)
+            response = requests.get(f"{self.base_url}/rest/api/3/project/{self.project_key}", headers=self.headers)
             response.raise_for_status()
             project = response.json()
 
@@ -201,7 +246,7 @@ class JiraDataFetcher:
             self.log.error(f"Error fetching assignable users: {e}")
             raise
 
-    def fetch_work_logs(self, issue_key: str) -> None:
+    def __fetch_work_logs(self, issue_key: str) -> List[dict]:
         """
         Fetch all work logs for a specific issue and save to a separate file.
 
@@ -211,6 +256,7 @@ class JiraDataFetcher:
             response = requests.get(f"{self.base_url}/rest/api/3/issue/{issue_key}/worklog", headers=self.headers)
             response.raise_for_status()
             work_logs = response.json()["worklogs"]
+            work_log_dicts = []
             for work_log in work_logs:
                 work_log_dict = {
                     "author": work_log["author"]["displayName"],
@@ -218,11 +264,12 @@ class JiraDataFetcher:
                     "created": work_log["created"],
                     "comment": work_log["comment"],
                 }
-                self.save_to_file(work_log_dict, f"work_log_{work_log['id']}.json")
+                work_log_dicts.append(work_log_dict)
             self.log.info("Work logs fetched successfully.")
+            return work_log_dicts
         except Exception as e:
             self.log.error(f"Error fetching work logs: {e}")
-            raise
+            return []
 
     def fetch_attachments(self):
         """
@@ -313,3 +360,21 @@ class JiraDataFetcher:
         except Exception as e:
             self.log.error(f"Error saving data to file: {e}")
             raise
+
+    def get(self, resource_type: str) -> str:
+        """
+        Call the appropriate function based on the resource type, save the data, and return the status.
+
+        :param resource_type: Type of the resource to fetch.
+        :return: Status message.
+        """
+        fetch_method = getattr(self, f"fetch_{resource_type}", None)
+        if not fetch_method:
+            self.log.error(f"Invalid resource type: {resource_type}")
+            return f"Invalid resource type: {resource_type}"
+        try:
+            fetch_method()
+            return f"{resource_type} fetched successfully."
+        except Exception as e:
+            self.log.error(f"Error fetching {resource_type}: {e}")
+            return f"Error fetching {resource_type}: {e}"
