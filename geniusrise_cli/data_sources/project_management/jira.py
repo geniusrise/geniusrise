@@ -1,4 +1,5 @@
 import requests
+import re
 import os
 import json
 import logging
@@ -183,15 +184,17 @@ class JiraDataFetcher:
             confluence_pages = []
             for link in remote_links:
                 if "application" in link and link["application"]["type"] == "com.atlassian.confluence":
-                    page_id = link["object"]["url"].split("/")[-1]
-                    # TODO: fix this
-                    page_response = requests.get(
-                        f"{self.base_url}/wiki/rest/api/content/{page_id}?expand=body.view",
-                        headers=self.headers,
-                    )
-                    page_response.raise_for_status()
-                    page_content = page_response.json()["body"]["view"]["value"]
-                    confluence_pages.append({"title": link["object"]["title"], "content": page_content})
+                    url = link["object"]["url"]
+                    match = re.search(r"pageId=(\d+)", url)
+                    if match:
+                        page_id = match.group(1)
+                        page_response = requests.get(
+                            f"{self.base_url}/wiki/rest/api/content/{page_id}?expand=body.view",
+                            headers=self.headers,
+                        )
+                        page_response.raise_for_status()
+                        page_content = page_response.json()["body"]["view"]["value"]
+                        confluence_pages.append({"title": link["object"]["title"], "content": page_content})
             return confluence_pages
         except Exception as e:
             self.log.error(f"Error fetching linked Confluence pages: {e}")
