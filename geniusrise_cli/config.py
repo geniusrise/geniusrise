@@ -33,8 +33,7 @@ BITBUCKET_URL = os.environ.get("BITBUCKET_URL", "https://bitbucket.org")
 
 JIRA_ACCESS_TOKEN = os.environ.get("JIRA_ACCESS_TOKEN", "")
 JIRA_BASE_URL = os.environ.get("JIRA_BASE_URL", "https://jira.atlassian.net")
-JIRA_USERNAME = os.environ.get("JIRA_USERNAME", "")
-JIRA_PASSWORD = os.environ.get("JIRA_PASSWORD", "")
+JIRA_USERNAME = os.environ.get("JIRA_USERNAME", "admin")
 
 CLICKUP_API_TOKEN = os.environ.get("CLICKUP_API_TOKEN", "")
 
