@@ -18,7 +18,12 @@ def test_fetch_issues(tmpdir):
         "assignee": "Russi Chatterjee",
         "created": "2023-05-24T23:47:03.149+0530",
         "updated": "2023-06-18T20:30:23.614+0530",
-        "linked_confluence_pages": [],
+        "linked_confluence_pages": [
+            {
+                "title": "Wiki Page",
+                "content": '<p>test </p><p /><div class="code panel pdl conf-macro output-block" style="border-width: 1px;" data-hasbody="true" data-macro-name="code" data-macro-id="a0bb434e-8fe5-4969-a186-255a7a4f5dae"><div class="codeContent panelContent pdl">\n<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: py; gutter: false; theme: Confluence" data-theme="Confluence">test</pre>\n</div></div><p />',
+            }
+        ],
         "linked_issues": [
             {"id": "10001", "type": "Blocks", "key": "TT-10", "title": "zxc", "description": None},
             {"id": "10000", "type": "Blocks", "key": "TT-5", "title": "afasdcsd s", "description": None},
@@ -88,4 +93,4 @@ def test_get_negative(tmpdir):
     jira_fetcher = JiraDataFetcher("team-test", tmpdir)
     # Test the get method with an invalid resource type
     status = jira_fetcher.get("invalid_resource_type")
-    assert status == "Invalid resource type: invalid_resource_type"
+    assert status == "Error fetching invalid_resource_type"
