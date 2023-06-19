@@ -93,4 +93,4 @@ def test_get_negative(tmpdir):
     jira_fetcher = JiraDataFetcher("team-test", tmpdir)
     # Test the get method with an invalid resource type
     status = jira_fetcher.get("invalid_resource_type")
-    assert status == "Error fetching invalid_resource_type"
+    assert status == "Invalid resource type: invalid_resource_type"
