@@ -1,6 +1,6 @@
 from typing import List
 from vertexai.preview.language_models import ChatModel
-from geniusrise_cli.preprocessing.prompts import generate_prompts_from_x
+from geniusrise_cli.preprocessing.prompts import prompt_generate_prompts
 from geniusrise_cli.llm.types import FineTuningData, FineTuningDataItem
 
 
@@ -24,7 +24,7 @@ class PaLMPreprocessor:
             )
             for _ in range(10):
                 prompt = FineTuningDataItem(
-                    prompt=string, completion=chat.send_message(f"{generate_prompts_from_x(x=what)}{string}").text
+                    prompt=string, completion=chat.send_message(f"{prompt_generate_prompts(x=what)}{string}").text
                 )
                 fine_tuning_data.append(prompt)
         return FineTuningData(data=fine_tuning_data)

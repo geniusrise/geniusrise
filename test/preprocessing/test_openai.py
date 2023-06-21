@@ -8,7 +8,7 @@ import pandas as pd
 
 from geniusrise_cli.llm.types import FineTuningData, FineTuningDataItem
 from geniusrise_cli.preprocessing.openai import OpenAIPreprocessor
-from geniusrise_cli.preprocessing.prompts import generate_prompts_from_x
+from geniusrise_cli.preprocessing.prompts import prompt_generate_prompts
 
 
 def test_generate_prompts():
@@ -26,7 +26,7 @@ def test_generate_prompts():
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": f"{generate_prompts_from_x(x=what)}Test string 2"},
+                {"role": "user", "content": f"{prompt_generate_prompts(x=what)}Test string 2"},
             ],
         )
 
