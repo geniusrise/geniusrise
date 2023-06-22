@@ -1,7 +1,9 @@
 from typing import List
+
 from vertexai.preview.language_models import ChatModel
-from geniusrise_cli.preprocessing.prompts import generate_prompts_from_x
+
 from geniusrise_cli.llm.types import FineTuningData, FineTuningDataItem
+from geniusrise_cli.preprocessing.prompts import generate_prompts_from_x
 
 
 class PaLMPreprocessor:
