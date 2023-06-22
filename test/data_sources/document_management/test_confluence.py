@@ -1,44 +1,43 @@
+import os
+import json
 from geniusrise_cli.data_sources.document_management.confluence import ConfluenceDataFetcher
 
-
-def test_fetch_spaces(mocker):
-    # Mock the Confluence API
-    mocker.patch.object(ConfluenceDataFetcher, "confluence", autospec=True)
-    ConfluenceDataFetcher.confluence.get_all_spaces.return_value = [
-        {"key": "space1", "name": "Space 1"},
-        {"key": "space2", "name": "Space 2"},
-    ]
-    ConfluenceDataFetcher.confluence.get_all_pages_from_space.return_value = [{"title": "Page 1"}, {"title": "Page 2"}]
-
-    fetcher = ConfluenceDataFetcher()
-    result = fetcher.fetch_spaces()
-
-    assert len(result) == 2
-    assert "Space Key: space1" in result[0]
-    assert "Pages: Page 1, Page 2" in result[0]
-    assert "Space Key: space2" in result[1]
+SPACE_KEY = "TT"
 
 
-def test_fetch_documents(mocker):
-    # Mock the Confluence API
-    mocker.patch.object(ConfluenceDataFetcher, "confluence", autospec=True)
-    ConfluenceDataFetcher.confluence.get_all_pages_from_space.return_value = [
-        {"id": "page1", "title": "Page 1"},
-        {"id": "page2", "title": "Page 2"},
-    ]
-    ConfluenceDataFetcher.confluence.get_page_labels.return_value = ["label1", "label2"]
-    ConfluenceDataFetcher.confluence.get_group_members.return_value = [
-        {"displayName": "User 1"},
-        {"displayName": "User 2"},
-    ]
-    ConfluenceDataFetcher.confluence.history.return_value = "history"
+def test_fetch_pages(tmpdir):
+    fetcher = ConfluenceDataFetcher(SPACE_KEY, tmpdir)
 
-    fetcher = ConfluenceDataFetcher()
-    result = fetcher.fetch_documents()
+    # Test fetch_pages
+    fetcher.fetch_pages()
+    assert os.listdir(tmpdir), "No files were created by fetch_pages"
 
-    assert len(result) == 2
-    assert "Page ID: page1" in result[0]
-    assert "Labels: label1, label2" in result[0]
-    assert "Users: User 1, User 2" in result[0]
-    assert "History: history" in result[0]
-    assert "Page ID: page2" in result[1]
+    with open(os.path.join(tmpdir, "page_425985.json")) as f:
+        data = json.load(f)
+    assert data == {
+        "id": "425985",
+        "title": "test",
+        "type": "page",
+        "status": "current",
+        "comments": ["<p>erokom</p>", "<p>keno</p>", "<p>chorom</p>", "<p>ektu</p>"],
+        "attachments": [],
+    }
+
+
+def test_fetch_blogs(tmpdir):
+    fetcher = ConfluenceDataFetcher(SPACE_KEY, tmpdir)
+
+    # Test fetch_blogs
+    fetcher.fetch_blogs()
+    assert os.listdir(tmpdir), "No files were created by fetch_blogs"
+
+    with open(os.path.join(tmpdir, "page_1867790.json")) as f:
+        data = json.load(f)
+    assert data == {
+        "id": "1867790",
+        "title": "blug",
+        "type": "blogpost",
+        "status": "current",
+        "comments": ["<p>lel</p>", "<p>kyu</p>", "<p>lasol</p>"],
+        "attachments": [],
+    }
