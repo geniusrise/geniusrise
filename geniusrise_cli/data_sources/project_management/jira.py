@@ -1,161 +1,383 @@
+import requests
+import re
 import os
-from typing import List
+import json
+import logging
+from typing import Any, List
+from docx import Document
+import pandas as pd
+import PyPDF2
+import base64
+from io import BytesIO
 
-from atlassian import Jira
-
-from geniusrise_cli.config import JIRA_ACCESS_TOKEN, JIRA_URL, JIRA_USERNAME
+from geniusrise_cli.config import JIRA_ACCESS_TOKEN, JIRA_BASE_URL, JIRA_USERNAME
 
 
 class JiraDataFetcher:
-    """
-    A class to fetch data from Jira.
-    """
-
-    def __init__(self, url: str = JIRA_URL, username: str = JIRA_USERNAME, password: str = JIRA_ACCESS_TOKEN):
+    def __init__(self, project_key: str, output_folder: str):
         """
-        Initializes the JiraDataFetcher with a Jira instance.
+        Initialize JiraDataFetcher with project key and output folder.
 
-        :param url: The URL of the Jira instance.
-        :param username: The username to authenticate with.
-        :param password: The password or token to authenticate with.
+        :param project_key: Key of the Jira project.
+        :param output_folder: Folder to save the fetched data.
         """
-        self.jira = Jira(url=url, username=username, password=password)
+        self.base_url = JIRA_BASE_URL
+        self.project_key = project_key
+        self.output_folder = output_folder
 
-    def fetch_issues(self) -> List[str]:
+        credentials = base64.b64encode(f"{JIRA_USERNAME}:{JIRA_ACCESS_TOKEN}".encode("utf-8")).decode("utf-8")
+        self.headers = {
+            "Authorization": f"Basic {credentials}",
+            "Accept": "application/json",
+        }
+
+        self.log = logging.getLogger(__name__)
+
+    def fetch_issues(self):
         """
-        Fetches all issues from all projects.
-
-        :return: A list of strings, each representing an issue.
+        Fetch all issues in the project and save each to a separate file.
         """
-        # Get all projects
-        projects = self.jira.get_all_projects()
-
-        all_issue_data = []
-        for project in projects:
-            # Get all issues for the current project
-            issues = self.jira.jql(f"project={project['key']}")
-            for issue in issues["issues"]:
-                # Get the changelog for the current issue
-                changelog = self.jira.get_issue_changelog(issue["id"])
-                # Filter the changelog for status changes
-                status_changes = [
-                    change for change in changelog["histories"] if "status" in change["items"][0]["field"]
-                ]
-                # Format the status changes
-                status_change_data = [
-                    f"From: {change['items'][0]['fromString']}, To: {change['items'][0]['toString']}, Date: {change['created']}"
-                    for change in status_changes
-                ]
-                # Get the story points for the current issue
-                story_points = issue["fields"].get("customfield_10004")
-                # Format the issue data
-                issue_data = (
-                    f"Project Key: {project['key']}{os.linesep}"
-                    f"Issue Key: {issue['key']}{os.linesep}"
-                    f"Summary: {issue['fields']['summary']}{os.linesep}"
-                    f"Story Points: {story_points}{os.linesep}"
-                    f"Status Changes: {', '.join(status_change_data)}"
+        try:
+            start_at = 0
+            while True:
+                response = requests.get(
+                    f"{self.base_url}/rest/api/3/search?jql=project={self.project_key}&fields=*all&startAt={start_at}",
+                    headers=self.headers,
                 )
-                all_issue_data.append(issue_data)
-        return all_issue_data
+                response.raise_for_status()
+                issues = response.json()["issues"]
+                if not issues:
+                    break
+                for issue in issues:
+                    # Fetch linked Confluence documents
+                    linked_pages = self.__fetch_linked_confluence_pages(issue["key"])
 
-    def fetch_projects(self) -> List[str]:
+                    # Fetch linked issues, subtasks, and parent issue
+                    linked_issues = self.__fetch_linked_issues(issue["key"])
+                    subtasks = self.__fetch_subtasks(issue["key"])
+                    parent_issue = self.__fetch_parent_issue(issue["key"])
+                    work_logs = self.__fetch_work_logs(issue["key"])
+
+                    issue_dict = {
+                        "key": issue["key"],
+                        "summary": issue["fields"]["summary"],
+                        "description": issue["fields"]["description"]["content"][0]["content"][0]["text"]
+                        if issue["fields"]["description"]
+                        else None,
+                        "comments": [
+                            comment["body"]["content"][0]["content"][0]["text"]
+                            for comment in issue["fields"]["comment"]["comments"]
+                        ],
+                        "reporter": issue["fields"]["reporter"]["displayName"],
+                        "assignee": issue["fields"]["assignee"]["displayName"] if issue["fields"]["assignee"] else None,
+                        "created": issue["fields"]["created"],
+                        "updated": issue["fields"]["updated"],
+                        "linked_confluence_pages": linked_pages,
+                        "linked_issues": linked_issues,
+                        "subtasks": subtasks,
+                        "parent_issue": parent_issue,
+                        "work_logs": work_logs,
+                    }
+
+                    self.save_to_file(issue_dict, f"issue_{issue['key']}.json")
+                start_at += len(issues)
+            self.log.info("Issues fetched successfully.")
+        except Exception as e:
+            self.log.error(f"Error fetching issues: {e}")
+            raise
+
+    def __fetch_linked_issues(self, issue_key: str):
         """
-        Fetches all projects.
-
-        :return: A list of strings, each representing a project.
+        Fetch all linked issues for a specific issue and save to a separate file.
         """
-        # Get all projects
-        projects = self.jira.projects()
-        project_data = []
-        for project in projects:
-            # Format the project data
-            project_data.append(
-                f"Project Key: {project['key']}{os.linesep}"
-                f"Project Name: {project['name']}{os.linesep}"
-                f"Project Components: {', '.join(self.__fetch_project_components(project['key']))}{os.linesep}"
-                f"Project Versions: {', '.join(self.__fetch_project_versions(project['key']))}{os.linesep}"
-                f"Assignable Users: {', '.join(self.__fetch_assignable_users_for_project(project['key']))}"
-            )
-        return project_data
-
-    def __fetch_project_components(self, key: str) -> List[str]:
-        """
-        Fetches all components for a project.
-
-        :param key: The key of the project.
-        :return: A list of strings, each representing a componentSure, here's the continuation of the docstrings,
-        comments, and type hints:
-        """
-        # Get all components for the project
-        components = self.jira.get_project_components(key)
-        return [component["name"] for component in components]
-
-    def __fetch_project_versions(self, key: str) -> List[str]:
-        """
-        Fetches all versions for a project.
-
-        :param key: The key of the project.
-        :return: A list of strings, each representing a version.
-        """
-        # Get all versions for the project
-        versions = self.jira.get_project_versions(key)
-        return [version["name"] for version in versions]
-
-    def __fetch_assignable_users_for_project(self, project_key: str) -> List[str]:
-        """
-        Fetches all users that can be assigned to issues in a project.
-
-        :param project_key: The key of the project.
-        :return: A list of strings, each representing a user.
-        """
-        # Get all assignable users for the project
-        users = self.jira.get_all_assignable_users_for_project(project_key)
-        return [user["displayName"] for user in users]
-
-    def fetch_boards(self) -> List[str]:
-        """
-        Fetches all boards, along with their sprints and issues.
-
-        :return: A list of strings, each representing a board.
-        """
-        all_details = []
-
-        # Fetch all boards
-        boards = self.jira.get_all_agile_boards()
-        for board in boards["values"]:
-            board_name = board["name"]
-            board_owner = board["location"]["projectName"]
-
-            # Fetch all sprints for the current board
-            sprints = self.jira.get_all_sprint(board["id"])
-            for sprint in sprints["values"]:
-                sprint_name = sprint["name"]
-                sprint_start_date = sprint["startDate"]
-                sprint_end_date = sprint["endDate"]
-                sprint_goal = sprint["goal"]
-
-                # Fetch all issues for the current sprint
-                issues = self.jira.get_sprint_issues(sprint["id"], start=0, limit=1000)
-                issue_data = []
-                for issue in issues["issues"]:
-                    issue_key = issue["key"]
-                    issue_summary = issue["fields"]["summary"]
-                    issue_story_points = issue["fields"]["customfield_10004"]
-                    issue_data.append(
-                        f"Issue Key: {issue_key}, Summary: {issue_summary}, Story Points: {issue_story_points}"
+        try:
+            response = requests.get(f"{self.base_url}/rest/api/3/issue/{issue_key}", headers=self.headers)
+            response.raise_for_status()
+            issue = response.json()
+            linked_issues = issue["fields"]["issuelinks"]
+            linked_issues_list = []
+            for linked_issue in linked_issues:
+                linked_issue_key = linked_issue.get("inwardIssue", {}).get("key") or linked_issue.get(
+                    "outwardIssue", {}
+                ).get("key")
+                if linked_issue_key:
+                    linked_issue_response = requests.get(
+                        f"{self.base_url}/rest/api/3/issue/{linked_issue_key}", headers=self.headers
                     )
+                    linked_issue_response.raise_for_status()
+                    linked_issue_details = linked_issue_response.json()
+                    linked_issue_dict = {
+                        "id": linked_issue["id"],
+                        "type": linked_issue["type"]["name"],
+                        "key": linked_issue_key,
+                        "title": linked_issue_details["fields"]["summary"],
+                        "description": linked_issue_details["fields"]["description"]["content"][0]["content"][0]["text"]
+                        if linked_issue_details["fields"]["description"]
+                        else None,
+                    }
+                    linked_issues_list.append(linked_issue_dict)
+            return linked_issues_list
+        except Exception as e:
+            self.log.error(f"Error fetching linked issues: {e}")
+            return []
 
-                # Format the sprint details
-                sprint_details = (
-                    f"Board Name: {board_name}{os.linesep}"
-                    f"Board Owner: {board_owner}{os.linesep}"
-                    f"Sprint Name: {sprint_name}{os.linesep}"
-                    f"Sprint Start Date: {sprint_start_date}{os.linesep}"
-                    f"Sprint End Date: {sprint_end_date}{os.linesep}"
-                    f"Sprint Goal: {sprint_goal}{os.linesep}"
-                    f"Issues: {', '.join(issue_data)}"
+    def __fetch_subtasks(self, issue_key: str):
+        """
+        Fetch all subtasks for a specific issue.
+
+        :param issue_key: Key of the issue.
+        :return: List of subtasks.
+        """
+        try:
+            response = requests.get(f"{self.base_url}/rest/api/3/issue/{issue_key}", headers=self.headers)
+            response.raise_for_status()
+            issue = response.json()
+            subtasks = issue["fields"]["subtasks"]
+            subtasks_list = []
+            for subtask in subtasks:
+                subtask_dict = {
+                    "id": subtask["id"],
+                    "key": subtask["key"],
+                    "summary": subtask["fields"]["summary"],
+                }
+                subtasks_list.append(subtask_dict)
+            return subtasks_list
+        except Exception as e:
+            self.log.error(f"Error fetching subtasks: {e}")
+            return []
+
+    def __fetch_parent_issue(self, issue_key: str):
+        """
+        Fetch the parent issue for a specific issue.
+
+        :param issue_key: Key of the issue.
+        :return: Parent issue.
+        """
+        try:
+            response = requests.get(f"{self.base_url}/rest/api/3/issue/{issue_key}", headers=self.headers)
+            response.raise_for_status()
+            issue = response.json()
+            parent_issue = issue["fields"].get("parent")
+            if parent_issue:
+                parent_issue_dict = {
+                    "id": parent_issue["id"],
+                    "key": parent_issue["key"],
+                    "summary": parent_issue["fields"]["summary"],
+                }
+                return parent_issue_dict
+            return None
+        except Exception as e:
+            self.log.error(f"Error fetching parent issue: {e}")
+            return None
+
+    def __fetch_linked_confluence_pages(self, issue_key: str):
+        """
+        Fetch linked Confluence pages for a specific issue.
+
+        :param issue_key: Key of the issue.
+        :return: List of linked Confluence pages.
+        """
+        try:
+            response = requests.get(f"{self.base_url}/rest/api/3/issue/{issue_key}/remotelink", headers=self.headers)
+            response.raise_for_status()
+            remote_links = response.json()
+            confluence_pages = []
+            for link in remote_links:
+                if "application" in link and link["application"]["type"] == "com.atlassian.confluence":
+                    url = link["object"]["url"]
+                    match = re.search(r"pageId=(\d+)", url)
+                    if match:
+                        page_id = match.group(1)
+                        page_response = requests.get(
+                            f"{self.base_url}/wiki/rest/api/content/{page_id}?expand=body.view",
+                            headers=self.headers,
+                        )
+                        page_response.raise_for_status()
+                        page_content = page_response.json()["body"]["view"]["value"]
+                        confluence_pages.append({"title": link["object"]["title"], "content": page_content})
+            return confluence_pages
+        except Exception as e:
+            self.log.error(f"Error fetching linked Confluence pages: {e}")
+            return []
+
+    def fetch_project_details(self) -> None:
+        """
+        Fetch project details and save to a file.
+        """
+        try:
+            response = requests.get(f"{self.base_url}/rest/api/3/project/{self.project_key}", headers=self.headers)
+            response.raise_for_status()
+            project = response.json()
+
+            # Format the raw response
+            project_dict = {
+                "name": project.get("name"),
+                "description": project.get("description"),
+                "lead": project.get("lead", {}).get("displayName"),
+                "projectTypeKey": project.get("projectTypeKey"),
+                "projectCategory": project.get("projectCategory", {}).get("name"),
+                "issueTypes": [issue_type.get("name") for issue_type in project.get("issueTypes", [])],
+                "components": [component.get("name") for component in project.get("components", [])],
+            }
+
+            self.save_to_file(project_dict, "project_details.json")
+            self.log.info("Project details fetched successfully.")
+        except Exception as e:
+            self.log.error(f"Error fetching project details: {e}")
+            raise
+
+    def fetch_users(self) -> None:
+        """
+        Fetch all users that can be assigned to issues in the project and save to a file.
+        """
+        try:
+            response = requests.get(
+                f"{self.base_url}/rest/api/3/user/assignable/search?project={self.project_key}", headers=self.headers
+            )
+            response.raise_for_status()
+            users = response.json()
+            for user in users:
+                user_dict = {
+                    "name": user["displayName"],
+                    "emailAddress": user["emailAddress"],
+                    "active": user["active"],
+                    "timeZone": user["timeZone"],
+                }
+                self.save_to_file(user_dict, f"user_{user['accountId']}.json")
+            self.log.info("Assignable users fetched successfully.")
+        except Exception as e:
+            self.log.error(f"Error fetching assignable users: {e}")
+            raise
+
+    def __fetch_work_logs(self, issue_key: str) -> List[dict]:
+        """
+        Fetch all work logs for a specific issue and save to a separate file.
+
+        :param issue_key: The key of the issue for which to fetch work logs.
+        """
+        try:
+            response = requests.get(f"{self.base_url}/rest/api/3/issue/{issue_key}/worklog", headers=self.headers)
+            response.raise_for_status()
+            work_logs = response.json()["worklogs"]
+            work_log_dicts = []
+            for work_log in work_logs:
+                work_log_dict = {
+                    "author": work_log["author"]["displayName"],
+                    "time_spent": work_log["timeSpent"],
+                    "created": work_log["created"],
+                    "comment": work_log["comment"],
+                }
+                work_log_dicts.append(work_log_dict)
+            self.log.info("Work logs fetched successfully.")
+            return work_log_dicts
+        except Exception as e:
+            self.log.error(f"Error fetching work logs: {e}")
+            return []
+
+    def fetch_attachments(self):
+        """
+        Fetch all attachments in the project and save each to a separate file.
+        """
+        try:
+            start_at = 0
+            while True:
+                response = requests.get(
+                    f"{self.base_url}/rest/api/3/search?jql=project={self.project_key}&fields=attachment&startAt={start_at}",
+                    headers=self.headers,
                 )
-                all_details.append(sprint_details)
+                response.raise_for_status()
+                issues = response.json()["issues"]
+                if not issues:
+                    break
+                for issue in issues:
+                    for attachment in issue["fields"]["attachment"]:
+                        attachment_response = requests.get(attachment["content"], headers=self.headers)
+                        filename = attachment["filename"]
+                        content = self.__parse_attachment(attachment_response.content, filename)
+                        self.save_to_file(content, f"attachment_{attachment['id']}.txt")
+                start_at += len(issues)
+            self.log.info("Attachments fetched successfully.")
+        except Exception as e:
+            self.log.error(f"Error fetching attachments: {e}")
+            raise
 
-        return all_details
+    def __parse_attachment(self, content: bytes, filename: str) -> str:
+        """
+        Parse an attachment into text.
+
+        :param content: Content of the attachment.
+        :param filename: Name of the attachment file.
+        :return: Text content of the attachment.
+        """
+        if filename.endswith(".docx"):
+            return self.__parse_word_document(content)
+        elif filename.endswith(".xlsx") or filename.endswith(".xls"):
+            return self.__parse_excel_spreadsheet(content)
+        elif filename.endswith(".pdf"):
+            return self.__parse_pdf(content)
+        else:
+            return content.decode()
+
+    def __parse_word_document(self, content: bytes) -> str:
+        """
+        Parse a Word document into text.
+
+        :param content: Content of the Word document.
+        :return: Text content of the Word document.
+        """
+        document = Document(BytesIO(content))
+        return "\n".join([paragraph.text for paragraph in document.paragraphs])
+
+    def __parse_excel_spreadsheet(self, content: bytes) -> str:
+        """
+        Parse an Excel spreadsheet into text.
+
+        :param content: Content of the Excel spreadsheet.
+        :return: Text content of the Excel spreadsheet.
+        """
+        df = pd.read_excel(BytesIO(content))
+        return df.to_string()
+
+    def __parse_pdf(self, content: bytes) -> str:
+        """
+        Parse a PDF into text.
+
+        :param content: Content of the PDF.
+        :return: Text content of the PDF.
+        """
+        reader = PyPDF2.PdfFileReader(BytesIO(content))
+        return "\n".join([reader.getPage(i).extractText() for i in range(reader.getNumPages())])
+
+    def save_to_file(self, data: Any, filename: str) -> None:
+        """
+        Save data to a file in the output folder.
+
+        :param data: Data to save.
+        :param filename: Name of the file to save the data.
+        """
+        try:
+            local_dir = os.path.join(self.output_folder, filename)
+            with open(local_dir, "w") as f:
+                json.dump(data, f)
+            self.log.info(f"Data saved to {filename}.")
+        except Exception as e:
+            self.log.error(f"Error saving data to file: {e}")
+            raise
+
+    def get(self, resource_type: str) -> str:
+        """
+        Call the appropriate function based on the resource type, save the data, and return the status.
+
+        :param resource_type: Type of the resource to fetch.
+        :return: Status message.
+        """
+        fetch_method = getattr(self, f"fetch_{resource_type}", None)
+        if not fetch_method:
+            self.log.error(f"Invalid resource type: {resource_type}")
+            return f"Invalid resource type: {resource_type}"
+        try:
+            fetch_method()
+            return f"{resource_type} fetched successfully."
+        except Exception as e:
+            self.log.error(f"Error fetching {resource_type}: {e}")
+            return f"Error fetching {resource_type}: {e}"
