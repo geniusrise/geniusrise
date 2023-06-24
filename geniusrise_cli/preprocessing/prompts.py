@@ -1,6 +1,6 @@
 def prompt_generate_prompts(x: str):
     return f"""
-generate 10 prompts to generate this {x} (that i intend to use to  fine tune a model to be able to generate this {x} when prompted by those prompts):
+generate 10 prompts to generate this {x} (that i intend to use to fine tune a model to be able to generate this {x} when prompted by those prompts):
 
 """
 
