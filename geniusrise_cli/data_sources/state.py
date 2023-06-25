@@ -1,4 +1,4 @@
-import redis
+import redis  # type: ignore
 import psycopg2
 import boto3
 from abc import ABC, abstractmethod
