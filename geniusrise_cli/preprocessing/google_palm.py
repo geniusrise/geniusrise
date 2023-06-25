@@ -26,7 +26,7 @@ class PaLMPreprocessor:
             )
             for _ in range(10):
                 prompt = FineTuningDataItem(
-                    prompt=string, completion=chat.send_message(f"{generate_prompts_from_x(x=what)}{string}").text
+                    prompt=string, completion=chat.send_message(f"{prompt_generate_prompts(x=what)}{string}").text
                 )
                 fine_tuning_data.append(prompt)
         return FineTuningData(data=fine_tuning_data)
