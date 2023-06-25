@@ -6,7 +6,7 @@ import pandas as pd
 from openai.validators import apply_necessary_remediation, apply_optional_remediation, get_validators
 
 from geniusrise_cli.llm.types import FineTuningData, FineTuningDataItem
-from geniusrise_cli.preprocessing.prompts import generate_prompts_from_x
+from geniusrise_cli.preprocessing.prompts import prompt_generate_prompts
 
 log = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ class OpenAIPreprocessor:
                 model=model,
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": f"{generate_prompts_from_x(x=what)}{string}"},
+                    {"role": "user", "content": f"{prompt_generate_prompts(x=what)}{string}"},
                 ],
             )
             for _ in range(10):
