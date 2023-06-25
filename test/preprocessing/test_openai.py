@@ -4,11 +4,11 @@ from unittest.mock import patch
 import openai
 import pandas as pd
 
-# import pytest
-
 from geniusrise_cli.llm.types import FineTuningData, FineTuningDataItem
 from geniusrise_cli.preprocessing.openai import OpenAIPreprocessor
 from geniusrise_cli.preprocessing.prompts import prompt_generate_prompts
+
+# import pytest
 
 
 def test_generate_prompts():

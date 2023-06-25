@@ -1,6 +1,8 @@
-import asana
-from typing import List
 import os
+from typing import List
+
+import asana
+
 from geniusrise_cli.config import ASANA_PERSONAL_ACCESS_TOKEN
 
 

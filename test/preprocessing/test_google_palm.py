@@ -1,7 +1,8 @@
-from vertexai.preview.language_models import ChatModel
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from geniusrise_cli.preprocessing.google_palm import PaLMPreprocessor, FineTuningData
+from vertexai.preview.language_models import ChatModel
+
+from geniusrise_cli.preprocessing.google_palm import FineTuningData, PaLMPreprocessor
 
 
 def test_generate_prompts():

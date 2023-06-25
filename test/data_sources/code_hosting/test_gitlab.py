@@ -4,7 +4,7 @@ from geniusrise_cli.data_sources.code_hosting.gitlab import GitlabDataFetcher
 
 
 def test_fetch_code(tmpdir):
-    fetcher = GitlabDataFetcher("gitlab-org/gitlab-test-test", tmpdir)
+    fetcher = GitlabDataFetcher("gitlab-org/gitlab-test", tmpdir)
     fetcher.fetch_code()
     assert os.path.exists(f"{tmpdir}/foo")  # Check that the repository was cloned
 
