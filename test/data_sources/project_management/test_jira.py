@@ -21,7 +21,7 @@ def test_fetch_issues(tmpdir):
         "linked_confluence_pages": [
             {
                 "title": "Wiki Page",
-                "content": '<p>test </p><p /><div class="code panel pdl conf-macro output-block" style="border-width: 1px;" data-hasbody="true" data-macro-name="code" data-macro-id="a0bb434e-8fe5-4969-a186-255a7a4f5dae"><div class="codeContent panelContent pdl">\n<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: py; gutter: false; theme: Confluence" data-theme="Confluence">test</pre>\n</div></div><p />',
+                "content": '<p>test </p><p /><div class="code panel pdl conf-macro output-block" data-hasbody="true" data-macro-id="a0bb434e-8fe5-4969-a186-255a7a4f5dae" data-macro-name="code" style="border-width: 1px;"><div class="codeContent panelContent pdl">\n<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: py; gutter: false; theme: Confluence" data-theme="Confluence">test</pre>\n</div></div><p />',
             }
         ],
         "linked_issues": [
