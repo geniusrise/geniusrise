@@ -2,8 +2,8 @@ import logging
 from typing import List
 
 import openai
-from openai.validators import apply_necessary_remediation, apply_optional_remediation, get_validators
 import pandas as pd
+from openai.validators import apply_necessary_remediation, apply_optional_remediation, get_validators
 
 from geniusrise_cli.llm.types import FineTuningData, FineTuningDataItem
 from geniusrise_cli.preprocessing.prompts import prompt_generate_prompts
