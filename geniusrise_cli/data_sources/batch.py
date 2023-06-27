@@ -54,8 +54,7 @@ class BatchDataFetcher(ABC):
             self.log.error(f"Invalid resource type: {resource_type}")
             return f"Invalid resource type: {resource_type}"
         try:
-            data = fetch_method()
-            self.save(data, f"{resource_type}.json")
+            fetch_method()
             self.update_state("success")
             return f"{resource_type} fetched successfully."
         except Exception as e:
