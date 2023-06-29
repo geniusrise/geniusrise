@@ -1,9 +1,10 @@
-from typing import Any, Optional
-import os
-from kafka import KafkaProducer
 import json
-import boto3
 import logging
+import os
+from typing import Any, Optional
+
+import boto3
+from kafka import KafkaProducer
 
 
 class OutputConfig:

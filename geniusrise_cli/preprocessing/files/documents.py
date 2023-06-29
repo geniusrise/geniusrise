@@ -1,9 +1,10 @@
-from PyPDF2 import PdfFileReader
 from os.path import getmtime
 from time import ctime
-from pyth.plugins.rtf15.reader import Rtf15Reader
+from typing import Any, Dict
+
+from PyPDF2 import PdfFileReader
 from pyth.plugins.plaintext.writer import PlaintextWriter
-from typing import Dict, Any
+from pyth.plugins.rtf15.reader import Rtf15Reader
 
 from geniusrise_cli.data_sources.files.base import TextExtractor
 

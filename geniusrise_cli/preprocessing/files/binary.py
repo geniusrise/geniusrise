@@ -1,7 +1,8 @@
+import os
 from os.path import getmtime
 from time import ctime
-import os
-from typing import Dict, Any
+from typing import Any, Dict
+
 from elftools.elf.elffile import ELFFile
 
 from geniusrise_cli.data_sources.files.base import TextExtractor

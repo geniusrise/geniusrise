@@ -1,10 +1,12 @@
-from typing import Dict, Any
+import logging
+from typing import Any, Dict
+
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
-from .base import Task
-import logging
+
 from geniusrise_cli.core.data import InputConfig, OutputConfig
 
+from .base import Task
 
 log = logging.getLogger(__name__)
 

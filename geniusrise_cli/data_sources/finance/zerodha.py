@@ -1,7 +1,9 @@
 import logging
-from kiteconnect import KiteConnect, KiteTicker
-from geniusrise_cli.data_sources.streaming import StreamingDataFetcher
 from typing import List
+
+from kiteconnect import KiteConnect, KiteTicker
+
+from geniusrise_cli.data_sources.streaming import StreamingDataFetcher
 
 
 class ZerodhaStockTickerDataFetcher(StreamingDataFetcher):

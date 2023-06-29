@@ -1,4 +1,5 @@
 import boto3
+
 from geniusrise_cli.data_sources.stream import StreamingDataFetcher
 
 

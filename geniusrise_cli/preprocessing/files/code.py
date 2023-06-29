@@ -1,10 +1,10 @@
 import json
-from xml.etree import ElementTree
 from os.path import getmtime
 from time import ctime
-from bs4 import BeautifulSoup
-from typing import Dict, Any
+from typing import Any, Dict
+from xml.etree import ElementTree
 
+from bs4 import BeautifulSoup
 
 from geniusrise_cli.data_sources.files.base import TextExtractor
 

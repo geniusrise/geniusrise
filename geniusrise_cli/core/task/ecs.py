@@ -1,10 +1,12 @@
+import logging
+from typing import Any, Dict
+
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
-import logging
-from typing import Dict, Any
-from .base import Task
+
 from geniusrise_cli.core.data import InputConfig, OutputConfig
 
+from .base import Task
 
 log = logging.getLogger(__name__)
 

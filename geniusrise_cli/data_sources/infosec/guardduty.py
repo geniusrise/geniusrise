@@ -1,8 +1,10 @@
 import asyncio
 import logging
-from aioboto3.session import Session
-from geniusrise_cli.data_sources.streaming import StreamingDataFetcher
 from typing import List
+
+from aioboto3.session import Session
+
+from geniusrise_cli.data_sources.streaming import StreamingDataFetcher
 
 
 class GuardDutyEventFetcher(StreamingDataFetcher):
