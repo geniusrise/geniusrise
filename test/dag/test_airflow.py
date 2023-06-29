@@ -1,11 +1,13 @@
-from geniusrise_cli.dag.task import Task, Source, Sink
-from airflow import DAG
-from airflow.utils.dates import days_ago
-import boto3
 import csv
 import json
 import os
 import tempfile
+
+import boto3
+from airflow import DAG
+from airflow.utils.dates import days_ago
+
+from geniusrise_cli.dag.task import Sink, Source, Task
 
 
 class TestSource(Source):

@@ -1,5 +1,6 @@
-import os
 import json
+import os
+
 from geniusrise_cli.data_sources.document_management.confluence import ConfluenceDataFetcher
 
 SPACE_KEY = "TT"
