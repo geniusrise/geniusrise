@@ -3,6 +3,7 @@ from kubernetes import client, config
 from kubernetes.client.rest import ApiException
 from .base import Task
 import logging
+from geniusrise_cli.core.data import InputConfig, OutputConfig
 
 
 log = logging.getLogger(__name__)
@@ -121,13 +122,15 @@ class K8sTask(Task, K8sManager):
     def __init__(
         self,
         name: str,
+        input_config: InputConfig,
+        output_config: OutputConfig,
         namespace: str = "default",
         image: str = "geniusrise/geniusrise",
         command: str = "--help",
         replicas: int = 1,
         port: int = 80,
     ):
-        Task.__init__(self)
+        Task.__init__(self, input_config=input_config, output_config=output_config)
         K8sManager.__init__(self, name, namespace, image, command, replicas, port)
 
     def run(self):
