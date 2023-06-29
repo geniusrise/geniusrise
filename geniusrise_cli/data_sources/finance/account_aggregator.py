@@ -7,9 +7,9 @@ class FIUNotificationFetcher(StreamingDataFetcher):
     A streaming data fetcher for the /FI/Notification endpoint.
     """
 
-    def __init__(self, handler=None, state_manager=None):
+    def __init__(self, domain_name: str, handler=None, state_manager=None):
         super().__init__(handler, state_manager)
-        self.endpoint = "https://your-api-url.com/FI/Notification"  # replace with your actual endpoint
+        self.endpoint = f"https://{domain_name}/FI/Notification"  # replace with your actual endpoint
 
     def listen(self):
         """
