@@ -38,19 +38,19 @@ class ECSManager:
                 cpu="256",
                 memory="512",
             )
-            logging.info(f"Task definition {self.name} created.")
+            log.info(f"Task definition {self.name} created.")
             return response["taskDefinition"]["taskDefinitionArn"]
         except (BotoCoreError, ClientError) as error:
-            logging.error(f"Error creating task definition {self.name}: {error}")
+            log.error(f"Error creating task definition {self.name}: {error}")
             return None
 
     def run_task(self, task_definition_arn: str):
         try:
             response = self.client.run_task(cluster=self.name, taskDefinition=task_definition_arn, count=self.replicas)
-            logging.info(f"Task {self.name} started.")
+            log.info(f"Task {self.name} started.")
             return response
         except (BotoCoreError, ClientError) as error:
-            logging.error(f"Error starting task {self.name}: {error}")
+            log.error(f"Error starting task {self.name}: {error}")
             return None
 
     def describe_task(self, task_definition_arn: str):
@@ -58,16 +58,16 @@ class ECSManager:
             response = self.client.describe_tasks(cluster=self.name, tasks=[task_definition_arn])
             return response
         except (BotoCoreError, ClientError) as error:
-            logging.error(f"Error getting status of task {self.name}: {error}")
+            log.error(f"Error getting status of task {self.name}: {error}")
             return None
 
     def stop_task(self, task_definition_arn: str):
         try:
             response = self.client.stop_task(cluster=self.name, task=task_definition_arn)
-            logging.info(f"Task {self.name} stopped.")
+            log.info(f"Task {self.name} stopped.")
             return response
         except (BotoCoreError, ClientError) as error:
-            logging.error(f"Error stopping task {self.name}: {error}")
+            log.error(f"Error stopping task {self.name}: {error}")
             return None
 
     def update_task(self, new_image: str, new_command: list):
@@ -113,7 +113,7 @@ class ECSTask(Task, ECSManager):
             status = self.describe_task(task_definition_arn)
             return status
         except (BotoCoreError, ClientError) as error:
-            logging.error(f"Error getting status of task {self.name}: {error}")
+            log.error(f"Error getting status of task {self.name}: {error}")
             return {}
 
     def get_statistics(self) -> Dict[str, Any]:
@@ -136,7 +136,7 @@ class ECSTask(Task, ECSManager):
 
             return {"task": task_stats, "task_definition": task_definition_stats}
         except (BotoCoreError, ClientError) as error:
-            logging.error(f"Error getting statistics of task {self.name}: {error}")
+            log.error(f"Error getting statistics of task {self.name}: {error}")
             return {}
 
     def get_logs(self) -> Dict[str, str]:
@@ -151,5 +151,5 @@ class ECSTask(Task, ECSManager):
             logs = {event["timestamp"]: event["message"] for event in response["events"]}
             return logs
         except (BotoCoreError, ClientError) as error:
-            logging.error(f"Error getting logs of task {self.name}: {error}")
+            log.error(f"Error getting logs of task {self.name}: {error}")
             return {}
