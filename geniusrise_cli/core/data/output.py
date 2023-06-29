@@ -38,8 +38,8 @@ class OutputConfig:
         """
         Save data to a file or ingest it into a Kafka topic.
 
-        If the data is a string, it is saved to a file in the output folder with the given filename.
-        If the data is not a string, it is ingested into the output topic in Kafka.
+        If the output_folder is not None, it is saved to a file in the output folder with the given filename.
+        If the output_folder is None, it is ingested into the output topic in Kafka.
 
         Args:
             data (Any): The data to save or ingest.
