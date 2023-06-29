@@ -1,23 +1,24 @@
 from abc import ABC, abstractmethod
+from typing import Dict, Any
 
 
 class Task(ABC):
     @abstractmethod
-    def run(self):
+    def run(self) -> None:
         pass
 
     @abstractmethod
-    def destroy(self):
+    def destroy(self) -> None:
         pass
 
     @abstractmethod
-    def get_status(self):
+    def get_status(self) -> Dict[str, Any]:
         pass
 
     @abstractmethod
-    def get_statistics(self):
+    def get_statistics(self) -> Dict[str, Any]:
         pass
 
     @abstractmethod
-    def get_logs(self):
+    def get_logs(self) -> Dict[str, Any]:
         pass
