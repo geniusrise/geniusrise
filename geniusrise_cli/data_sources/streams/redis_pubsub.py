@@ -1,8 +1,9 @@
-import redis  # type: ignore
 import json
-from typing import Optional, Callable
-from data_sources.streaming import StreamingDataFetcher
+from typing import Callable, Optional
+
+import redis  # type: ignore
 from data_sources.state import StateManager
+from data_sources.streaming import StreamingDataFetcher
 
 
 class RedisPubsubDataFetcher(StreamingDataFetcher):

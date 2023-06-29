@@ -1,14 +1,15 @@
-import requests
-import re
-import os
+import base64
 import json
 import logging
+import os
+import re
+from io import BytesIO
 from typing import Any, List
-from docx import Document
+
 import pandas as pd
 import PyPDF2
-import base64
-from io import BytesIO
+import requests
+from docx import Document
 
 from geniusrise_cli.config import JIRA_ACCESS_TOKEN, JIRA_BASE_URL, JIRA_USERNAME
 

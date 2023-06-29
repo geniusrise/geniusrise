@@ -1,8 +1,9 @@
-import redis  # type: ignore
-import psycopg2
-import boto3
 from abc import ABC, abstractmethod
 from typing import Any, Dict
+
+import boto3
+import psycopg2
+import redis  # type: ignore
 
 
 class StateManager(ABC):

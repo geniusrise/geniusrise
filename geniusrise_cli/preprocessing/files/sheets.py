@@ -1,9 +1,10 @@
 import csv
-from openpyxl import load_workbook
 from os.path import getmtime
 from time import ctime
-from typing import Dict, Any
+from typing import Any, Dict
+
 import pyexcel_ods
+from openpyxl import load_workbook
 
 from geniusrise_cli.data_sources.files.base import TextExtractor
 

@@ -1,7 +1,9 @@
-import paho.mqtt.client as mqtt
 import json
 import logging
-from typing import Optional, Callable
+from typing import Callable, Optional
+
+import paho.mqtt.client as mqtt
+
 from geniusrise_cli.data_sources.base import StreamingDataFetcher
 
 

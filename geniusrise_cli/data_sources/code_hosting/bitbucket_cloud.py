@@ -1,9 +1,11 @@
-import os
+import base64
 import json
 import logging
-import requests
-import base64
+import os
 from typing import Any, List
+
+import requests
+
 from geniusrise_cli.config import BITBUCKET_ACCESS_TOKEN
 
 

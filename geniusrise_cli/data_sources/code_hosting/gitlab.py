@@ -1,8 +1,9 @@
-import os
 import json
 import logging
-import gitlab
+import os
 from typing import Any
+
+import gitlab
 
 from geniusrise_cli.config import GITLAB_ACCESS_TOKEN
 

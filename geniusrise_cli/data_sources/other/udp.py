@@ -1,4 +1,5 @@
 import socket
+
 from geniusrise_cli.data_sources.streaming import StreamingDataFetcher
 
 

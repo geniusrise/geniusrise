@@ -1,7 +1,8 @@
-from abc import ABC, abstractmethod
 import uuid
+from abc import ABC, abstractmethod
+from typing import Any, Dict
+
 from geniusrise_cli.core.data import InputConfig, OutputConfig
-from typing import Dict, Any
 
 
 class Task(ABC):
