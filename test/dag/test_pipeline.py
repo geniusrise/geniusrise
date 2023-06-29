@@ -1,9 +1,11 @@
-from moto import mock_s3
-from geniusrise_cli.dag.task import Source, Sink
+from typing import Any
+
+import boto3
 from airflow import DAG
 from airflow.utils.dates import days_ago
-import boto3
-from typing import Any
+from moto import mock_s3
+
+from geniusrise_cli.dag.task import Sink, Source
 
 
 class TestSource(Source):

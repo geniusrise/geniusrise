@@ -1,5 +1,6 @@
 import json
 import os
+
 from geniusrise_cli.data_sources.code_hosting.github import GithubDataFetcher
 
 
