@@ -2,6 +2,7 @@ import logging
 import os
 
 import boto3
+
 from .input import InputConfig
 
 log = logging.getLogger(__name__)
