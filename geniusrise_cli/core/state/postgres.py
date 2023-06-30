@@ -16,7 +16,7 @@ class PostgresStateManager(StateManager):
         conn (psycopg2.extensions.connection): The PostgreSQL connection.
     """
 
-    def __init__(self, host: str, port: int, user: str, password: str, database: str):
+    def __init__(self, host: str, port: int, user: str, password: str, database: str, table: str = "geniusrise_state"):
         """
         Initialize a new PostgreSQL state manager.
 
@@ -28,6 +28,7 @@ class PostgresStateManager(StateManager):
             database (str): The database to connect to.
         """
         super().__init__()
+        self.table = table
         try:
             self.conn = psycopg2.connect(host=host, port=port, user=user, password=password, database=database)
         except psycopg2.Error as e:
@@ -47,7 +48,13 @@ class PostgresStateManager(StateManager):
         if self.conn:
             try:
                 with self.conn.cursor() as cur:
-                    cur.execute("SELECT value FROM state WHERE id = %s", (key,))
+                    cur.execute(
+                        "SELECT value FROM %s WHERE id = %s",
+                        (
+                            self.table,
+                            key,
+                        ),
+                    )
                     result = cur.fetchone()
                     return json.loads(result[0]) if result else None
             except psycopg2.Error as e:
@@ -69,8 +76,8 @@ class PostgresStateManager(StateManager):
             try:
                 with self.conn.cursor() as cur:
                     cur.execute(
-                        "INSERT INTO state (key, value) VALUES (%s, %s)",
-                        (key, json.dumps(value)),
+                        "INSERT INTO %s (key, value) VALUES (%s, %s)",
+                        (self.table, key, json.dumps(value)),
                     )
                 self.conn.commit()
             except psycopg2.Error as e:
