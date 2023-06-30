@@ -16,17 +16,20 @@ class StreamingInputConfig(InputConfig):
         consumer (KafkaConsumer): Kafka consumer for consuming data.
     """
 
-    def __init__(self, input_topic: str, kafka_cluster_connection_string: str):
+    def __init__(self, input_topic: str, kafka_cluster_connection_string: str, group_id: str = "geniusrise"):
         """
         Initialize a new streaming input configuration.
 
         Args:
             input_topic (str): Kafka topic to consume data.
             kafka_cluster_connection_string (str): Kafka cluster connection string.
+            group_id (str, optional): Kafka consumer group id. Defaults to "geniusrise".
         """
         self.input_topic = input_topic
         try:
-            self.consumer = KafkaConsumer(self.input_topic, bootstrap_servers=kafka_cluster_connection_string)
+            self.consumer = KafkaConsumer(
+                self.input_topic, bootstrap_servers=kafka_cluster_connection_string, group_id=group_id
+            )
         except Exception as e:
             log.error(f"Failed to create Kafka consumer: {e}")
             self.consumer = None
