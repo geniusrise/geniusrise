@@ -6,6 +6,9 @@ from geniusrise_cli.core.data import InputConfig, OutputConfig
 
 
 class Task(ABC):
+    input_config: InputConfig
+    output_config: OutputConfig
+
     """
     Class for managing tasks.
 
@@ -15,7 +18,7 @@ class Task(ABC):
         output_config (OutputConfig): Configuration for output data.
     """
 
-    def __init__(self, input_config: InputConfig, output_config: OutputConfig):
+    def __init__(self):
         """
         Initialize a new task.
 
@@ -24,8 +27,6 @@ class Task(ABC):
             output_config (OutputConfig): Configuration for output data.
         """
         self.id = uuid.uuid4()
-        self.input_config = input_config
-        self.output_config = output_config
 
     @abstractmethod
     def run(self) -> None:

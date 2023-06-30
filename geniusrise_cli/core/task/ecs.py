@@ -4,8 +4,6 @@ from typing import Any, Dict
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 
-from geniusrise_cli.core.data import InputConfig, OutputConfig
-
 from .base import Task
 
 log = logging.getLogger(__name__)
@@ -85,15 +83,13 @@ class ECSTask(Task, ECSManager):
     def __init__(
         self,
         name: str,
-        input_config: InputConfig,
-        output_config: OutputConfig,
         image: str = "geniusrise/geniusrise",
         command: str = "--help",
         replicas: int = 1,
         port: int = 80,
         log_group: str = "/ecs/geniusrise",
     ):
-        Task.__init__(self, input_config=input_config, output_config=output_config)
+        Task.__init__(self)
         ECSManager.__init__(self, name, image, command, replicas, port)  # type: ignore
         self.log_group = log_group
         self.logs_client = boto3.client("logs")
