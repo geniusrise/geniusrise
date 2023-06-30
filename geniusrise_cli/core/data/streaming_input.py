@@ -1,6 +1,7 @@
 import logging
 
 from kafka import KafkaConsumer
+
 from .input import InputConfig
 
 log = logging.getLogger(__name__)

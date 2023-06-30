@@ -3,8 +3,8 @@ import logging
 from typing import Any
 
 from kafka import KafkaProducer
-from .output import OutputConfig
 
+from .output import OutputConfig
 
 log = logging.getLogger(__name__)
 

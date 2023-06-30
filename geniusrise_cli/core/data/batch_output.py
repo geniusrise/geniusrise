@@ -4,6 +4,7 @@ import os
 from typing import Any
 
 import boto3
+
 from .output import OutputConfig
 
 log = logging.getLogger(__name__)
