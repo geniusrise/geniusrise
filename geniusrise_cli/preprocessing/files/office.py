@@ -1,10 +1,12 @@
-from docx import Document
-from pptx import Presentation
 from os.path import getmtime
 from time import ctime
-from typing import Dict, Any
-from odf import text as odf_text, teletype
+from typing import Any, Dict
+
+from docx import Document
+from odf import teletype
+from odf import text as odf_text
 from odf.opendocument import load
+from pptx import Presentation
 
 from geniusrise_cli.data_sources.files.base import TextExtractor
 

@@ -1,5 +1,7 @@
 import asyncio
+
 import websockets
+
 from geniusrise_cli.data_sources.streaming import StreamingDataFetcher
 
 

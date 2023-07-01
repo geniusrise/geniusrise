@@ -1,15 +1,15 @@
-from abc import ABC, abstractmethod
-from typing import Dict, Any
-from os.path import getmtime
-from time import ctime
 import mimetypes
 import os
+from abc import ABC, abstractmethod
+from os.path import getmtime
+from time import ctime
+from typing import Any, Dict
 
-from geniusrise_cli.data_sources.files.office import DocExtractor, PPTExtractor, ODTExtractor
-from geniusrise_cli.data_sources.files.documents import PDFExtractor, TXTExtractor, RTFExtractor
-from geniusrise_cli.data_sources.files.sheets import CSVExtractor, ExcelExtractor, ODSExtractor
-from geniusrise_cli.data_sources.files.code import JSONExtractor, XMLExtractor, HTMLExtractor, MarkdownExtractor
 from geniusrise_cli.data_sources.files.binary import ELFExtractor
+from geniusrise_cli.data_sources.files.code import HTMLExtractor, JSONExtractor, MarkdownExtractor, XMLExtractor
+from geniusrise_cli.data_sources.files.documents import PDFExtractor, RTFExtractor, TXTExtractor
+from geniusrise_cli.data_sources.files.office import DocExtractor, ODTExtractor, PPTExtractor
+from geniusrise_cli.data_sources.files.sheets import CSVExtractor, ExcelExtractor, ODSExtractor
 
 
 class TextExtractor(ABC):

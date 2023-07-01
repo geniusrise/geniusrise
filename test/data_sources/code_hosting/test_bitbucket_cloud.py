@@ -1,5 +1,6 @@
-import os
 import json
+import os
+
 from geniusrise_cli.data_sources.code_hosting.bitbucket_cloud import BitbucketDataFetcher
 
 

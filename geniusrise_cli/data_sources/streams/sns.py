@@ -1,7 +1,8 @@
-import boto3
 import logging
-from botocore.exceptions import ClientError
 from typing import Callable, Optional
+
+import boto3
+from botocore.exceptions import ClientError
 from streaming_data_fetcher import StreamingDataFetcher
 
 

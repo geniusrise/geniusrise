@@ -1,4 +1,5 @@
 import json
+
 from geniusrise_cli.data_sources.project_management.jira import JiraDataFetcher
 
 

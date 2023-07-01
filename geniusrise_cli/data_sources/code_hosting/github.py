@@ -1,10 +1,12 @@
-import os
 import json
-import requests
 import logging
+import os
 from typing import Any, List
+
+import requests
 from github import Github, GithubException
 from github.ContentFile import ContentFile
+
 from geniusrise_cli.config import GITHUB_ACCESS_TOKEN
 
 

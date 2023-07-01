@@ -1,7 +1,9 @@
 import asyncio
-import aioredis
 import logging
 from typing import Callable, Optional
+
+import aioredis
+
 from geniusrise_cli.data_sources.streaming_data_fetcher import StreamingDataFetcher
 
 

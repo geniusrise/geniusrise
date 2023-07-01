@@ -1,8 +1,10 @@
-import boto3
 import logging
-from geniusrise_cli.data_sources.streaming import StreamingDataFetcher
-from typing import List
 import time
+from typing import List
+
+import boto3
+
+from geniusrise_cli.data_sources.streaming import StreamingDataFetcher
 
 
 class ConfigEventFetcher(StreamingDataFetcher):
