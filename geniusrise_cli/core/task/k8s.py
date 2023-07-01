@@ -4,7 +4,6 @@ from typing import Any, Dict
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
 
-from .base import Task
 
 log = logging.getLogger(__name__)
 
@@ -13,9 +12,9 @@ class K8sManager:
     def __init__(
         self,
         name: str,
+        command: list,
         namespace: str = "default",
         image: str = "geniusrise/geniusrise",
-        command: str = "--help",
         replicas: int = 1,
         port: int = 80,
     ):
@@ -35,7 +34,7 @@ class K8sManager:
 
     def create_deployment(self):
         # Define the container
-        container = client.V1Container(name=self.name, image=self.image, command=self.command)
+        container = client.V1Container(name=self.name, image=self.image, command=" ".join(self.command))
 
         # Define the template
         template = client.V1PodTemplateSpec(
@@ -116,20 +115,6 @@ class K8sManager:
             log.info(f"Service {self.name} deleted.")
         except ApiException as e:
             log.error(f"Exception when deleting service {self.name}: {e}")
-
-
-class K8sTask(Task, K8sManager):
-    def __init__(
-        self,
-        name: str,
-        namespace: str = "default",
-        image: str = "geniusrise/geniusrise",
-        command: str = "--help",
-        replicas: int = 1,
-        port: int = 80,
-    ):
-        Task.__init__(self)
-        K8sManager.__init__(self, name, namespace, image, command, replicas, port)
 
     def run(self):
         self.create_deployment()
