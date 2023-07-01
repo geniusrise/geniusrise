@@ -1,3 +1,3 @@
-from .ecs import ECSTask
-from .k8s import K8sTask
+from .ecs import ECSManager
+from .k8s import K8sManager
 from .task import Task
