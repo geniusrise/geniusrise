@@ -2,15 +2,15 @@
 
 # Directories to be created
 declare -a dirs=(
-  "geniusrise_cli"
-  "geniusrise_cli/data_sources"
-  "geniusrise_cli/data_sources/project_management"
-  "geniusrise_cli/data_sources/code_hosting"
-  "geniusrise_cli/data_sources/communication"
-  "geniusrise_cli/data_sources/document_management"
-  "geniusrise_cli/data_sources/customer_support"
-  "geniusrise_cli/llm"
-  "geniusrise_cli/crm"
+  "geniusrise"
+  "geniusrise/data_sources"
+  "geniusrise/data_sources/project_management"
+  "geniusrise/data_sources/code_hosting"
+  "geniusrise/data_sources/communication"
+  "geniusrise/data_sources/document_management"
+  "geniusrise/data_sources/customer_support"
+  "geniusrise/llm"
+  "geniusrise/crm"
   "tests"
 )
 
@@ -31,35 +31,35 @@ declare -a llm=("chatgpt" "other_llm")
 
 # Create files in each subcategory
 for file in "${pm[@]}"; do
-  touch geniusrise_cli/data_sources/project_management/$file.py
+  touch geniusrise/data_sources/project_management/$file.py
 done
 
 for file in "${ch[@]}"; do
-  touch geniusrise_cli/data_sources/code_hosting/$file.py
+  touch geniusrise/data_sources/code_hosting/$file.py
 done
 
 for file in "${comm[@]}"; do
-  touch geniusrise_cli/data_sources/communication/$file.py
+  touch geniusrise/data_sources/communication/$file.py
 done
 
 for file in "${dm[@]}"; do
-  touch geniusrise_cli/data_sources/document_management/$file.py
+  touch geniusrise/data_sources/document_management/$file.py
 done
 
 for file in "${cs[@]}"; do
-  touch geniusrise_cli/data_sources/customer_support/$file.py
+  touch geniusrise/data_sources/customer_support/$file.py
 done
 
 for file in "${crm[@]}"; do
-  touch geniusrise_cli/crm/$file.py
+  touch geniusrise/crm/$file.py
 done
 
 for file in "${llm[@]}"; do
-  touch geniusrise_cli/llm/$file.py
+  touch geniusrise/llm/$file.py
 done
 
 # Create other files
-touch geniusrise_cli/main.py
+touch geniusrise/main.py
 touch tests/test_data_sources.py
 touch setup.py
 touch README.md
