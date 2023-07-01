@@ -1,15 +1,15 @@
-# 🧠 Geniusrise-CLI
+# 🧠 geniusrise
 
 ![gr](./assets/geri-3.png)
 
-Welcome to Geniusrise-CLI, a powerful command-line tool that is part of the
+Welcome to geniusrise, a powerful command-line tool that is part of the
 Geniusrise project. This tool is designed to pull data from various sources,
 format it, and create and manage fine-tuned Language Learning Models (LLMs).
 
 ## 📚 Structure
 
-The `geniusrise-cli` tool is structured into several modules, each responsible
-for a specific task:
+The `geniusrise` tool is structured into several modules, each responsible for a
+specific task:
 
 - `main.py`: The main entry point for the tool.
 - `config.py`: Contains configuration settings for the tool.
@@ -69,7 +69,7 @@ different language learning models:
 
 ## 🌐 Data Platforms
 
-Geniusrise-CLI integrates with a wide range of data platforms across various
+geniusrise integrates with a wide range of data platforms across various
 categories:
 
 | Communication                    | Project Management            | Document Management                 | Code Hosting                      | Customer Support                  | CRM                                |
@@ -119,7 +119,7 @@ The tool includes modules for preprocessing data:
 
 ## 🎛️ Fine-Tuning Process
 
-The fine-tuning process in Geniusrise-CLI involves pulling data from various
+The fine-tuning process in geniusrise involves pulling data from various
 sources, piping them into various LLMs to generate prompts, and then using these
 prompts to fine-tune the target model. Here's a PlantUML diagram to illustrate
 the process:
@@ -173,18 +173,18 @@ end note
 
 ## 🚀 Getting Started
 
-To get started with `geniusrise-cli`, clone the repository and install the
-necessary dependencies.
+To get started with `geniusrise`, clone the repository and install the necessary
+dependencies.
 
 ## 🤝 Contributing
 
-We welcome contributions to the `geniusrise-cli` tool. If you're interested in
+We welcome contributions to the `geniusrise` tool. If you're interested in
 contributing, please take a look at our open issues and submit a pull request
 when you're ready.
 
 ## 📜 License
 
-Geniusrise-CLI is open-source software licensed under [LICENSE].
+geniusrise is open-source software licensed under [LICENSE].
 
 ## 📞 Contact
 
