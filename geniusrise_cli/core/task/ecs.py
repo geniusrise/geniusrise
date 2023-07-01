@@ -1,29 +1,36 @@
 import logging
-from typing import Any, Dict
-
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 
-from .base import Task
 
 log = logging.getLogger(__name__)
 
 
 class ECSManager:
-    def __init__(self, name: str, image: str, command: list, replicas: int = 1, port: int = 80):
+    def __init__(
+        self,
+        name: str,
+        command: list,
+        image: str = "geniusrise/geniusrise",
+        replicas: int = 1,
+        port: int = 80,
+        log_group: str = "/ecs/geniusrise",
+    ):
         self.name = name
         self.image = image
         self.command = command
         self.replicas = replicas
         self.port = port
         self.client = boto3.client("ecs")
+        self.log_group = log_group
+        self.logs_client = boto3.client("logs")
 
     def create_task_definition(self):
         container_definitions = [
             {
                 "name": self.name,
                 "image": self.image,
-                "command": self.command,
+                "command": " ".join(self.command),
                 "portMappings": [{"containerPort": self.port, "protocol": "tcp"}],
             }
         ]
@@ -77,80 +84,3 @@ class ECSManager:
         task_definition_arn = self.create_task_definition()
         self.stop_task(task_definition_arn)
         self.run_task(task_definition_arn)
-
-
-class ECSTask(Task, ECSManager):
-    def __init__(
-        self,
-        name: str,
-        image: str = "geniusrise/geniusrise",
-        command: str = "--help",
-        replicas: int = 1,
-        port: int = 80,
-        log_group: str = "/ecs/geniusrise",
-    ):
-        Task.__init__(self)
-        ECSManager.__init__(self, name, image, command, replicas, port)  # type: ignore
-        self.log_group = log_group
-        self.logs_client = boto3.client("logs")
-
-    def run(self):
-        task_definition_arn = self.create_task_definition()
-        self.run_task(task_definition_arn)
-
-    def destroy(self):
-        task_definition_arn = self.create_task_definition()
-        self.stop_task(task_definition_arn)
-
-    def get_status(self) -> Dict[str, Any]:
-        """
-        Get the status of the task
-
-        Returns:
-            Dict[str, Any]: The status of the task
-        """
-        try:
-            task_definition_arn = self.create_task_definition()
-            status = self.describe_task(task_definition_arn)
-            return status
-        except (BotoCoreError, ClientError) as error:
-            log.error(f"Error getting status of task {self.name}: {error}")
-            return {}
-
-    def get_statistics(self) -> Dict[str, Any]:
-        """
-        Get the details of the task and the task definition
-
-        Returns:
-            Dict[str, Any]: The details of the task and the task definition
-        """
-        try:
-            # Get the details of the task
-            task_definition_arn = self.create_task_definition()
-            task_stats = self.describe_task(task_definition_arn)
-
-            # Get the details of the task definition
-            response = self.client.list_task_definitions(
-                familyPrefix=self.name, status="ACTIVE", sort="DESC", maxResults=1
-            )
-            task_definition_stats = response["taskDefinitionArns"]
-
-            return {"task": task_stats, "task_definition": task_definition_stats}
-        except (BotoCoreError, ClientError) as error:
-            log.error(f"Error getting statistics of task {self.name}: {error}")
-            return {}
-
-    def get_logs(self) -> Dict[str, str]:
-        """
-        Get the logs of the task
-
-        Returns:
-            Dict[str, str]: The logs of the task
-        """
-        try:
-            response = self.logs_client.filter_log_events(logGroupName=self.log_group, filterPattern=self.name)
-            logs = {event["timestamp"]: event["message"] for event in response["events"]}
-            return logs
-        except (BotoCoreError, ClientError) as error:
-            log.error(f"Error getting logs of task {self.name}: {error}")
-            return {}
