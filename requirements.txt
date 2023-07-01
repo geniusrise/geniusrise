@@ -121,6 +121,7 @@ platformdirs==3.5.1
 plotly==5.14.1
 pluggy==1.0.0
 preshed==3.0.8
+prettytable==3.8.0
 prison==0.2.1
 proto-plus==1.22.2
 protobuf==4.23.0
@@ -207,6 +208,7 @@ urllib3==1.26.15
 values==2020.12.3
 wandb==0.15.2
 wasabi==1.1.1
+wcwidth==0.2.6
 websocket-client==1.6.1
 Werkzeug==2.3.6
 wrapt==1.15.0
