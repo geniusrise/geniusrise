@@ -1,9 +1,9 @@
 import logging
+import os
 import random
 import string
-from typing import Any
-import os
 import tempfile
+from typing import Any
 
 import boto3
 from airflow.models import BaseOperator

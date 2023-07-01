@@ -1,10 +1,12 @@
 import asyncio
+import json
+
 from aioquic.asyncio.protocol import QuicConnectionProtocol
 from aioquic.asyncio.server import serve
 from aioquic.quic.configuration import QuicConfiguration
 from aioquic.quic.events import StreamDataReceived
+
 from geniusrise_cli.data_sources.streaming import StreamingDataFetcher
-import json
 
 
 class QuicDataFetcher(StreamingDataFetcher):

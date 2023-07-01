@@ -1,6 +1,8 @@
-import requests
-import time
 import logging
+import time
+
+import requests
+
 from geniusrise_cli.data_sources.streaming import StreamingDataFetcher
 
 

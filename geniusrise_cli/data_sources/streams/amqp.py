@@ -1,7 +1,9 @@
-import pika
 import json
 import logging
-from typing import Optional, Callable
+from typing import Callable, Optional
+
+import pika
+
 from geniusrise_cli.data_sources.base import StreamingDataFetcher
 
 

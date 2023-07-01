@@ -1,6 +1,8 @@
-from flask import Flask, request
-from geniusrise_cli.data_sources.stream import StreamingDataFetcher
 import threading
+
+from flask import Flask, request
+
+from geniusrise_cli.data_sources.stream import StreamingDataFetcher
 
 
 class WhatsAppDataFetcher(StreamingDataFetcher):

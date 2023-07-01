@@ -1,4 +1,5 @@
 import subprocess
+
 from geniusrise_cli.data_sources.batch_data_fetcher import BatchDataFetcher
 
 

@@ -1,5 +1,7 @@
-from aiokafka import AIOKafkaConsumer
 import asyncio
+
+from aiokafka import AIOKafkaConsumer
+
 from geniusrise_cli.data_sources.stream import StreamingDataFetcher
 
 

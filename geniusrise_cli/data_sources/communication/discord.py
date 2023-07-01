@@ -1,7 +1,9 @@
+from typing import List, Union
+
 import discord
+
 from geniusrise_cli.data_sources.batch import BatchDataFetcher
 from geniusrise_cli.data_sources.stream import StreamingDataFetcher
-from typing import Union, List
 
 
 class DiscordDataFetcher(BatchDataFetcher):

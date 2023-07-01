@@ -1,4 +1,5 @@
 import requests
+
 from geniusrise_cli.data_sources.streaming_data_fetcher import StreamingDataFetcher
 
 
