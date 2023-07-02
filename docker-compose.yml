@@ -46,8 +46,3 @@ services:
         image: redis:latest
         ports:
             - '6379:6379'
-
-    dynamodb:
-        image: amazon/dynamodb-local:latest
-        ports:
-            - '8000:8000'
