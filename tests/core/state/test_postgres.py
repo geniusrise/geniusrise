@@ -53,9 +53,9 @@ def test_postgres_state_manager_get_state(postgres_state_manager):
 
 # Test that the PostgresStateManager can set state
 def test_postgres_state_manager_set_state(postgres_state_manager):
-    key = KEY
+    key = str(uuid.uuid4())
     value = {"test": "data"}
-    # postgres_state_manager.set_state(key, value)
+    postgres_state_manager.set_state(key, value)
 
     # Check that the state was set correctly
     assert postgres_state_manager.get_state(key) == value
