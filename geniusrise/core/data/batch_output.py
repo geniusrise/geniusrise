@@ -18,7 +18,7 @@ class BatchOutputConfig(OutputConfig):
         output_folder (str): Folder to save output files.
     """
 
-    def __init__(self, output_folder: str):
+    def __init__(self, output_folder: str, bucket: str, s3_folder: str):
         """
         Initialize a new batch output configuration.
 
@@ -26,6 +26,8 @@ class BatchOutputConfig(OutputConfig):
             output_folder (str): Folder to save output files.
         """
         self.output_folder = output_folder
+        self.bucket = bucket
+        self.s3_folder = s3_folder
 
     def save(self, data: Any, filename: str):
         """
@@ -42,7 +44,7 @@ class BatchOutputConfig(OutputConfig):
         except Exception as e:
             log.error(f"Failed to write data to file: {e}")
 
-    def copy_to_s3(self, bucket: str, s3_folder: str):
+    def copy_to_s3(self):
         """
         Recursively copy all files and directories from the output folder to a given S3 bucket and folder.
 
@@ -56,8 +58,8 @@ class BatchOutputConfig(OutputConfig):
                 for filename in files:
                     local_path = os.path.join(root, filename)
                     relative_path = os.path.relpath(local_path, self.output_folder)
-                    s3_key = os.path.join(s3_folder, relative_path)
-                    s3.upload_file(local_path, bucket, s3_key)
+                    s3_key = os.path.join(self.s3_folder, relative_path)
+                    s3.upload_file(local_path, self.bucket, s3_key)
         except Exception as e:
             log.error(f"Failed to copy files to S3: {e}")
 
@@ -66,4 +68,4 @@ class BatchOutputConfig(OutputConfig):
         Flush the output by copying all files and directories from the output folder to a given S3 bucket and folder.
         """
         # Replace 'bucket' and 's3_folder' with your actual bucket and folder
-        self.copy_to_s3(bucket="your_bucket", s3_folder="your_folder")
+        self.copy_to_s3()
