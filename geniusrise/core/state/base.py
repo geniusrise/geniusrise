@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict
+from typing import Dict, Optional
 
 
 class StateManager(ABC):
@@ -10,7 +10,7 @@ class StateManager(ABC):
     """
 
     @abstractmethod
-    def get_state(self, key: str) -> Dict:
+    def get_state(self, key: str) -> Optional[Dict]:
         """
         Get the state associated with a key.
 
