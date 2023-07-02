@@ -53,8 +53,8 @@ class BatchInputConfig(InputConfig):
             _bucket = s3.Bucket(self.bucket)
             prefix = self.s3_folder if self.s3_folder.endswith("/") else self.s3_folder + "/"
             for obj in _bucket.objects.filter(Prefix=prefix):
-                if not os.path.exists(os.path.dirname(self.input_folder + "/" + obj.key)):
-                    os.makedirs(os.path.dirname(self.input_folder + "/" + obj.key))
-                _bucket.download_file(obj.key, self.input_folder + "/" + obj.key)
+                if not os.path.exists(os.path.dirname(f"{self.input_folder}/{obj.key}")):
+                    os.makedirs(os.path.dirname(f"{self.input_folder}/{obj.key}"))
+                _bucket.download_file(obj.key, f"{self.input_folder}/{obj.key}")
         else:
             log.error("No input folder specified.")
