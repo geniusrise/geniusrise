@@ -43,7 +43,7 @@ class StreamingOutputConfig(OutputConfig):
         """
         if self.producer:
             try:
-                self.producer.send(self.output_topic, json.dumps(data))
+                self.producer.send(self.output_topic, bytes(json.dumps(data).encode("utf-8")))
                 log.debug(f"Inserted the data into {self.output_topic} topic.")
             except Exception as e:
                 log.error(f"Failed to send data to Kafka topic: {e}")

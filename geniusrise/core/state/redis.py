@@ -2,7 +2,7 @@ import redis  # type: ignore
 from typing import Dict, Optional
 import json
 
-from .state_manager import StateManager
+from geniusrise.core.state import StateManager
 
 
 class RedisStateManager(StateManager):

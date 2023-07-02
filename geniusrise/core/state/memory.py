@@ -1,6 +1,6 @@
 from typing import Dict, Optional
 
-from .state_manager import StateManager
+from geniusrise.core.state import StateManager
 
 
 class InMemoryStateManager(StateManager):

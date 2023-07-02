@@ -3,7 +3,7 @@ from typing import Dict, Optional
 import logging
 import json
 
-from .state_manager import StateManager
+from geniusrise.core.state import StateManager
 
 log = logging.getLogger(__name__)
 
