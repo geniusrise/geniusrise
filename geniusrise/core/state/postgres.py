@@ -48,15 +48,9 @@ class PostgresStateManager(StateManager):
         if self.conn:
             try:
                 with self.conn.cursor() as cur:
-                    cur.execute(
-                        "SELECT value FROM %s WHERE id = %s",
-                        (
-                            self.table,
-                            key,
-                        ),
-                    )
+                    cur.execute(f"SELECT value FROM {self.table} WHERE key = '{key}'")
                     result = cur.fetchone()
-                    return json.loads(result[0]) if result else None
+                    return result[0] if result else None
             except psycopg2.Error as e:
                 log.error(f"Failed to get state from PostgreSQL: {e}")
                 return None
@@ -75,10 +69,7 @@ class PostgresStateManager(StateManager):
         if self.conn:
             try:
                 with self.conn.cursor() as cur:
-                    cur.execute(
-                        "INSERT INTO %s (key, value) VALUES (%s, %s)",
-                        (self.table, key, json.dumps(value)),
-                    )
+                    cur.execute(f"INSERT INTO {self.table} (key, value) VALUES ('{key}', '{json.dumps(value)}');")
                 self.conn.commit()
             except psycopg2.Error as e:
                 log.error(f"Failed to set state in PostgreSQL: {e}")
