@@ -1,7 +1,7 @@
 import uuid
 import inspect
-from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Tuple, Optional
+from abc import ABC
+from typing import Any, List, Tuple, Optional
 from prettytable import PrettyTable
 from termcolor import colored  # type: ignore
 
@@ -30,36 +30,6 @@ class Task(ABC):
             output_config (OutputConfig): Configuration for output data.
         """
         self.id = uuid.uuid4()
-
-    @abstractmethod
-    def get_status(self) -> Dict[str, Any]:
-        """
-        Get the status of the task. This method should be implemented by subclasses.
-
-        Returns:
-            Dict[str, Any]: The status of the task.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_statistics(self) -> Dict[str, Any]:
-        """
-        Get the statistics of the task. This method should be implemented by subclasses.
-
-        Returns:
-            Dict[str, Any]: The statistics of the task.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_logs(self) -> Dict[str, Any]:
-        """
-        Get the logs of the task. This method should be implemented by subclasses.
-
-        Returns:
-            Dict[str, Any]: The logs of the task.
-        """
-        raise NotImplementedError
 
     def __repr__(self):
         """

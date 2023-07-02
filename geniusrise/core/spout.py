@@ -145,7 +145,9 @@ class Spout(Task):
         output_config: BatchOutputConfig | StreamingOutputConfig
         if output_type == "batch":
             output_config = BatchOutputConfig(
-                output_folder=kwargs["output_folder"] if "output_folder" in kwargs else tempfile.mkdtemp()
+                output_folder=kwargs["output_folder"] if "output_folder" in kwargs else tempfile.mkdtemp(),
+                bucket=kwargs["bucket"] if "bucket" in kwargs else tempfile.mkdtemp(),
+                s3_folder=kwargs["s3_folder"] if "s3_folder" in kwargs else tempfile.mkdtemp(),
             )
         elif output_type == "streaming":
             output_config = StreamingOutputConfig(

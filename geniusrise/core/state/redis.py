@@ -2,7 +2,7 @@ import redis  # type: ignore
 from typing import Dict, Optional
 import json
 
-from .state_manager import StateManager
+from geniusrise.core.state import StateManager
 
 
 class RedisStateManager(StateManager):
@@ -36,7 +36,7 @@ class RedisStateManager(StateManager):
         if not value:
             return None
         else:
-            return json.loads(str(value))
+            return json.loads(value.decode("utf-8"))
 
     def set_state(self, key: str, value: Dict):
         """
