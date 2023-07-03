@@ -34,16 +34,19 @@ class K8sManager:
 
     def create_deployment(self):
         # Define the container
-        container = client.V1Container(name=self.name, image=self.image, command=" ".join(self.command))
+        container = client.V1Container(name=self.name, image=self.image, command=self.command)
 
         # Define the template
         template = client.V1PodTemplateSpec(
-            metadata=client.V1ObjectMeta(labels={"app": self.name}), spec=client.V1PodSpec(containers=[container])
+            metadata=client.V1ObjectMeta(labels={"app": self.name, "service": "geniusrise"}),
+            spec=client.V1PodSpec(containers=[container]),
         )
 
         # Define the spec
         spec = client.V1DeploymentSpec(
-            replicas=self.replicas, selector=client.V1LabelSelector(match_labels={"app": self.name}), template=template
+            replicas=self.replicas,
+            selector=client.V1LabelSelector(match_labels={"app": self.name, "service": "geniusrise"}),
+            template=template,
         )
 
         # Define the deployment
@@ -56,13 +59,13 @@ class K8sManager:
         except ApiException as e:
             log.error(f"Exception when creating deployment {self.name}: {e}")
 
-    def update_deployment(self, new_spec):
+    def update_deployment(self, replicas):
         # Get the existing deployment
         try:
             deployment = self.apps_api.read_namespaced_deployment(name=self.name, namespace=self.namespace)
 
-            # Update the deployment spec
-            deployment.spec = new_spec
+            # Update the number of replicas
+            deployment.spec.replicas = replicas
 
             # Update the deployment
             self.apps_api.replace_namespaced_deployment(name=self.name, namespace=self.namespace, body=deployment)
@@ -134,7 +137,7 @@ class K8sManager:
         try:
             # Get the status of the deployment
             deployment = self.apps_api.read_namespaced_deployment(name=self.name, namespace=self.namespace)
-            return deployment.status
+            return deployment.status.__dict__
         except ApiException as e:
             log.error(f"Exception when getting status of deployment {self.name}: {e}")
             return {}
