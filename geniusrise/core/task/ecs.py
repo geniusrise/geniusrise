@@ -1,5 +1,6 @@
 import logging
 import boto3
+from typing import List
 from botocore.exceptions import BotoCoreError, ClientError
 
 
@@ -10,27 +11,35 @@ class ECSManager:
     def __init__(
         self,
         name: str,
-        command: list,
+        command: List[str],
+        cluster: str,
+        subnet_ids: List[str],
         image: str = "geniusrise/geniusrise",
         replicas: int = 1,
         port: int = 80,
         log_group: str = "/ecs/geniusrise",
+        cpu: int = 256,
+        memory: int = 512,
     ):
         self.name = name
         self.image = image
+        self.cluster = cluster
         self.command = command
         self.replicas = replicas
         self.port = port
         self.client = boto3.client("ecs")
         self.log_group = log_group
         self.logs_client = boto3.client("logs")
+        self.subnet_ids = subnet_ids
+        self.cpu = cpu
+        self.memory = memory
 
     def create_task_definition(self):
         container_definitions = [
             {
                 "name": self.name,
                 "image": self.image,
-                "command": " ".join(self.command),
+                "command": self.command,
                 "portMappings": [{"containerPort": self.port, "protocol": "tcp"}],
             }
         ]
@@ -43,8 +52,8 @@ class ECSManager:
                 requiresCompatibilities=[
                     "EC2",
                 ],
-                cpu="256",
-                memory="512",
+                cpu=str(self.cpu),
+                memory=str(self.memory),
             )
             log.info(f"Task definition {self.name} created.")
             return response["taskDefinition"]["taskDefinitionArn"]
@@ -54,7 +63,18 @@ class ECSManager:
 
     def run_task(self, task_definition_arn: str):
         try:
-            response = self.client.run_task(cluster=self.name, taskDefinition=task_definition_arn, count=self.replicas)
+            response = self.client.run_task(
+                cluster=self.cluster,
+                taskDefinition=task_definition_arn,
+                count=self.replicas,
+                launchType="FARGATE",
+                networkConfiguration={
+                    "awsvpcConfiguration": {
+                        "subnets": self.subnet_ids,
+                        "assignPublicIp": "ENABLED",
+                    }
+                },
+            )
             log.info(f"Task {self.name} started.")
             return response
         except (BotoCoreError, ClientError) as error:
