@@ -105,6 +105,13 @@ class Bolt(Task):
                     name=self.id,
                     image="geniusrise/geniusrise",
                     command=["run", method_name] + [f"--{k} {v}" for k, v in kwargs.items()],
+                    cluster=kwargs["cluster"] if "cluster" in kwargs else None,
+                    subnet_ids=kwargs["subnet_ids"] if "subnet_ids" in kwargs else None,
+                    replicas=kwargs["replicas"] if "replicas" in kwargs else None,
+                    port=kwargs["port"] if "port" in kwargs else None,
+                    log_group=kwargs["log_group"] if "log_group" in kwargs else None,
+                    cpu=kwargs["cpu"] if "cpu" in kwargs else None,
+                    memory=kwargs["memory"] if "memory" in kwargs else None,
                 )
 
                 # Create the task definition and run the task
