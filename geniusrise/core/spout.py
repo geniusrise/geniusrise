@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 import logging
 import tempfile
 
@@ -70,7 +70,7 @@ class Spout(Task):
             self.state_manager.set_state(self.id, state)
             raise
 
-    def execute_remote(self, manager_type: str, method_name: str, **kwargs) -> Any:
+    def execute_remote(self, manager_type: str, method_name: str, **kwargs) -> Optional[Any]:
         """
         Execute a method remotely and manage the state.
 
@@ -89,6 +89,8 @@ class Spout(Task):
                 manager = ECSManager(
                     name=self.id,
                     image="geniusrise/geniusrise",
+                    account_id=kwargs["account_id"] if "account_id" in kwargs else None,
+                    security_group_ids=kwargs["security_group_ids"] if "security_group_ids" in kwargs else [],
                     command=["run", method_name] + [f"--{k} {v}" for k, v in kwargs.items()],
                     cluster=kwargs["cluster"] if "cluster" in kwargs else None,
                     subnet_ids=kwargs["subnet_ids"] if "subnet_ids" in kwargs else None,
@@ -101,7 +103,10 @@ class Spout(Task):
 
                 # Create the task definition and run the task
                 task_definition_arn = manager.create_task_definition()
-                manager.run_task(task_definition_arn)
+                if task_definition_arn:
+                    manager.run_task(task_definition_arn)
+                else:
+                    raise Exception(f"Could not create task definition {kwargs}")
 
                 # Get the status of the task
                 status = manager.describe_task(task_definition_arn)
@@ -123,10 +128,13 @@ class Spout(Task):
                 raise ValueError(f"Invalid manager type '{manager_type}'")
 
             # Store the status in the state manager
-            status["status"] = dict(status)
-            self.state_manager.set_state(self.id, status)
+            if status:
+                status["status"] = dict(status)
+                self.state_manager.set_state(self.id, status)
 
-            return status
+                return status
+            else:
+                raise Exception(f"Could not save the status of this task {status.__dict__}")
         except Exception as e:
             status = dict(vars(self))
             status["status"] = False
