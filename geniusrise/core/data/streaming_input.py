@@ -1,6 +1,7 @@
 import logging
 
 from kafka import KafkaConsumer
+from typing import Callable
 
 from .input import InputConfig
 
@@ -50,3 +51,91 @@ class StreamingInputConfig(InputConfig):
         else:
             log.error("No input source specified.")
             return None
+
+    def iterator(self):
+        """
+        Iterator method for yielding data from the Kafka consumer.
+
+        Yields:
+            Kafka message: The next message from the Kafka consumer.
+        """
+        if self.consumer:
+            try:
+                for message in self.consumer:
+                    yield message
+            except Exception as e:
+                log.error(f"Failed to iterate over Kafka consumer: {e}")
+        else:
+            log.error("No Kafka consumer available.")
+
+    def __iter__(self):
+        """
+        Make the class iterable.
+        """
+        return self
+
+    def __next__(self):
+        """
+        Get the next message from the Kafka consumer.
+        """
+        if self.consumer:
+            try:
+                return next(self.consumer)
+            except StopIteration:
+                raise
+            except Exception as e:
+                log.error(f"Failed to get next message from Kafka consumer: {e}")
+                return None
+        else:
+            log.error("No Kafka consumer available.")
+            return None
+
+    def close(self):
+        """
+        Close the Kafka consumer.
+        """
+        if self.consumer:
+            try:
+                self.consumer.close()
+            except Exception as e:
+                log.error(f"Failed to close Kafka consumer: {e}")
+
+    def seek(self, partition: int, offset: int):
+        """
+        Change the position from which the Kafka consumer reads.
+        """
+        if self.consumer:
+            try:
+                self.consumer.seek(partition, offset)
+            except Exception as e:
+                log.error(f"Failed to seek Kafka consumer: {e}")
+
+    def commit(self):
+        """
+        Manually commit offsets.
+        """
+        if self.consumer:
+            try:
+                self.consumer.commit()
+            except Exception as e:
+                log.error(f"Failed to commit offsets: {e}")
+
+    def filter_messages(self, filter_func: Callable):
+        """
+        Filter messages from the Kafka consumer based on a filter function.
+
+        Args:
+            filter_func (callable): A function that takes a Kafka message and returns a boolean.
+
+        Yields:
+            Kafka message: The next message from the Kafka consumer that passes the filter.
+        """
+        if self.consumer:
+            try:
+                for message in self.consumer:
+                    if filter_func(message):
+                        yield message
+            except Exception as e:
+                log.error(f"Failed to filter messages from Kafka consumer: {e}")
+        else:
+            log.error("No Kafka consumer available.")

@@ -58,3 +58,66 @@ class BatchInputConfig(InputConfig):
                 _bucket.download_file(obj.key, f"{self.input_folder}/{obj.key}")
         else:
             log.error("No input folder specified.")
+
+    def list_files(self):
+        """
+        List all files in the input folder.
+
+        Returns:
+            list: A list of file paths.
+        """
+        if self.input_folder:
+            return [
+                os.path.join(self.input_folder, f)
+                for f in os.listdir(self.input_folder)
+                if os.path.isfile(os.path.join(self.input_folder, f))
+            ]
+        else:
+            log.error("No input folder specified.")
+            return []
+
+    def read_file(self, filename):
+        """
+        Read a file from the input folder.
+
+        Args:
+            filename (str): The name of the file.
+
+        Returns:
+            str: The contents of the file.
+        """
+        if self.input_folder:
+            with open(os.path.join(self.input_folder, filename), "r") as file:
+                return file.read()
+        else:
+            log.error("No input folder specified.")
+            return None
+
+    def delete_file(self, filename):
+        """
+        Delete a file from the input folder.
+
+        Args:
+            filename (str): The name of the file.
+        """
+        if self.input_folder:
+            os.remove(os.path.join(self.input_folder, filename))
+        else:
+            log.error("No input folder specified.")
+
+    def copy_to_s3(self, filename, bucket, s3_folder):
+        """
+        Copy a file from the input folder to an S3 bucket.
+
+        Args:
+            filename (str): The name of the file.
+            bucket (str): The name of the S3 bucket.
+            s3_folder (str): The folder in the S3 bucket.
+        """
+        if self.input_folder:
+            s3 = boto3.resource("s3")
+            s3.meta.client.upload_file(
+                os.path.join(self.input_folder, filename), bucket, os.path.join(s3_folder, filename)
+            )
+        else:
+            log.error("No input folder specified.")

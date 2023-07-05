@@ -27,9 +27,58 @@ def test_streaming_input_config_get(streaming_input_config):
 
     producer = KafkaProducer(bootstrap_servers=KAFKA_CLUSTER_CONNECTION_STRING)
     producer.send(INPUT_TOPIC, b'{"test": "lol"}')
+    producer.flush()
 
     # Consume from the Kafka topic and test that it works
     # Note: This assumes that there is data in the topic to consume
     for message in consumer:
         assert message.value == b'{"test": "lol"}'
         break  # Only consume one message for this test
+
+
+# Test that the StreamingInputConfig can iterate over messages
+def test_streaming_input_config_iterator(streaming_input_config):
+    producer = KafkaProducer(bootstrap_servers=KAFKA_CLUSTER_CONNECTION_STRING)
+    producer.send(INPUT_TOPIC, b'{"test": "lol"}')
+    producer.flush()
+
+    for message in streaming_input_config:
+        assert message.value == b'{"test": "lol"}'
+        break  # Only consume one message for this test
+
+
+# Test that the StreamingInputConfig can filter messages
+def test_streaming_input_config_filter_messages(streaming_input_config):
+    producer = KafkaProducer(bootstrap_servers=KAFKA_CLUSTER_CONNECTION_STRING)
+    producer.send(INPUT_TOPIC, b'{"test": "filter"}')
+    producer.send(INPUT_TOPIC, b'{"test": "do not filter"}')
+    producer.flush()
+
+    def filter_func(message):
+        return message.value == b'{"test": "filter"}'
+
+    for message in streaming_input_config.filter_messages(filter_func):
+        assert message.value == b'{"test": "filter"}'
+        break  # Only consume one message for this test
+
+
+# Test that the StreamingInputConfig can close the Kafka consumer
+def test_streaming_input_config_close(streaming_input_config):
+    streaming_input_config.close()
+    assert streaming_input_config.consumer is None
+
+
+# Test that the StreamingInputConfig can seek to a specific offset
+def test_streaming_input_config_seek(streaming_input_config):
+    partition = 0
+    offset = 0
+    streaming_input_config.seek(partition, offset)
+    message = next(streaming_input_config)
+    assert message.offset == offset
+
+
+# Test that the StreamingInputConfig can commit offsets
+def test_streaming_input_config_commit(streaming_input_config):
+    streaming_input_config.commit()
+    # This test is a bit tricky to implement because it depends on the state of the Kafka consumer
+    # You might need to check the committed offsets for the consumer's current partitions
