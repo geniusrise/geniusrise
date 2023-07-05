@@ -30,14 +30,14 @@ def test_batch_output_config_save(batch_output_config):
 
 
 # Test that the BatchOutputConfig can copy files to the S3 bucket
-def test_batch_output_config_copy_to_s3(batch_output_config):
+def test_batch_output_config_copy_to_remote(batch_output_config):
     # First, save a file to the output folder
     data = {"test": "data"}
     filename = "test_file.json"
     batch_output_config.save(data, filename)
 
     # Then, copy the file to the S3 bucket
-    batch_output_config.copy_to_s3()
+    batch_output_config.copy_to_remote()
 
     # Check that the file was copied to the S3 bucket
     # Note: This assumes that you have a way to check the contents of the S3 bucket

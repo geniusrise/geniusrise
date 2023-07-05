@@ -40,7 +40,7 @@ class BatchInputConfig(InputConfig):
             log.error("No input folder specified.")
             return None
 
-    def copy_from_s3(self):
+    def copy_from_remote(self):
         """
         Copy contents from a given S3 bucket and location to the input folder.
 
@@ -105,7 +105,7 @@ class BatchInputConfig(InputConfig):
         else:
             log.error("No input folder specified.")
 
-    def copy_to_s3(self, filename, bucket, s3_folder):
+    def copy_to_remote(self, filename, bucket, s3_folder):
         """
         Copy a file from the input folder to an S3 bucket.
 

@@ -27,8 +27,8 @@ def test_batch_input_config_get(batch_input_config):
 
 
 # Test that the BatchInputConfig can copy files from the S3 bucket
-def test_batch_input_config_copy_from_s3(batch_input_config):
-    batch_input_config.copy_from_s3()
+def test_batch_input_config_copy_from_remote(batch_input_config):
+    batch_input_config.copy_from_remote()
 
     # Check that the files were copied to the input folder
     # Note: This assumes that there are files in the S3_FOLDER of the BUCKET
@@ -68,12 +68,12 @@ def test_batch_input_config_delete_file(batch_input_config):
 
 
 # Test that the BatchInputConfig can copy a file to an S3 bucket
-def test_batch_input_config_copy_to_s3(batch_input_config):
+def test_batch_input_config_copy_to_remote(batch_input_config):
     # Create a test file in the input folder
     with open(os.path.join(batch_input_config.input_folder, "test_file.txt"), "w") as f:
         f.write("test")
 
-    batch_input_config.copy_to_s3("test_file.txt", BUCKET, S3_FOLDER)
+    batch_input_config.copy_to_remote("test_file.txt", BUCKET, S3_FOLDER)
 
     # Check that the file was copied to the S3 bucket
     s3 = boto3.resource("s3")
