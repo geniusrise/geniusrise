@@ -44,7 +44,7 @@ class BatchOutputConfig(OutputConfig):
         except Exception as e:
             log.error(f"Failed to write data to file: {e}")
 
-    def copy_to_s3(self):
+    def copy_to_remote(self):
         """
         Recursively copy all files and directories from the output folder to a given S3 bucket and folder.
 
@@ -68,4 +68,4 @@ class BatchOutputConfig(OutputConfig):
         Flush the output by copying all files and directories from the output folder to a given S3 bucket and folder.
         """
         # Replace 'bucket' and 's3_folder' with your actual bucket and folder
-        self.copy_to_s3()
+        self.copy_to_remote()

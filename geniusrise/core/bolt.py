@@ -61,7 +61,7 @@ class Bolt(Task):
             self.state_manager.set_state(self.id, dict(vars(self)))
 
             if type(self.input_config) is BatchInputConfig:
-                self.input_config.copy_from_s3()
+                self.input_config.copy_from_remote()
                 input_folder = self.input_config.get()
             elif type(self.input_config) is StreamingInputConfig:
                 kafka_consumer = self.input_config.get()
