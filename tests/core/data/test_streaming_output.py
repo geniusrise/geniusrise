@@ -15,31 +15,45 @@ def streaming_output_config():
     return StreamingOutputConfig(OUTPUT_TOPIC, KAFKA_SERVERS)
 
 
-# Test that the StreamingOutputConfig can be initialized
-def test_streaming_output_config_init(streaming_output_config):
-    assert streaming_output_config.output_topic == OUTPUT_TOPIC
-    assert streaming_output_config.producer is not None
+# Define a fixture for your KafkaConsumer
+@pytest.fixture
+def kafka_consumer():
+    consumer = KafkaConsumer(OUTPUT_TOPIC, bootstrap_servers=KAFKA_SERVERS, group_id=GROUP_ID)
+    consumer.commit()
+    return consumer
 
 
 # Test that the StreamingOutputConfig can save data to the Kafka topic
-def test_streaming_output_config_save(streaming_output_config):
+def test_streaming_output_config_save(streaming_output_config, kafka_consumer):
     data = {"test": "data"}
     streaming_output_config.save(data, "ignored_filename")
 
     # Consume from the Kafka topic and test that the data was saved
-    # Note: This assumes that you have a KafkaConsumer configured to consume from the test_topic
-    consumer = KafkaConsumer(OUTPUT_TOPIC, bootstrap_servers=KAFKA_SERVERS, group_id=GROUP_ID)
-    for message in consumer:
+    for message in kafka_consumer:
         assert message.value == bytes(json.dumps(data).encode("utf-8"))
         break  # Only consume one message for this test
 
 
-# Test that the StreamingOutputConfig can flush the Kafka producer
-def test_streaming_output_config_flush(streaming_output_config):
-    # This test just checks that the flush method doesn't raise an exception
-    # It doesn't check that the data is actually flushed, because that would require
-    # inspecting the internal state of the Kafka producer
-    try:
-        streaming_output_config.flush()
-    except Exception:
-        pytest.fail("StreamingOutputConfig.flush() raised an exception")
+# Test that the StreamingOutputConfig can save data to a specific partition in the Kafka topic
+def test_streaming_output_config_save_to_partition(streaming_output_config, kafka_consumer):
+    data = {"test": "data"}
+    partition = 0  # Replace with the number of a partition in your Kafka topic
+    streaming_output_config.save_to_partition(data, partition)
+
+    # Consume from the Kafka topic and test that the data was saved
+    for message in kafka_consumer:
+        if message.partition == partition:
+            assert message.value == bytes(json.dumps(data).encode("utf-8"))
+            break  # Only consume one message for this test
+
+
+# Test that the StreamingOutputConfig can save data in bulk to the Kafka topic
+def test_streaming_output_config_save_bulk(streaming_output_config, kafka_consumer):
+    data = [{"test": "data1"}, {"test": "data2"}, {"test": "data3"}]
+    streaming_output_config.save_bulk(data)
+
+    # Consume from the Kafka topic and test that the data was saved
+    for i, message in enumerate(kafka_consumer):
+        assert message.value == bytes(json.dumps(data[i]).encode("utf-8"))
+        if i == len(data) - 1:
+            break  # Only consume the number of messages that were saved

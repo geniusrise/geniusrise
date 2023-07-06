@@ -69,3 +69,53 @@ class BatchOutputConfig(OutputConfig):
         """
         # Replace 'bucket' and 's3_folder' with your actual bucket and folder
         self.copy_to_remote()
+
+    def list_files(self):
+        """
+        List all files in the output folder.
+
+        Returns:
+            list: The list of files in the output folder.
+        """
+        return [
+            os.path.join(self.output_folder, f)
+            for f in os.listdir(self.output_folder)
+            if os.path.isfile(os.path.join(self.output_folder, f))
+        ]
+
+    def read_file(self, filename: str):
+        """
+        Read a file from the output folder.
+
+        Args:
+            filename (str): The name of the file to read.
+
+        Returns:
+            str: The contents of the file.
+        """
+        with open(os.path.join(self.output_folder, filename), "r") as f:
+            return f.read()
+
+    def delete_file(self, filename: str):
+        """
+        Delete a file from the output folder.
+
+        Args:
+            filename (str): The name of the file to delete.
+        """
+        os.remove(os.path.join(self.output_folder, filename))
+
+    def copy_file_to_remote(self, filename: str):
+        """
+        Copy a specific file from the output folder to the S3 bucket.
+
+        Args:
+            filename (str): The name of the file to copy.
+        """
+        s3 = boto3.client("s3")
+        try:
+            s3.upload_file(
+                os.path.join(self.output_folder, filename), self.bucket, os.path.join(self.s3_folder, filename)
+            )
+        except Exception as e:
+            log.error(f"Failed to copy file to S3: {e}")
