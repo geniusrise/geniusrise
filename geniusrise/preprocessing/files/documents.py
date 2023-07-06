@@ -3,10 +3,11 @@ from time import ctime
 from typing import Any, Dict
 
 from PyPDF2 import PdfFileReader
-from pyth.plugins.plaintext.writer import PlaintextWriter
-from pyth.plugins.rtf15.reader import Rtf15Reader
 
-from geniusrise.data_sources.files.base import TextExtractor
+# from pyth.plugins.plaintext.writer import PlaintextWriter
+# from pyth.plugins.rtf15.reader import Rtf15Reader
+
+from geniusrise.preprocessing.files.base import TextExtractor
 
 
 class PDFExtractor(TextExtractor):
@@ -32,11 +33,11 @@ class TXTExtractor(TextExtractor):
         return {"text": text, "created_at": ctime(getmtime(file_path))}
 
 
-class RTFExtractor(TextExtractor):
-    """Text extractor for RTF files."""
+# class RTFExtractor(TextExtractor):
+#     """Text extractor for RTF files."""
 
-    def extract(self, file_path: str, **kwargs) -> Dict[str, Any]:
-        """Extract text from an RTF file."""
-        doc = Rtf15Reader.read(open(file_path, "rb"))
-        text = PlaintextWriter.write(doc).getvalue()
-        return {"text": text, "created_at": ctime(getmtime(file_path))}
+#     def extract(self, file_path: str, **kwargs) -> Dict[str, Any]:
+#         """Extract text from an RTF file."""
+#         doc = Rtf15Reader.read(open(file_path, "rb"))
+#         text = PlaintextWriter.write(doc).getvalue()
+#         return {"text": text, "created_at": ctime(getmtime(file_path))}
