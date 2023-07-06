@@ -58,3 +58,86 @@ class StreamingOutputConfig(OutputConfig):
             self.producer.flush()
         else:
             log.error("No Kafka producer available.")
+
+    def send_key_value(self, key: Any, value: Any):
+        """
+        Send a message with a key to the Kafka topic.
+
+        Args:
+            key (Any): The key of the message.
+            value (Any): The value of the message.
+        """
+        if self.producer:
+            try:
+                self.producer.send(
+                    self.output_topic,
+                    key=bytes(json.dumps(key).encode("utf-8")),
+                    value=bytes(json.dumps(value).encode("utf-8")),
+                )
+                log.debug(f"Inserted the key-value pair into {self.output_topic} topic.")
+            except Exception as e:
+                log.error(f"Failed to send key-value pair to Kafka topic: {e}")
+        else:
+            log.error("No Kafka producer available.")
+
+    def close(self):
+        """
+        Close the Kafka producer.
+        """
+        if self.producer:
+            self.producer.close()
+            self.producer = None
+        else:
+            log.error("No Kafka producer available.")
+
+    def partition_available(self, partition: int):
+        """
+        Check if a partition is available in the Kafka topic.
+
+        Args:
+            partition (int): The partition to check.
+
+        Returns:
+            bool: True if the partition is available, False otherwise.
+        """
+        if self.producer:
+            return partition in self.producer.partitions_for(self.output_topic)
+        else:
+            log.error("No Kafka producer available.")
+            return False
+
+    def save_to_partition(self, value: Any, partition: int):
+        """
+        Send a message to a specific partition in the Kafka topic.
+
+        Args:
+            value (Any): The value of the message.
+            partition (int): The partition to send the message to.
+        """
+        if self.producer:
+            try:
+                self.producer.send(
+                    self.output_topic, value=bytes(json.dumps(value).encode("utf-8")), partition=partition
+                )
+                log.debug(f"Inserted the message into partition {partition} of {self.output_topic} topic.")
+            except Exception as e:
+                log.error(f"Failed to send message to Kafka topic: {e}")
+        else:
+            log.error("No Kafka producer available.")
+
+    def save_bulk(self, messages: list):
+        """
+        Send multiple messages at once to the Kafka topic.
+
+        Args:
+            messages (list): The messages to send.
+        """
+        if self.producer:
+            try:
+                for message in messages:
+                    self.producer.send(self.output_topic, bytes(json.dumps(message).encode("utf-8")))
+                log.debug(f"Inserted {len(messages)} messages into {self.output_topic} topic.")
+            except Exception as e:
+                log.error(f"Failed to send messages to Kafka topic: {e}")
+        else:
+            log.error("No Kafka producer available.")

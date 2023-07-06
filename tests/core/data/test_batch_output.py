@@ -1,5 +1,6 @@
 import pytest
 import os
+import json
 import boto3
 from geniusrise.core.data import BatchOutputConfig
 
@@ -78,3 +79,59 @@ def file_exists_in_s3(bucket, key):
     except Exception as e:
         return False
     return True
+
+
+# Test that the BatchOutputConfig can list files in the output folder
+def test_batch_output_config_list_files(batch_output_config):
+    # First, save a file to the output folder
+    data = {"test": "data"}
+    filename = "test_file.json"
+    batch_output_config.save(data, filename)
+
+    # Then, list the files in the output folder
+    files = batch_output_config.list_files()
+
+    # Check that the list contains the file that was saved
+    assert os.path.join(batch_output_config.output_folder, filename) in files
+
+
+# Test that the BatchOutputConfig can read a file from the output folder
+def test_batch_output_config_read_file(batch_output_config):
+    # First, save a file to the output folder
+    data = {"test": "data"}
+    filename = "test_file.json"
+    batch_output_config.save(data, filename)
+
+    # Then, read the file from the output folder
+    contents = batch_output_config.read_file(filename)
+
+    # Check that the contents of the file match the data that was saved
+    assert json.loads(contents) == data
+
+
+# Test that the BatchOutputConfig can delete a file from the output folder
+def test_batch_output_config_delete_file(batch_output_config):
+    # First, save a file to the output folder
+    data = {"test": "data"}
+    filename = "test_file.json"
+    batch_output_config.save(data, filename)
+
+    # Then, delete the file from the output folder
+    batch_output_config.delete_file(filename)
+
+    # Check that the file no longer exists in the output folder
+    assert not os.path.isfile(os.path.join(batch_output_config.output_folder, filename))
+
+
+# Test that the BatchOutputConfig can copy a specific file to the S3 bucket
+def test_batch_output_config_copy_file_to_remote(batch_output_config):
+    # First, save a file to the output folder
+    data = {"test": "data"}
+    filename = "test_file.json"
+    batch_output_config.save(data, filename)
+
+    # Then, copy the file to the S3 bucket
+    batch_output_config.copy_file_to_remote(filename)
+
+    # Check that the file was copied to the S3 bucket
+    assert file_exists_in_s3(BUCKET, os.path.join(S3_FOLDER, filename))
