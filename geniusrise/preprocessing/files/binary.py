@@ -5,7 +5,7 @@ from typing import Any, Dict
 
 from elftools.elf.elffile import ELFFile
 
-from geniusrise.data_sources.files.base import TextExtractor
+from geniusrise.preprocessing.files.base import TextExtractor
 
 
 class ELFExtractor(TextExtractor):
