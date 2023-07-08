@@ -8,5 +8,4 @@ from geniusrise.core.state import (
 )
 from geniusrise.core.task import Task, ECSManager, K8sManager
 from geniusrise.core.spout import Spout
-
-# from .bolt import Bolt
+from geniusrise.core.bolt import Bolt
