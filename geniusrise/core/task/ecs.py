@@ -1,8 +1,8 @@
 import logging
-import boto3
 from typing import List, Optional
-from botocore.exceptions import BotoCoreError, ClientError
 
+import boto3
+from botocore.exceptions import BotoCoreError, ClientError
 
 log = logging.getLogger(__name__)
 

@@ -1,7 +1,9 @@
-import psycopg2
-from typing import Dict, Optional
-import logging
 import json
+import logging
+from typing import Dict, Optional
+
+import jsonpickle
+import psycopg2
 
 from geniusrise.core.state import StateManager
 
@@ -32,7 +34,7 @@ class PostgresStateManager(StateManager):
         try:
             self.conn = psycopg2.connect(host=host, port=port, user=user, password=password, database=database)
         except psycopg2.Error as e:
-            log.error(f"Failed to connect to PostgreSQL: {e}")
+            log.exception(f"Failed to connect to PostgreSQL: {e}")
             self.conn = None
 
     def get_state(self, key: str) -> Optional[Dict]:
@@ -50,9 +52,9 @@ class PostgresStateManager(StateManager):
                 with self.conn.cursor() as cur:
                     cur.execute(f"SELECT value FROM {self.table} WHERE key = '{key}'")
                     result = cur.fetchone()
-                    return result[0] if result else None
+                    return jsonpickle.decode(result[0]["data"]) if result else None
             except psycopg2.Error as e:
-                log.error(f"Failed to get state from PostgreSQL: {e}")
+                log.exception(f"Failed to get state from PostgreSQL: {e}")
                 return None
         else:
             log.error("No PostgreSQL connection.")
@@ -69,9 +71,18 @@ class PostgresStateManager(StateManager):
         if self.conn:
             try:
                 with self.conn.cursor() as cur:
-                    cur.execute(f"INSERT INTO {self.table} (key, value) VALUES ('{key}', '{json.dumps(value)}');")
+                    data = {"data": jsonpickle.encode(value)}
+                    cur.execute(
+                        f"""
+                        INSERT INTO {self.table} (key, value)
+                        VALUES (%s, %s)
+                        ON CONFLICT (key)
+                        DO UPDATE SET value = EXCLUDED.value;
+                        """,
+                        (key, json.dumps(data)),
+                    )
                 self.conn.commit()
             except psycopg2.Error as e:
-                log.error(f"Failed to set state in PostgreSQL: {e}")
+                log.exception(f"Failed to set state in PostgreSQL: {e}")
         else:
             log.error("No PostgreSQL connection.")

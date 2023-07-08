@@ -1,4 +1,5 @@
 import pytest
+
 from geniusrise.core.state import InMemoryStateManager
 
 

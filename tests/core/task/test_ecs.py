@@ -1,4 +1,5 @@
 import pytest
+
 from geniusrise.core.task import ECSManager
 
 # Hardcode your AWS resources here

@@ -40,9 +40,7 @@
         }
       },
       {
-        "scope": [
-          "keyword.control.conditional"
-        ],
+        "scope": ["keyword.control.conditional"],
         "settings": {
           "fontStyle": ""
         }

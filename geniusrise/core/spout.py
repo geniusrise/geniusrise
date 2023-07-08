@@ -1,16 +1,16 @@
-from typing import Any, Optional
 import logging
 import tempfile
+from typing import Any, Optional
 
-from geniusrise.core.data import OutputConfig, BatchOutputConfig, StreamingOutputConfig
+from geniusrise.core.data import BatchOutputConfig, OutputConfig, StreamingOutputConfig
 from geniusrise.core.state import (
-    StateManager,
-    InMemoryStateManager,
-    RedisStateManager,
-    PostgresStateManager,
     DynamoDBStateManager,
+    InMemoryStateManager,
+    PostgresStateManager,
+    RedisStateManager,
+    StateManager,
 )
-from .task import Task, ECSManager, K8sManager
+from geniusrise.core.task import ECSManager, K8sManager, Task
 
 
 class Spout(Task):
@@ -74,7 +74,7 @@ class Spout(Task):
             state_type = self.state_manager.get_state(self.id)
 
             # Save the current set of class variables to the state manager
-            self.state_manager.set_state(self.id, dict(vars(self)))
+            self.state_manager.set_state(self.id, {})
 
             # Execute the task's method
             result = self.execute(method_name, *args, **kwargs)
@@ -83,15 +83,15 @@ class Spout(Task):
             self.output_config.flush()
 
             # Store the state as successful in the state manager
-            state = dict(vars(self))
-            state[f"{self.id}_success"] = True
+            state = {}
+            state["status"] = "success"
             self.state_manager.set_state(self.id, state)
 
             return result
         except Exception as e:
-            self.log.error(f"Failed to execute method '{method_name}': {e}")
-            state = dict(vars(self))
-            state[f"{self.id}_success"] = True
+            self.log.exception(f"Failed to execute method '{method_name}': {e}")
+            state = {}
+            state["status"] = "failed"
             self.state_manager.set_state(self.id, state)
             raise
 
@@ -167,15 +167,15 @@ class Spout(Task):
 
             # Store the status in the state manager
             if status:
-                status["status"] = dict(status)
+                status["status"] = "success"
                 self.state_manager.set_state(self.id, status)
 
                 return status
             else:
                 raise Exception(f"Could not save the status of this task {status.__dict__}")
         except Exception as e:
-            status = dict(vars(self))
-            status["status"] = False
+            status = {}
+            status["status"] = "failed"
             self.state_manager.set_state(self.id, status)
             self.log.exception(f"Failed to execute remote method '{method_name}': {e}")
             raise
@@ -245,8 +245,8 @@ class Spout(Task):
             )
         elif state_type == "dynamodb":
             state_manager = DynamoDBStateManager(
-                table_name=kwargs["dynamodb_table_name"] if "table_name" in kwargs else None,
-                region_name=kwargs["dynamodb_region_name"] if "region_name" in kwargs else None,
+                table_name=kwargs["dynamodb_table_name"] if "dynamodb_table_name" in kwargs else None,
+                region_name=kwargs["dynamodb_region_name"] if "dynamodb_region_name" in kwargs else None,
             )
         else:
             raise ValueError(f"Invalid state type: {state_type}")

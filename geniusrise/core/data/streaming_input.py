@@ -1,7 +1,7 @@
 import logging
+from typing import Callable
 
 from kafka import KafkaConsumer
-from typing import Callable
 
 from .input import InputConfig
 

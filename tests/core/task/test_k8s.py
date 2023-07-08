@@ -1,7 +1,9 @@
-import pytest
-from geniusrise.core.task import K8sManager
-import shortuuid
 import time
+
+import pytest
+import shortuuid
+
+from geniusrise.core.task import K8sManager
 
 # Define your K8sManager details as constants
 NAME = "test-deployment-" + str(shortuuid.random(5)).lower()

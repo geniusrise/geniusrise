@@ -4,7 +4,6 @@ from typing import Any, Dict
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
 
-
 log = logging.getLogger(__name__)
 
 

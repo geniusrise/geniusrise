@@ -1,7 +1,9 @@
-import pytest
-import psycopg2
 import uuid
+
+import psycopg2
+import pytest
 from psycopg2 import sql
+
 from geniusrise.core.state import PostgresStateManager
 
 # Define your PostgreSQL connection details as constants

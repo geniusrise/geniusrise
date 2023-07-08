@@ -1,23 +1,24 @@
-from typing import Any
 import logging
 import tempfile
+from typing import Any
 
 from geniusrise.core.data import (
-    InputConfig,
     BatchInputConfig,
-    StreamingInputConfig,
-    OutputConfig,
     BatchOutputConfig,
+    InputConfig,
+    OutputConfig,
+    StreamingInputConfig,
     StreamingOutputConfig,
 )
 from geniusrise.core.state import (
-    StateManager,
-    InMemoryStateManager,
-    RedisStateManager,
-    PostgresStateManager,
     DynamoDBStateManager,
+    InMemoryStateManager,
+    PostgresStateManager,
+    RedisStateManager,
+    StateManager,
 )
-from .task import Task, ECSManager, K8sManager
+
+from .task import ECSManager, K8sManager, Task
 
 
 class Bolt(Task):
@@ -58,13 +59,16 @@ class Bolt(Task):
             state_type = self.state_manager.get_state(self.id)
 
             # Save the current set of class variables to the state manager
-            self.state_manager.set_state(self.id, dict(vars(self)))
+            self.state_manager.set_state(self.id, {})
 
+            # Copy input data to local or connect to kafka and pass on the details
             if type(self.input_config) is BatchInputConfig:
                 self.input_config.copy_from_remote()
                 input_folder = self.input_config.get()
+                kwargs["input_folder"] = input_folder
             elif type(self.input_config) is StreamingInputConfig:
                 kafka_consumer = self.input_config.get()
+                kwargs["kafka_consumer"] = kafka_consumer
 
             # Execute the task's method
             result = self.execute(method_name, *args, **kwargs)
@@ -73,15 +77,15 @@ class Bolt(Task):
             self.output_config.flush()
 
             # Store the state as successful in the state manager
-            state = dict(vars(self))
-            state[f"{self.id}_success"] = True
+            state = {}
+            state["status"] = "success"
             self.state_manager.set_state(self.id, state)
 
             return result
         except Exception as e:
             self.log.error(f"Failed to execute method '{method_name}': {e}")
-            state = dict(vars(self))
-            state[f"{self.id}_success"] = False
+            state = {}
+            state["status"] = "failed"
             self.state_manager.set_state(self.id, state)
             raise
 
@@ -102,30 +106,37 @@ class Bolt(Task):
             manager: StateManager | ECSManager | K8sManager
             if manager_type == "ecs":
                 manager = ECSManager(
-                    name=self.id,
-                    image="geniusrise/geniusrise",
-                    command=["run", method_name] + [f"--{k} {v}" for k, v in kwargs.items()],
+                    name=kwargs["name"] if "name" in kwargs else None,
+                    account_id=kwargs["account_id"] if "account_id" in kwargs else None,
                     cluster=kwargs["cluster"] if "cluster" in kwargs else None,
                     subnet_ids=kwargs["subnet_ids"] if "subnet_ids" in kwargs else None,
+                    security_group_ids=kwargs["security_group_ids"] if "security_group_ids" in kwargs else None,
+                    image=kwargs["image"] if "image" in kwargs else None,
                     replicas=kwargs["replicas"] if "replicas" in kwargs else None,
                     port=kwargs["port"] if "port" in kwargs else None,
                     log_group=kwargs["log_group"] if "log_group" in kwargs else None,
                     cpu=kwargs["cpu"] if "cpu" in kwargs else None,
                     memory=kwargs["memory"] if "memory" in kwargs else None,
+                    command=["run", method_name] + [f"--{k} {v}" for k, v in kwargs.items()],
                 )
 
                 # Create the task definition and run the task
                 task_definition_arn = manager.create_task_definition()
-                manager.run_task(task_definition_arn)
+                if task_definition_arn:
+                    manager.run_task(task_definition_arn)
+                else:
+                    raise Exception(f"Could not create task definition {kwargs}")
 
                 # Get the status of the task
                 status = manager.describe_task(task_definition_arn)
 
             elif manager_type == "k8s":
                 manager = K8sManager(
-                    name=self.id,
-                    namespace=kwargs["namespace"] if "namespace" in kwargs else "default",
-                    image="geniusrise/geniusrise",
+                    name=kwargs["name"] if "name" in kwargs else None,
+                    namespace=kwargs["namespace"] if "namespace" in kwargs else None,
+                    image=kwargs["image"] if "image" in kwargs else None,
+                    replicas=kwargs["replicas"] if "replicas" in kwargs else None,
+                    port=kwargs["port"] if "port" in kwargs else None,
                     command=["run", method_name] + [f"--{k} {v}" for k, v in kwargs.items()],
                 )
 
@@ -138,19 +149,20 @@ class Bolt(Task):
                 raise ValueError(f"Invalid manager type '{manager_type}'")
 
             # Store the status in the state manager
-            status["status"] = dict(status)
-            self.state_manager.set_state(self.id, status)
+            if status:
+                status["status"] = "success"
+                self.state_manager.set_state(self.id, status)
 
-            return status
+                return status
         except Exception as e:
-            status = dict(vars(self))
+            status = {}
             status["status"] = False
             self.state_manager.set_state(self.id, status)
             self.log.exception(f"Failed to execute remote method '{method_name}': {e}")
             raise
 
     @staticmethod
-    def create(input_type: str, output_type: str, state_type: str, task_type: str, **kwargs) -> "Bolt":
+    def create(input_type: str, output_type: str, state_type: str, **kwargs) -> "Bolt":
         """
         Create a bolt of a specific type.
 
@@ -158,7 +170,6 @@ class Bolt(Task):
             input_type (str): The type of input config ("batch" or "streaming").
             output_type (str): The type of output config ("batch" or "streaming").
             state_type (str): The type of state manager ("in_memory", "redis", "postgres", or "dynamodb").
-            task_type (str): The type of task ("ecs" or "k8s").
             **kwargs: Additional keyword arguments for initializing the bolt.
 
         Returns:
@@ -178,6 +189,7 @@ class Bolt(Task):
                 kafka_cluster_connection_string=kwargs["kafka_cluster_connection_string"]
                 if "kafka_cluster_connection_string" in kwargs
                 else None,
+                group_id=kwargs["group_id"] if "group_id" in kwargs else None,
             )
         else:
             raise ValueError(f"Invalid input type: {input_type}")
@@ -203,21 +215,28 @@ class Bolt(Task):
         if state_type == "in_memory":
             state_manager = InMemoryStateManager()
         elif state_type == "redis":
-            state_manager = RedisStateManager(**kwargs)
+            state_manager = RedisStateManager(
+                host=kwargs["redis_host"] if "redis_host" in kwargs else None,
+                port=kwargs["redis_port"] if "redis_port" in kwargs else None,
+                db=kwargs["redis_db"] if "redis_db" in kwargs else None,
+            )
         elif state_type == "postgres":
-            state_manager = PostgresStateManager(**kwargs)
+            state_manager = PostgresStateManager(
+                host=kwargs["postgres_host"] if "postgres_host" in kwargs else None,
+                port=kwargs["postgres_port"] if "postgres_port" in kwargs else None,
+                user=kwargs["postgres_user"] if "postgres_user" in kwargs else None,
+                password=kwargs["postgres_password"] if "postgres_password" in kwargs else None,
+                database=kwargs["postgres_database"] if "postgres_database" in kwargs else None,
+                table=kwargs["postgres_table"] if "postgres_table" in kwargs else None,
+            )
         elif state_type == "dynamodb":
-            state_manager = DynamoDBStateManager(**kwargs)
+            state_manager = DynamoDBStateManager(
+                table_name=kwargs["dynamodb_table_name"] if "dynamodb_table_name" in kwargs else None,
+                region_name=kwargs["dynamodb_region_name"] if "dynamodb_region_name" in kwargs else None,
+            )
         else:
             raise ValueError(f"Invalid state type: {state_type}")
 
         # Create the bolt
-        bolt: Bolt
-        if task_type == "ecs":
-            bolt = Bolt(input_config, output_config, state_manager, **kwargs)
-        elif task_type == "k8s":
-            bolt = Bolt(input_config, output_config, state_manager, **kwargs)
-        else:
-            raise ValueError(f"Invalid task type: {task_type}")
-
+        bolt = Bolt(input_config, output_config, state_manager)
         return bolt

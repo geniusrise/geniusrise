@@ -1,7 +1,9 @@
-import pytest
-from geniusrise.core.data import StreamingOutputConfig
-from kafka import KafkaConsumer
 import json
+
+import pytest
+from kafka import KafkaConsumer
+
+from geniusrise.core.data import StreamingOutputConfig
 
 # Define your Kafka connection details as constants
 KAFKA_SERVERS = "localhost:9094"
