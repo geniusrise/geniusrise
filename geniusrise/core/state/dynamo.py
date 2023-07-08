@@ -1,7 +1,7 @@
 import boto3
 from typing import Dict, Optional
 import logging
-import json
+import jsonpickle
 
 from geniusrise.core.state import StateManager
 
@@ -30,7 +30,7 @@ class DynamoDBStateManager(StateManager):
             self.dynamodb = boto3.resource("dynamodb", region_name=region_name)
             self.table = self.dynamodb.Table(table_name)
         except Exception as e:
-            log.error(f"Failed to connect to DynamoDB: {e}")
+            log.exception(f"Failed to connect to DynamoDB: {e}")
             self.dynamodb = None
             self.table = None
 
@@ -47,9 +47,9 @@ class DynamoDBStateManager(StateManager):
         if self.table:
             try:
                 response = self.table.get_item(Key={"id": key})
-                return json.loads(response["Item"]["value"]) if "Item" in response else None
+                return jsonpickle.decode(response["Item"]["value"]) if "Item" in response else None
             except Exception as e:
-                log.error(f"Failed to get state from DynamoDB: {e}")
+                log.exception(f"Failed to get state from DynamoDB: {e}")
                 return None
         else:
             log.error("No DynamoDB table.")
@@ -65,8 +65,8 @@ class DynamoDBStateManager(StateManager):
         """
         if self.table:
             try:
-                self.table.put_item(Item={"id": key, "value": json.dumps(value)})
+                self.table.put_item(Item={"id": key, "value": jsonpickle.encode(value)})
             except Exception as e:
-                log.error(f"Failed to set state in DynamoDB: {e}")
+                log.exception(f"Failed to set state in DynamoDB: {e}")
         else:
             log.error("No DynamoDB table.")
