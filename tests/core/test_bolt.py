@@ -1,7 +1,8 @@
 import pytest
-from geniusrise.core.data import BatchInputConfig, StreamingInputConfig, BatchOutputConfig, StreamingOutputConfig
-from geniusrise.core.state import InMemoryStateManager, RedisStateManager, PostgresStateManager, DynamoDBStateManager
+
 from geniusrise.core import Bolt
+from geniusrise.core.data import BatchInputConfig, BatchOutputConfig, StreamingInputConfig, StreamingOutputConfig
+from geniusrise.core.state import DynamoDBStateManager, InMemoryStateManager, PostgresStateManager, RedisStateManager
 
 # Define the parameters for the tests
 bucket = "geniusrise-test-bucket"

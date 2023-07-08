@@ -1,6 +1,7 @@
-import boto3
-from typing import Dict, Optional
 import logging
+from typing import Dict, Optional
+
+import boto3
 import jsonpickle
 
 from geniusrise.core.state import StateManager

@@ -57,7 +57,8 @@
 #         """
 #         try:
 #             self.create_output_folder(bucket=self.bucket, folder=self.output_folder)
-#             self.input_folder = context["task_instance"].xcom_pull(task_ids=self.upstream_task_ids, key="input_folder")
+#             self.input_folder = c
+# ontext["task_instance"].xcom_pull(task_ids=self.upstream_task_ids, key="input_folder")
 #             result = self(context.__dict__)
 #             context["task_instance"].xcom_push(key="input_folder", value=self.output_folder)
 #             self.trace.info(f"Successfully executed task {self.task_id}")

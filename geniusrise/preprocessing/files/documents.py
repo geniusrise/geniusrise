@@ -4,10 +4,10 @@ from typing import Any, Dict
 
 from PyPDF2 import PdfFileReader
 
+from geniusrise.preprocessing.files.base import TextExtractor
+
 # from pyth.plugins.plaintext.writer import PlaintextWriter
 # from pyth.plugins.rtf15.reader import Rtf15Reader
-
-from geniusrise.preprocessing.files.base import TextExtractor
 
 
 class PDFExtractor(TextExtractor):

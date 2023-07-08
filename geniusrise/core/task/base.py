@@ -1,7 +1,8 @@
-import uuid
 import inspect
+import uuid
 from abc import ABC
-from typing import Any, List, Tuple, Optional
+from typing import Any, List, Optional, Tuple
+
 from prettytable import PrettyTable
 from termcolor import colored  # type: ignore
 

@@ -1,6 +1,7 @@
-import redis  # type: ignore
 from typing import Dict, Optional
+
 import jsonpickle
+import redis  # type: ignore
 
 from geniusrise.core.state import StateManager
 

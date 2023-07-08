@@ -1,11 +1,11 @@
-from geniusrise.core.data import OutputConfig, BatchOutputConfig, StreamingOutputConfig
-from geniusrise.core.state import (
-    StateManager,
-    InMemoryStateManager,
-    RedisStateManager,
-    PostgresStateManager,
-    DynamoDBStateManager,
-)
-from geniusrise.core.task import Task, ECSManager, K8sManager
-from geniusrise.core.spout import Spout
 from geniusrise.core.bolt import Bolt
+from geniusrise.core.data import BatchOutputConfig, OutputConfig, StreamingOutputConfig
+from geniusrise.core.spout import Spout
+from geniusrise.core.state import (
+    DynamoDBStateManager,
+    InMemoryStateManager,
+    PostgresStateManager,
+    RedisStateManager,
+    StateManager,
+)
+from geniusrise.core.task import ECSManager, K8sManager, Task

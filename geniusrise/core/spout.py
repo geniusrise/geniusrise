@@ -1,16 +1,16 @@
-from typing import Any, Optional
 import logging
 import tempfile
+from typing import Any, Optional
 
-from geniusrise.core.data import OutputConfig, BatchOutputConfig, StreamingOutputConfig
+from geniusrise.core.data import BatchOutputConfig, OutputConfig, StreamingOutputConfig
 from geniusrise.core.state import (
-    StateManager,
-    InMemoryStateManager,
-    RedisStateManager,
-    PostgresStateManager,
     DynamoDBStateManager,
+    InMemoryStateManager,
+    PostgresStateManager,
+    RedisStateManager,
+    StateManager,
 )
-from geniusrise.core.task import Task, ECSManager, K8sManager
+from geniusrise.core.task import ECSManager, K8sManager, Task
 
 
 class Spout(Task):

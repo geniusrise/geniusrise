@@ -1,23 +1,24 @@
-from typing import Any
 import logging
 import tempfile
+from typing import Any
 
 from geniusrise.core.data import (
-    InputConfig,
     BatchInputConfig,
-    StreamingInputConfig,
-    OutputConfig,
     BatchOutputConfig,
+    InputConfig,
+    OutputConfig,
+    StreamingInputConfig,
     StreamingOutputConfig,
 )
 from geniusrise.core.state import (
-    StateManager,
-    InMemoryStateManager,
-    RedisStateManager,
-    PostgresStateManager,
     DynamoDBStateManager,
+    InMemoryStateManager,
+    PostgresStateManager,
+    RedisStateManager,
+    StateManager,
 )
-from .task import Task, ECSManager, K8sManager
+
+from .task import ECSManager, K8sManager, Task
 
 
 class Bolt(Task):

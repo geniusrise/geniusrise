@@ -1,54 +1,55 @@
-from typing import Any
+# from typing import Any
 
-import boto3
-from airflow import DAG
-from airflow.utils.dates import days_ago
-from moto import mock_s3
+# import boto3
+# from airflow import DAG
+# from airflow.utils.dates import days_ago
+# from moto import mock_s3
 
-from geniusrise.dag.task import Sink, Source
-
-
-class TestSource(Source):
-    def read(self) -> Any:
-        with open("./input.txt", "r") as f:
-            return f.read()
+# from geniusrise.dag.task import Sink, Source
 
 
-class TestSink(Sink):
-    def write(self) -> None:
-        with open("./output.txt", "w") as f:
-            f.write("⏹️ test data ⏹️")
+# class TestSource(Source):
+#     def read(self) -> Any:
+#         with open("./input.txt", "r") as f:
+#             return f.read()
 
 
-@mock_s3
-def test_pipeline():
-    # Create a mock S3 bucket
-    conn = boto3.resource("s3", region_name="us-east-1")
-    conn.create_bucket(Bucket="test_bucket")
+# class TestSink(Sink):
+#     def write(self) -> None:
+#         with open("./output.txt", "w") as f:
+#             f.write("⏹️ test data ⏹️")
 
-    # Create a DAG
-    dag = DAG(
-        dag_id="test_dag",
-        start_date=days_ago(1),
-        schedule_interval="@daily",
-    )
 
-    # Create a Source and a Sink
-    source = TestSource(task_id="test_source", bucket="test_bucket", name="test_source", source="test_source", dag=dag)
-    sink = TestSink(task_id="test_sink", bucket="test_bucket", name="test_sink", sink="test_sink", dag=dag)
+# @mock_s3
+# def test_pipeline():
+#     # Create a mock S3 bucket
+#     conn = boto3.resource("s3", region_name="us-east-1")
+#     conn.create_bucket(Bucket="test_bucket")
 
-    # Set up the pipeline
-    source >> sink
+#     # Create a DAG
+#     dag = DAG(
+#         dag_id="test_dag",
+#         start_date=days_ago(1),
+#         schedule_interval="@daily",
+#     )
 
-    # Test reading data from the source
-    with open("input.txt", "w") as f:
-        f.write("⏹️ test data ⏹️")
-    conn.Object("test_bucket", f"{source.input_folder}/input.txt").upload_file("input.txt")
-    assert source.read() == "⏹️ test data ⏹️"
+#     # Create a Source and a Sink
+#     source = TestSource(tas
+# k_id="test_source", bucket="test_bucket", name="test_source", source="test_source", dag=dag)
+#     sink = TestSink(task_id="test_sink", bucket="test_bucket", name="test_sink", sink="test_sink", dag=dag)
 
-    # Test writing data to the sink
-    sink.input_folder = source.output_folder
-    sink.write()
+#     # Set up the pipeline
+#     source >> sink
 
-    data = open("./output.txt").read()
-    assert data == "⏹️ test data ⏹️"
+#     # Test reading data from the source
+#     with open("input.txt", "w") as f:
+#         f.write("⏹️ test data ⏹️")
+#     conn.Object("test_bucket", f"{source.input_folder}/input.txt").upload_file("input.txt")
+#     assert source.read() == "⏹️ test data ⏹️"
+
+#     # Test writing data to the sink
+#     sink.input_folder = source.output_folder
+#     sink.write()
+
+#     data = open("./output.txt").read()
+#     assert data == "⏹️ test data ⏹️"
