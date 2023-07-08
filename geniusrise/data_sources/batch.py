@@ -6,7 +6,7 @@ import uuid
 from abc import ABC
 from typing import Any, Callable, Optional
 
-from geniusrise.data_sources.state import InMemoryStateManager, StateManager
+from geniusrise.core.state import InMemoryStateManager, StateManager
 
 
 class BatchDataFetcher(ABC):
@@ -116,7 +116,8 @@ class BatchDataFetcher(ABC):
 
         :param status: Status of the fetch operation ('success' or 'failure').
         """
-        state = json.loads(self.state_manager.get_state(self.state_key))
-        self.state["status"] = status
-        state["status"] = status
-        self.state_manager.set_state(self.state_key, json.dumps(state))
+        state = self.state_manager.get_state(self.state_key)
+        if state:
+            self.state["status"] = status  # type: ignore
+            state["status"] = status
+            self.state_manager.set_state(self.state_key, json.dumps(state))  # type: ignore

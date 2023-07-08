@@ -23,5 +23,31 @@
   "prettier.trailingComma": "es5",
   "python.linting.mypyEnabled": true,
   "python.linting.mypyArgs": [],
-  "editor.tabSize": 4
+  "editor.tabSize": 4,
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+      {
+        "scope": [
+          "keyword",
+          "comment",
+          "keyword.operator",
+          "storage.modifier",
+          "storage.type.class.js",
+          "storage.type.js"
+        ],
+        "settings": {
+          "fontStyle": "italic bold"
+        }
+      },
+      {
+        "scope": [
+          "keyword.control.conditional"
+        ],
+        "settings": {
+          "fontStyle": ""
+        }
+      }
+    ],
+    "comments": ""
+  }
 }

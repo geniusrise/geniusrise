@@ -32,3 +32,9 @@ class StateManager(ABC):
             value (Dict): The state to set.
         """
         pass
+
+    def __getattr__(self, key):
+        return self.get_state(key)
+
+    def __setattr__(self, key, value):
+        self.set_state(key, value)

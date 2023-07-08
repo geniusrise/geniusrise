@@ -9,6 +9,54 @@ log = logging.getLogger(__name__)
 
 
 class K8sManager:
+    """
+    A class used to manage Kubernetes deployments and services.
+
+    Attributes
+    ----------
+    name : str
+        The name of the deployment and service.
+    namespace : str
+        The namespace to create the deployment and service in.
+    image : str
+        The Docker image to use for the deployment.
+    command : list
+        The command to run in the Docker container.
+    replicas : int
+        The number of replicas to create for the deployment.
+    port : int
+        The port to expose on the service.
+    core_api : kubernetes.client.CoreV1Api
+        The Kubernetes Core V1 API client.
+    apps_api : kubernetes.client.AppsV1Api
+        The Kubernetes Apps V1 API client.
+
+    Methods
+    -------
+    create_deployment()
+        Creates a new deployment.
+    update_deployment(replicas)
+        Updates the number of replicas in the deployment.
+    scale_deployment(replicas)
+        Scales the deployment to a new number of replicas.
+    delete_deployment()
+        Deletes the deployment.
+    create_service()
+        Creates a new service.
+    delete_service()
+        Deletes the service.
+    run()
+        Creates the deployment and service.
+    destroy()
+        Deletes the deployment and service.
+    get_status()
+        Returns the status of the deployment.
+    get_statistics()
+        Returns the details of the deployment and the pods in the deployment.
+    get_logs()
+        Returns the logs of the pods in the deployment.
+    """
+
     def __init__(
         self,
         name: str,
@@ -18,6 +66,24 @@ class K8sManager:
         replicas: int = 1,
         port: int = 80,
     ):
+        """
+        Constructs all the necessary attributes for the K8sManager object.
+
+        Parameters
+        ----------
+        name : str
+            The name of the deployment and service.
+        command : list
+            The command to run in the Docker container.
+        namespace : str, optional
+            The namespace to create the deployment and service in (default is "default").
+        image : str, optional
+            The Docker image to use for the deployment (default is "geniusrise/geniusrise").
+        replicas : int, optional
+            The number of replicas to create for the deployment (default is 1).
+        port : int, optional
+            The port to expose on the service (default is 80).
+        """
         self.name = name
         self.namespace = namespace
         self.image = image
@@ -33,17 +99,28 @@ class K8sManager:
         self.apps_api = client.AppsV1Api()
 
     def create_deployment(self):
+        """
+        Creates a new deployment.
+
+        The deployment is created in the namespace specified in the constructor. The deployment uses the Docker image
+        and command specified in the constructor, and creates the number of replicas specified in the constructor.
+
+        If an error occurs while creating the deployment, an error message is logged and the method returns None.
+        """
         # Define the container
-        container = client.V1Container(name=self.name, image=self.image, command=" ".join(self.command))
+        container = client.V1Container(name=self.name, image=self.image, command=self.command)
 
         # Define the template
         template = client.V1PodTemplateSpec(
-            metadata=client.V1ObjectMeta(labels={"app": self.name}), spec=client.V1PodSpec(containers=[container])
+            metadata=client.V1ObjectMeta(labels={"app": self.name, "service": "geniusrise"}),
+            spec=client.V1PodSpec(containers=[container]),
         )
 
         # Define the spec
         spec = client.V1DeploymentSpec(
-            replicas=self.replicas, selector=client.V1LabelSelector(match_labels={"app": self.name}), template=template
+            replicas=self.replicas,
+            selector=client.V1LabelSelector(match_labels={"app": self.name, "service": "geniusrise"}),
+            template=template,
         )
 
         # Define the deployment
@@ -56,13 +133,23 @@ class K8sManager:
         except ApiException as e:
             log.error(f"Exception when creating deployment {self.name}: {e}")
 
-    def update_deployment(self, new_spec):
+    def update_deployment(self, replicas):
+        """
+        Updates the number of replicas in the deployment.
+
+        Parameters
+        ----------
+        replicas : int
+            The new number of replicas for the deployment.
+
+        If an error occurs while updating the deployment, an error message is logged and the method returns None.
+        """
         # Get the existing deployment
         try:
             deployment = self.apps_api.read_namespaced_deployment(name=self.name, namespace=self.namespace)
 
-            # Update the deployment spec
-            deployment.spec = new_spec
+            # Update the number of replicas
+            deployment.spec.replicas = replicas
 
             # Update the deployment
             self.apps_api.replace_namespaced_deployment(name=self.name, namespace=self.namespace, body=deployment)
@@ -71,6 +158,16 @@ class K8sManager:
             log.error(f"Exception when updating deployment {self.name}: {e}")
 
     def scale_deployment(self, replicas):
+        """
+        Scales the deployment to a new number of replicas.
+
+        Parameters
+        ----------
+        replicas : int
+            The new number of replicas for the deployment.
+
+        If an error occurs while scaling the deployment, an error message is logged and the method returns None.
+        """
         # Get the existing deployment
         try:
             deployment = self.apps_api.read_namespaced_deployment(name=self.name, namespace=self.namespace)
@@ -93,6 +190,11 @@ class K8sManager:
             log.error(f"Exception when deleting deployment {self.name}: {e}")
 
     def create_service(self):
+        """
+        Deletes the deployment.
+
+        If an error occurs while deleting the deployment, an error message is logged and the method returns None.
+        """
         # Define the service spec
         spec = client.V1ServiceSpec(
             selector={"app": self.name}, ports=[client.V1ServicePort(port=self.port, target_port=self.port)]
@@ -109,6 +211,14 @@ class K8sManager:
             log.error(f"Exception when creating service {self.name}: {e}")
 
     def delete_service(self):
+        """
+        Creates a new service.
+
+        The service is created in the namespace specified in the constructor. The service exposes the port specified
+        in the constructor.
+
+        If an error occurs while creating the service, an error message is logged and the method returns None.
+        """
         # Delete the service
         try:
             self.core_api.delete_namespaced_service(name=self.name, namespace=self.namespace)
@@ -117,10 +227,22 @@ class K8sManager:
             log.error(f"Exception when deleting service {self.name}: {e}")
 
     def run(self):
+        """
+        Creates the deployment and service.
+
+        If an error occurs while creating the deployment or service,
+        an error message is logged and the method returns None.
+        """
         self.create_deployment()
         self.create_service()
 
     def destroy(self):
+        """
+        Deletes the deployment and service.
+
+        If an error occurs while deleting the deployment or service,
+        an error message is logged and the method returns None.
+        """
         self.delete_deployment()
         self.delete_service()
 
@@ -134,7 +256,7 @@ class K8sManager:
         try:
             # Get the status of the deployment
             deployment = self.apps_api.read_namespaced_deployment(name=self.name, namespace=self.namespace)
-            return deployment.status
+            return deployment.status.__dict__
         except ApiException as e:
             log.error(f"Exception when getting status of deployment {self.name}: {e}")
             return {}
@@ -169,10 +291,17 @@ class K8sManager:
         """
         try:
             # Get the logs of the pods in the deployment
-            pod_list = self.core_api.list_namespaced_pod(self.namespace, label_selector=f"app={self.name}")
             logs = {}
-            for pod in pod_list.items:
-                logs[pod.metadata.name] = self.core_api.read_namespaced_pod_log(pod.metadata.name, self.namespace)
+            _continue = None
+            while True:
+                pod_list = self.core_api.list_namespaced_pod(
+                    self.namespace, label_selector=f"app={self.name}", _continue=_continue
+                )
+                for pod in pod_list.items:
+                    logs[pod.metadata.name] = self.core_api.read_namespaced_pod_log(pod.metadata.name, self.namespace)
+                _continue = pod_list.metadata._continue
+                if not _continue:
+                    break
             return logs
         except ApiException as e:
             log.error(f"Exception when getting logs of deployment {self.name}: {e}")
