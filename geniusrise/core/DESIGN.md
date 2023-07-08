@@ -1,9 +1,7 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-**Table of Contents**
-
-- [Design Document for Distributed Computation Framework](#design-document-for-distributed-computation-framework)
+- [Core Abstraction Design Document](#core-abstraction-design-document)
   - [Overview](#overview)
   - [Entities](#entities)
     - [Tasks](#tasks)
@@ -19,7 +17,7 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-# Design Document for Distributed Computation Framework
+# Core Abstraction Design Document
 
 ## Overview
 
