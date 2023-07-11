@@ -63,11 +63,11 @@ def state_manager(request):
         return request.param(dynamodb_table_name, dynamodb_region_name)
 
 
-# def test_bolt_init(input_config, output_config, state_manager):
-#     bolt = TestBolt(input_config, output_config, state_manager)
-#     assert bolt.input_config == input_config
-#     assert bolt.output_config == output_config
-#     assert bolt.state_manager == state_manager
+def test_bolt_init(input_config, output_config, state_manager):
+    bolt = TestBolt(input_config, output_config, state_manager)
+    assert bolt.input_config == input_config
+    assert bolt.output_config == output_config
+    assert bolt.state_manager == state_manager
 
 
 def test_bolt_call(input_config, output_config, state_manager):
@@ -94,49 +94,49 @@ def state_type(request):
     return request.param
 
 
-# def test_bolt_create(input_type, output_type, state_type, tmpdir):
-#     kwargs = {
-#         "input_folder": tmpdir,
-#         "bucket": bucket,
-#         "s3_folder": s3_folder,
-#         "input_topic": input_topic,
-#         "kafka_cluster_connection_string": kafka_cluster_connection_string,
-#         "group_id": group_id,
-#         "output_folder": tmpdir,
-#         "output_topic": output_topic,
-#         "kafka_servers": kafka_servers,
-#         "redis_host": redis_host,
-#         "redis_port": redis_port,
-#         "redis_db": redis_db,
-#         "postgres_host": postgres_host,
-#         "postgres_port": postgres_port,
-#         "postgres_user": postgres_user,
-#         "postgres_password": postgres_password,
-#         "postgres_database": postgres_database,
-#         "postgres_table": postgres_table,
-#         "dynamodb_table_name": dynamodb_table_name,
-#         "dynamodb_region_name": dynamodb_region_name,
-#     }
+def test_bolt_create(input_type, output_type, state_type, tmpdir):
+    kwargs = {
+        "input_folder": tmpdir,
+        "bucket": bucket,
+        "s3_folder": s3_folder,
+        "kafka_input_topic": input_topic,
+        "kafka_cluster_connection_string": kafka_cluster_connection_string,
+        "kafka_consumer_group_id": group_id,
+        "output_folder": tmpdir,
+        "output_topic": output_topic,
+        "kafka_servers": kafka_servers,
+        "redis_host": redis_host,
+        "redis_port": redis_port,
+        "redis_db": redis_db,
+        "postgres_host": postgres_host,
+        "postgres_port": postgres_port,
+        "postgres_user": postgres_user,
+        "postgres_password": postgres_password,
+        "postgres_database": postgres_database,
+        "postgres_table": postgres_table,
+        "dynamodb_table_name": dynamodb_table_name,
+        "dynamodb_region_name": dynamodb_region_name,
+    }
 
-#     bolt = Bolt.create(input_type, output_type, state_type, **kwargs)
+    bolt = Bolt.create(input_type, output_type, state_type, **kwargs)
 
-#     assert isinstance(bolt, Bolt)
+    assert isinstance(bolt, Bolt)
 
-#     if input_type == "batch":
-#         assert isinstance(bolt.input_config, BatchInputConfig)
-#     elif input_type == "streaming":
-#         assert isinstance(bolt.input_config, StreamingInputConfig)
+    if input_type == "batch":
+        assert isinstance(bolt.input_config, BatchInputConfig)
+    elif input_type == "streaming":
+        assert isinstance(bolt.input_config, StreamingInputConfig)
 
-#     if output_type == "batch":
-#         assert isinstance(bolt.output_config, BatchOutputConfig)
-#     elif output_type == "streaming":
-#         assert isinstance(bolt.output_config, StreamingOutputConfig)
+    if output_type == "batch":
+        assert isinstance(bolt.output_config, BatchOutputConfig)
+    elif output_type == "streaming":
+        assert isinstance(bolt.output_config, StreamingOutputConfig)
 
-#     if state_type == "in_memory":
-#         assert isinstance(bolt.state_manager, InMemoryStateManager)
-#     elif state_type == "redis":
-#         assert isinstance(bolt.state_manager, RedisStateManager)
-#     elif state_type == "postgres":
-#         assert isinstance(bolt.state_manager, PostgresStateManager)
-#     elif state_type == "dynamodb":
-#         assert isinstance(bolt.state_manager, DynamoDBStateManager)
+    if state_type == "in_memory":
+        assert isinstance(bolt.state_manager, InMemoryStateManager)
+    elif state_type == "redis":
+        assert isinstance(bolt.state_manager, RedisStateManager)
+    elif state_type == "postgres":
+        assert isinstance(bolt.state_manager, PostgresStateManager)
+    elif state_type == "dynamodb":
+        assert isinstance(bolt.state_manager, DynamoDBStateManager)

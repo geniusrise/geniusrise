@@ -24,11 +24,38 @@ from .task import ECSManager, K8sManager, Task
 class Bolt(Task):
     """
     Base class for all bolts.
+
+    A bolt is a component that consumes streams of data, processes them, and possibly emits new data streams.
     """
 
     def __init__(self, input_config: InputConfig, output_config: OutputConfig, state_manager: StateManager) -> None:
         """
-        Initialize the bolt.
+        The `Bolt` class is a base class for all bolts in the given context.
+        It inherits from the `Task` class and provides methods for executing tasks
+        both locally and remotely, as well as managing their state, with state management
+        options including in-memory, Redis, PostgreSQL, and DynamoDB,
+        and input and output configurations for batch or streaming data.
+
+        The `Bolt` class uses the `InputConfig`, `OutputConfig` and `StateManager` classes, which are abstract base
+        classes for managing input configurations, output configurations and states, respectively. The `InputConfig` and
+        `OutputConfig` classes each have two subclasses: `StreamingInputConfig`, `BatchInputConfig`, `StreamingOutputConfig`
+        and `BatchOutputConfig`, which manage streaming and batch input and output configurations, respectively.
+        The `StateManager` class is used to get and set state, and it has several subclasses for different types of state managers.
+
+        The `Bolt` class also uses the `ECSManager` and `K8sManager` classes in the `execute_remote` method,
+        which are used to manage tasks on Amazon ECS and Kubernetes, respectively.
+
+        Usage:
+            - Create an instance of the Bolt class by providing an InputConfig object, an OutputConfig object and a StateManager object.
+            - The InputConfig object specifies the input configuration for the bolt.
+            - The OutputConfig object specifies the output configuration for the bolt.
+            - The StateManager object handles the management of the bolt's state.
+
+        Example:
+            input_config = InputConfig(...)
+            output_config = OutputConfig(...)
+            state_manager = StateManager(...)
+            bolt = Bolt(input_config, output_config, state_manager)
 
         Args:
             input_config (InputConfig): The input configuration.
@@ -50,6 +77,8 @@ class Bolt(Task):
             method_name (str): The name of the method to execute.
             *args: Positional arguments to pass to the method.
             **kwargs: Keyword arguments to pass to the method.
+                Keyword Arguments:
+                    - Additional keyword arguments specific to the method.
 
         Returns:
             Any: The result of the method.
@@ -93,14 +122,40 @@ class Bolt(Task):
         """
         Execute a method remotely and manage the state.
 
+        This method is used to execute a method remotely on either Amazon ECS or Kubernetes,
+        depending on the manager type specified. It uses the `ECSManager` and `K8sManager` classes
+        to manage tasks on Amazon ECS and Kubernetes, respectively.
+
+        The method takes in a manager type, a method name, and additional keyword arguments
+        that are passed to the method. The manager type can be either "ecs" or "k8s", and the method
+        name is the name of the method to execute.
+
+        The method creates an instance of the appropriate manager, runs the task, gets the status of the task,
+        and stores the status in the state manager. If the task fails, the method logs the exception and raises it.
+
         Args:
             manager_type (str): The type of manager to use for remote execution ("ecs" or "k8s").
             method_name (str): The name of the method to execute.
-            *args: Positional arguments to pass to the method.
             **kwargs: Keyword arguments to pass to the method.
+                Keyword Arguments:
+                    - name (str): The name argument.
+                    - account_id (str): The account ID argument.
+                    - cluster (str): The cluster argument.
+                    - subnet_ids (str): The subnet IDs argument.
+                    - security_group_ids (str): The security group IDs argument.
+                    - image (str): The image argument.
+                    - replicas (str): The replicas argument.
+                    - port (str): The port argument.
+                    - log_group (str): The log group argument.
+                    - cpu (str): The CPU argument.
+                    - memory (str): The memory argument.
 
         Returns:
             Any: The result of the method.
+
+        Raises:
+            ValueError: If an invalid manager type is provided.
+            Exception: If there is an error executing the method.
         """
         try:
             manager: StateManager | ECSManager | K8sManager
@@ -166,14 +221,42 @@ class Bolt(Task):
         """
         Create a bolt of a specific type.
 
+        This static method is used to create a bolt of a specific type. It takes in an input type,
+        an output type, a state type, and additional keyword arguments for initializing the bolt.
+
+        The method creates the input config, output config, and state manager based on the provided types,
+        and then creates and returns a bolt using these configurations.
+
         Args:
             input_type (str): The type of input config ("batch" or "streaming").
             output_type (str): The type of output config ("batch" or "streaming").
             state_type (str): The type of state manager ("in_memory", "redis", "postgres", or "dynamodb").
             **kwargs: Additional keyword arguments for initializing the bolt.
+                Keyword Arguments:
+                    - input_folder (str): The input folder argument.
+                    - bucket (str): The bucket argument.
+                    - s3_folder (str): The S3 folder argument.
+                    - output_folder (str): The output folder argument.
+                    - kafka_output_topic (str): The output topic argument.
+                    - kafka_cluster_connection_string (str): The Kafka servers argument.
+                    - redis_host (str): The Redis host argument.
+                    - redis_port (str): The Redis port argument.
+                    - redis_db (str): The Redis database argument.
+                    - postgres_host (str): The PostgreSQL host argument.
+                    - postgres_port (str): The PostgreSQL port argument.
+                    - postgres_user (str): The PostgreSQL user argument.
+                    - postgres_password (str): The PostgreSQL password argument.
+                    - postgres_database (str): The PostgreSQL database argument.
+                    - postgres_table (str): The PostgreSQL table argument.
+                    - dynamodb_table_name (str): The DynamoDB table name argument.
+                    - dynamodb_region_name (str): The DynamoDB region name argument.
+                    - kafka_consumer_group_id (str): The Kafka consumer group id.
 
         Returns:
             Bolt: The created bolt.
+
+        Raises:
+            ValueError: If an invalid input type, output type, or state type is provided.
         """
         # Create the input config
         input_config: BatchInputConfig | StreamingInputConfig
