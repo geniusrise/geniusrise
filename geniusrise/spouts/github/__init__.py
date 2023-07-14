@@ -1,1 +1,2 @@
-from .github import GithubBulk
+from .dump import GithubDump
+from .incremental import GithubIncremental

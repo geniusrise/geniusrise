@@ -2,28 +2,27 @@ import logging
 import os
 from typing import List
 
-import requests
+import requests  # type: ignore
 from github import Github, GithubException
 from github.ContentFile import ContentFile
 
 from geniusrise.config import GITHUB_ACCESS_TOKEN
-from geniusrise.core import Spout, BatchOutputConfig, StateManager
+from geniusrise.core import Spout, BatchOutputConfig, InMemoryStateManager
 
 
-class GithubBulk(Spout):
+class GithubDump(Spout):
     def __init__(
         self,
         output_config: BatchOutputConfig,
-        state_manager: StateManager,
         repo_name: str,
-        output_folder: str,
+        state_manager: InMemoryStateManager = InMemoryStateManager(),
         github_access_token: str = GITHUB_ACCESS_TOKEN,
     ):
         """
         Initialize GithubResourceFetcher with repository name, output folder, and access token.
 
         :param repo_name: Name of the repository.
-        :param output_folder: Folder to save the fetched data.
+        :param github_access_token: Github access token.
         """
         super().__init__(output_config=output_config, state_manager=state_manager)
         self.github = Github(github_access_token)
