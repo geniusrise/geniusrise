@@ -1,4 +1,4 @@
-# Github Batch Spouts
+# Github Spouts
 
 This repository contains two classes, `GithubBatchSpout` and `GithubDump`, which
 are designed to fetch data from Github repositories and save them in a
