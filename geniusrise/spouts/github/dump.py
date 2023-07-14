@@ -5,6 +5,7 @@ from typing import List
 import requests  # type: ignore
 from github import Github, GithubException
 from github.ContentFile import ContentFile
+from github.PaginatedList import PaginatedList
 
 from geniusrise.config import GITHUB_ACCESS_TOKEN
 from geniusrise.core import Spout, BatchOutputConfig, InMemoryStateManager
@@ -21,7 +22,9 @@ class GithubDump(Spout):
         """
         Initialize GithubResourceFetcher with repository name, output folder, and access token.
 
+        :param output_config: Configuration for output.
         :param repo_name: Name of the repository.
+        :param state_manager: Manager for state.
         :param github_access_token: Github access token.
         """
         super().__init__(output_config=output_config, state_manager=state_manager)
@@ -31,7 +34,7 @@ class GithubDump(Spout):
 
         self.log = logging.getLogger(__name__)
 
-    def fetch_code(self):
+    def fetch_code(self) -> None:
         """
         Clone the repository to the output folder.
         """
@@ -41,12 +44,13 @@ class GithubDump(Spout):
         except Exception as e:
             self.log.error(f"Error cloning repository: {e}")
 
-    def fetch_pull_requests(self):
+    def fetch_pull_requests(self) -> None:
         """
         Fetch all pull requests and save each to a separate file.
         """
         try:
-            for pr in self.repo.get_pulls(state="all"):
+            pulls: PaginatedList = self.repo.get_pulls(state="all")
+            for pr in pulls:
                 diff_data = requests.get(pr.diff_url).text
                 patch_data = requests.get(pr.patch_url).text
                 pr_dict = {
@@ -64,12 +68,13 @@ class GithubDump(Spout):
         except requests.exceptions.RequestException as e:
             self.log.error(f"Error fetching diff or patch data: {e}")
 
-    def fetch_commits(self):
+    def fetch_commits(self) -> None:
         """
         Fetch all commits and save each to a separate file.
         """
         try:
-            for commit in self.repo.get_commits():
+            commits: PaginatedList = self.repo.get_commits()
+            for commit in commits:
                 diff_url = f"https://github.com/{self.repo.owner.login}/{self.repo.name}/commit/{commit.sha}.diff"
                 patch_url = f"https://github.com/{self.repo.owner.login}/{self.repo.name}/commit/{commit.sha}.patch"
                 diff_data = requests.get(diff_url).text
@@ -90,12 +95,13 @@ class GithubDump(Spout):
         except requests.exceptions.RequestException as e:
             self.log.error(f"Error fetching diff or patch data: {e}")
 
-    def fetch_issues(self):
+    def fetch_issues(self) -> None:
         """
         Fetch all issues and save each to a separate file.
         """
         try:
-            for issue in self.repo.get_issues(state="all"):
+            issues: PaginatedList = self.repo.get_issues(state="all")
+            for issue in issues:
                 issue_dict = {
                     "number": issue.number,
                     "title": issue.title,
@@ -108,12 +114,13 @@ class GithubDump(Spout):
         except GithubException as e:
             self.log.error(f"Error fetching issues: {e}")
 
-    def fetch_releases(self):
+    def fetch_releases(self) -> None:
         """
         Fetch all releases and save each to a separate file.
         """
         try:
-            for release in self.repo.get_releases():
+            releases: PaginatedList = self.repo.get_releases()
+            for release in releases:
                 release_dict = {
                     "tag_name": release.tag_name,
                     "name": release.title,
@@ -125,7 +132,7 @@ class GithubDump(Spout):
         except GithubException as e:
             self.log.error(f"Error fetching releases: {e}")
 
-    def fetch_repo_details(self):
+    def fetch_repo_details(self) -> None:
         """
         Fetch repository details and save to a file.
         """
