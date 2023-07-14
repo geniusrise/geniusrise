@@ -6,7 +6,7 @@ from typing import Any, Dict
 import pyexcel_ods
 from openpyxl import load_workbook
 
-from geniusrise.preprocessing.files.base import TextExtractor
+from geniusrise.spouts.files.base import TextExtractor
 
 
 class CSVExtractor(TextExtractor):

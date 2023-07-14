@@ -1,26 +1,34 @@
-import json
 import logging
 import os
-from typing import Any, List
+from typing import List
 
 import requests
 from github import Github, GithubException
 from github.ContentFile import ContentFile
 
 from geniusrise.config import GITHUB_ACCESS_TOKEN
+from geniusrise.core import Spout, BatchOutputConfig, StateManager
 
 
-class GithubDataFetcher:
-    def __init__(self, repo_name: str, output_folder: str):
+class GithubBulk(Spout):
+    def __init__(
+        self,
+        output_config: BatchOutputConfig,
+        state_manager: StateManager,
+        repo_name: str,
+        output_folder: str,
+        github_access_token: str = GITHUB_ACCESS_TOKEN,
+    ):
         """
         Initialize GithubResourceFetcher with repository name, output folder, and access token.
 
         :param repo_name: Name of the repository.
         :param output_folder: Folder to save the fetched data.
         """
-        self.github = Github(GITHUB_ACCESS_TOKEN)
+        super().__init__(output_config=output_config, state_manager=state_manager)
+        self.github = Github(github_access_token)
         self.repo = self.github.get_repo(repo_name)
-        self.output_folder = output_folder
+        self.output_folder = output_config.output_folder
 
         self.log = logging.getLogger(__name__)
 
@@ -50,7 +58,7 @@ class GithubDataFetcher:
                     "diff": diff_data,
                     "patch": patch_data,
                 }
-                self.save_to_file(pr_dict, f"pull_request_{pr.number}.json")
+                self.output_config.save(pr_dict, f"pull_request_{pr.number}.json")
             self.log.info("Pull requests fetched successfully.")
         except GithubException as e:
             self.log.error(f"Error fetching pull requests: {e}")
@@ -76,7 +84,7 @@ class GithubDataFetcher:
                     "diff": diff_data,
                     "patch": patch_data,
                 }
-                self.save_to_file(commit_dict, f"commit_{commit.sha}.json")
+                self.output_config.save(commit_dict, f"commit_{commit.sha}.json")
             self.log.info("Commits fetched successfully.")
         except GithubException as e:
             self.log.error(f"Error fetching commits: {e}")
@@ -96,7 +104,7 @@ class GithubDataFetcher:
                     "comments": [comment.body for comment in issue.get_comments()],
                     "state": issue.state,
                 }
-                self.save_to_file(issue_dict, f"issue_{issue.number}.json")
+                self.output_config.save(issue_dict, f"issue_{issue.number}.json")
             self.log.info("Issues fetched successfully.")
         except GithubException as e:
             self.log.error(f"Error fetching issues: {e}")
@@ -113,7 +121,7 @@ class GithubDataFetcher:
                     "body": release.body,
                     "published_at": release.published_at.isoformat(),
                 }
-                self.save_to_file(release_dict, f"release_{release.tag_name}.json")
+                self.output_config.save(release_dict, f"release_{release.tag_name}.json")
             self.log.info("Releases fetched successfully.")
         except GithubException as e:
             self.log.error(f"Error fetching releases: {e}")
@@ -130,7 +138,7 @@ class GithubDataFetcher:
                 "readme": self.repo.get_readme().decoded_content.decode(),
                 "file_structure": self._get_file_structure(self.repo.get_contents("")),
             }
-            self.save_to_file(repo_details, "repo_details.json")
+            self.output_config.save(repo_details, "repo_details.json")
             self.log.info("Repository details fetched successfully.")
         except GithubException as e:
             self.log.error(f"Error fetching repository details: {e}")
@@ -155,36 +163,3 @@ class GithubDataFetcher:
             else:
                 structure.append("File: " + content.name)
         return structure
-
-    def save_to_file(self, data: Any, filename: str):
-        """
-        Save data to a file in the output folder.
-
-        :param data: Data to save.
-        :param filename: Name of the file to save the data.
-        """
-        try:
-            local_dir = os.path.join(self.output_folder, filename)
-            with open(local_dir, "w") as f:
-                json.dump(data, f)
-            self.log.info(f"Data saved to {filename}.")
-        except Exception as e:
-            self.log.error(f"Error saving data to file: {e}")
-
-    def get(self, resource_type: str) -> str:
-        """
-        Call the appropriate function based on the resource type, save the data, and return the status.
-
-        :param resource_type: Type of the resource to fetch.
-        :return: Status message.
-        """
-        fetch_method = getattr(self, f"fetch_{resource_type}", None)
-        if not fetch_method:
-            self.log.error(f"Invalid resource type: {resource_type}")
-            return f"Invalid resource type: {resource_type}"
-        try:
-            fetch_method()
-            return f"{resource_type} fetched successfully."
-        except Exception as e:
-            self.log.error(f"Error fetching {resource_type}: {e}")
-            return f"Error fetching {resource_type}: {e}"

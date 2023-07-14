@@ -2,11 +2,11 @@ import mimetypes
 import os
 from typing import Any, Dict
 
-from geniusrise.preprocessing.files.binary import ELFExtractor
-from geniusrise.preprocessing.files.code import HTMLExtractor, JSONExtractor, MarkdownExtractor, XMLExtractor
-from geniusrise.preprocessing.files.documents import PDFExtractor, TXTExtractor
-from geniusrise.preprocessing.files.office import DocExtractor, ODTExtractor, PPTExtractor
-from geniusrise.preprocessing.files.sheets import CSVExtractor, ExcelExtractor, ODSExtractor
+from geniusrise.spouts.files.binary import ELFExtractor
+from geniusrise.spouts.files.code import HTMLExtractor, JSONExtractor, MarkdownExtractor, XMLExtractor
+from geniusrise.spouts.files.documents import PDFExtractor, TXTExtractor
+from geniusrise.spouts.files.office import DocExtractor, ODTExtractor, PPTExtractor
+from geniusrise.spouts.files.sheets import CSVExtractor, ExcelExtractor, ODSExtractor
 
 
 def extract(file_path: str) -> Dict[str, Any]:
