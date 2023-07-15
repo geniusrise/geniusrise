@@ -6,7 +6,7 @@ from xml.etree import ElementTree
 
 from bs4 import BeautifulSoup
 
-from geniusrise.preprocessing.files.base import TextExtractor
+from geniusrise.spouts.files.base import TextExtractor
 
 
 class JSONExtractor(TextExtractor):

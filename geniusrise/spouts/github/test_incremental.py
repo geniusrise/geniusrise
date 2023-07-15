@@ -1,12 +1,21 @@
 import json
 import os
+from datetime import datetime
 
-from geniusrise.data_sources.code_hosting.github import GithubDataFetcher
+from geniusrise.core import BatchOutputConfig, InMemoryStateManager
+
+from .incremental import GithubIncremental
 
 
 def test_fetch_pull_requests(tmpdir):
-    fetcher = GithubDataFetcher("zpqrtbnk/test-repo", tmpdir)
-    fetcher.fetch_pull_requests()
+    output_config = BatchOutputConfig(
+        output_folder=str(tmpdir), bucket="geniusrise-test-bucket", s3_folder="csv_to_json-6t7lqqpj"
+    )
+    state_manager = InMemoryStateManager()
+    fetcher = GithubIncremental(
+        output_config=output_config, state_manager=state_manager, repo_name="zpqrtbnk/test-repo"
+    )
+    fetcher.fetch_pull_requests(start_date=datetime(1990, 1, 1), end_date=datetime(2023, 12, 31))
     # Check that the 5th pull request contains the word "fix"
     with open(f"{tmpdir}/pull_request_123.json") as f:
         pr_data = json.load(f)
@@ -16,13 +25,19 @@ def test_fetch_pull_requests(tmpdir):
         "body": "Add text document with hello message. Fixes #87 .",
         "comments": [],
         "diff": "diff --git a/hello.txt b/hello.txt\nnew file mode 100644\nindex 0000000000..273b45e905\n--- /dev/null\n+++ b/hello.txt\n@@ -0,0 +1 @@\n+Hello GitHub!\n\\ No newline at end of file\n",
-        "patch": "From 31e1913bfd75844da882457c2ee1be6302b7e081 Mon Sep 17 00:00:00 2001\nFrom: bonzi9 <sanshams@gmail.com>\nDate: Wed, 26 Oct 2022 19:44:46 +0200\nSubject: [PATCH] Add hello.txt\n\nAdd text document with hello message\n---\n hello.txt | 1 +\n 1 file changed, 1 insertion(+)\n create mode 100644 hello.txt\n\ndiff --git a/hello.txt b/hello.txt\nnew file mode 100644\nindex 0000000000..273b45e905\n--- /dev/null\n+++ b/hello.txt\n@@ -0,0 +1 @@\n+Hello GitHub!\n\\ No newline at end of file\n",
+        "patch": "From 31e1913bfd75844da882457c2ee1be6302b7e081 Mon Sep 17 00:00:00 2001\nFrom: bonzi9 <sanshams@gmail.com>\nDate: Wed, 26 Oct 2023 19:44:46 +0200\nSubject: [PATCH] Add hello.txt\n\nAdd text document with hello message\n---\n hello.txt | 1 +\n 1 file changed, 1 insertion(+)\n create mode 100644 hello.txt\n\ndiff --git a/hello.txt b/hello.txt\nnew file mode 100644\nindex 0000000000..273b45e905\n--- /dev/null\n+++ b/hello.txt\n@@ -0,0 +1 @@\n+Hello GitHub!\n\\ No newline at end of file\n",
     }
 
 
 def test_fetch_commits(tmpdir):
-    fetcher = GithubDataFetcher("zpqrtbnk/test-repo", tmpdir)
-    fetcher.fetch_commits()
+    output_config = BatchOutputConfig(
+        output_folder=str(tmpdir), bucket="geniusrise-test-bucket", s3_folder="csv_to_json-6t7lqqpj"
+    )
+    state_manager = InMemoryStateManager()
+    fetcher = GithubIncremental(
+        output_config=output_config, state_manager=state_manager, repo_name="zpqrtbnk/test-repo"
+    )
+    fetcher.fetch_commits(start_date=datetime(1990, 1, 1), end_date=datetime(2023, 12, 31))
     # Check that the 10th commit message contains the word "update"
     with open(f"{tmpdir}/commit_21c2a100246d498732557c67302bad1dd3c3c8d0.json") as f:
         commit_data = json.load(f)
@@ -30,16 +45,22 @@ def test_fetch_commits(tmpdir):
         "sha": "21c2a100246d498732557c67302bad1dd3c3c8d0",
         "message": "wflow",
         "author": "Stephan",
-        "date": "2022-12-02T13:15:54",
+        "date": "2023-12-02T13:15:54",
         "files_changed": [".github/workflows/pull-request-target.yml"],
         "diff": "diff --git a/.github/workflows/pull-request-target.yml b/.github/workflows/pull-request-target.yml\nindex c5975f35ad..d1f1e181bf 100644\n--- a/.github/workflows/pull-request-target.yml\n+++ b/.github/workflows/pull-request-target.yml\n@@ -44,7 +44,7 @@ jobs:\n       - name: Report\n         shell: bash\n         run: |\n-          git l | head -n 12\n+          git log --graph --pretty=format':%h%d %s %an, %ar' | head -n 12\n \n   build-pr-call:\n \n",
-        "patch": "From 21c2a100246d498732557c67302bad1dd3c3c8d0 Mon Sep 17 00:00:00 2001\nFrom: Stephan <stephane.gay@hazelcast.com>\nDate: Fri, 2 Dec 2022 14:15:54 +0100\nSubject: [PATCH] wflow\n\n---\n .github/workflows/pull-request-target.yml | 2 +-\n 1 file changed, 1 insertion(+), 1 deletion(-)\n\ndiff --git a/.github/workflows/pull-request-target.yml b/.github/workflows/pull-request-target.yml\nindex c5975f35ad..d1f1e181bf 100644\n--- a/.github/workflows/pull-request-target.yml\n+++ b/.github/workflows/pull-request-target.yml\n@@ -44,7 +44,7 @@ jobs:\n       - name: Report\n         shell: bash\n         run: |\n-          git l | head -n 12\n+          git log --graph --pretty=format':%h%d %s %an, %ar' | head -n 12\n \n   build-pr-call:\n \n",
+        "patch": "From 21c2a100246d498732557c67302bad1dd3c3c8d0 Mon Sep 17 00:00:00 2001\nFrom: Stephan <stephane.gay@hazelcast.com>\nDate: Fri, 2 Dec 2023 14:15:54 +0100\nSubject: [PATCH] wflow\n\n---\n .github/workflows/pull-request-target.yml | 2 +-\n 1 file changed, 1 insertion(+), 1 deletion(-)\n\ndiff --git a/.github/workflows/pull-request-target.yml b/.github/workflows/pull-request-target.yml\nindex c5975f35ad..d1f1e181bf 100644\n--- a/.github/workflows/pull-request-target.yml\n+++ b/.github/workflows/pull-request-target.yml\n@@ -44,7 +44,7 @@ jobs:\n       - name: Report\n         shell: bash\n         run: |\n-          git l | head -n 12\n+          git log --graph --pretty=format':%h%d %s %an, %ar' | head -n 12\n \n   build-pr-call:\n \n",
     }
 
 
 def test_fetch_issues(tmpdir):
-    fetcher = GithubDataFetcher("zpqrtbnk/test-repo", tmpdir)
-    fetcher.fetch_issues()
+    output_config = BatchOutputConfig(
+        output_folder=str(tmpdir), bucket="geniusrise-test-bucket", s3_folder="csv_to_json-6t7lqqpj"
+    )
+    state_manager = InMemoryStateManager()
+    fetcher = GithubIncremental(
+        output_config=output_config, state_manager=state_manager, repo_name="zpqrtbnk/test-repo"
+    )
+    fetcher.fetch_issues(start_date=datetime(1990, 1, 1), end_date=datetime(2023, 12, 31))
     # Check that the 3rd issue title contains the word "error"
     with open(f"{tmpdir}/issue_104.json") as f:
         issue_data = json.load(f)
@@ -55,8 +76,14 @@ def test_fetch_issues(tmpdir):
 
 
 def test_fetch_releases(tmpdir):
-    fetcher = GithubDataFetcher("zpqrtbnk/test-repo", tmpdir)
-    fetcher.fetch_releases()
+    output_config = BatchOutputConfig(
+        output_folder=str(tmpdir), bucket="geniusrise-test-bucket", s3_folder="csv_to_json-6t7lqqpj"
+    )
+    state_manager = InMemoryStateManager()
+    fetcher = GithubIncremental(
+        output_config=output_config, state_manager=state_manager, repo_name="zpqrtbnk/test-repo"
+    )
+    fetcher.fetch_releases(start_date=datetime(1990, 1, 1), end_date=datetime(2022, 12, 31))
     # Check that the 1st release tag name is "v2.26.0"
     with open(f"{tmpdir}/release_v4.5.6.json") as f:
         release_data = json.load(f)
@@ -69,7 +96,13 @@ def test_fetch_releases(tmpdir):
 
 
 def test_fetch_repo_details(tmpdir):
-    fetcher = GithubDataFetcher("zpqrtbnk/test-repo", tmpdir)
+    output_config = BatchOutputConfig(
+        output_folder=str(tmpdir), bucket="geniusrise-test-bucket", s3_folder="csv_to_json-6t7lqqpj"
+    )
+    state_manager = InMemoryStateManager()
+    fetcher = GithubIncremental(
+        output_config=output_config, state_manager=state_manager, repo_name="zpqrtbnk/test-repo"
+    )
     fetcher.fetch_repo_details()
     # Check that the repository name is "requests"
     with open(f"{tmpdir}/repo_details.json") as f:
@@ -90,21 +123,13 @@ def test_fetch_repo_details(tmpdir):
 
 
 def test_fetch_code(tmpdir):
-    fetcher = GithubDataFetcher("zpqrtbnk/test-repo", tmpdir)
+    output_config = BatchOutputConfig(
+        output_folder=str(tmpdir), bucket="geniusrise-test-bucket", s3_folder="csv_to_json-6t7lqqpj"
+    )
+    state_manager = InMemoryStateManager()
+    fetcher = GithubIncremental(
+        output_config=output_config, state_manager=state_manager, repo_name="zpqrtbnk/test-repo"
+    )
     fetcher.fetch_code()
     # Check that the repository was cloned by checking if the .git directory exists
     assert os.path.isdir(f"{tmpdir}/.git")
-
-
-def test_get_positive(tmpdir):
-    fetcher = GithubDataFetcher("zpqrtbnk/test-repo", tmpdir)
-    # Test the get method with a valid resource type
-    status = fetcher.get("issues")
-    assert status == "issues fetched successfully."
-
-
-def test_get_negative(tmpdir):
-    fetcher = GithubDataFetcher("zpqrtbnk/test-repo", tmpdir)
-    # Test the get method with an invalid resource type
-    status = fetcher.get("invalid_resource_type")
-    assert status == "Invalid resource type: invalid_resource_type"

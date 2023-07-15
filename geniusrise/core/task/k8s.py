@@ -25,10 +25,6 @@ class K8sManager:
         The number of replicas to create for the deployment.
     port : int
         The port to expose on the service.
-    core_api : kubernetes.client.CoreV1Api
-        The Kubernetes Core V1 API client.
-    apps_api : kubernetes.client.AppsV1Api
-        The Kubernetes Apps V1 API client.
 
     Methods
     -------

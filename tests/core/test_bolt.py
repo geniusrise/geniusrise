@@ -118,7 +118,7 @@ def test_bolt_create(input_type, output_type, state_type, tmpdir):
         "dynamodb_region_name": dynamodb_region_name,
     }
 
-    bolt = Bolt.create(input_type, output_type, state_type, **kwargs)
+    bolt = Bolt.create(Bolt, input_type, output_type, state_type, **kwargs)
 
     assert isinstance(bolt, Bolt)
 

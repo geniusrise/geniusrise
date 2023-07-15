@@ -82,11 +82,20 @@ class Task(ABC):
     def print_help(self):
         """
         Pretty print the fetch_* methods and their parameters along with their default values and docstrings.
+        Also prints the class's docstring and __init__ parameters.
         """
+        # Print class docstring
+        print(self.__class__.__name__, colored(inspect.getdoc(self) if inspect.getdoc(self) else "", "green"))
+
+        # Print fetch_* methods
         fetch_methods = self.get_methods()
         if fetch_methods:
-            table = PrettyTable()
-            table.field_names = [colored("Method", "cyan"), colored("Parameters", "cyan"), colored("Docstring", "cyan")]
+            table = PrettyTable(align="l")
+            table.field_names = [
+                colored("Method", "cyan"),
+                colored("Parameters", "cyan"),
+                colored("Description", "cyan"),
+            ]
             for name, params, docstring in fetch_methods:
                 table.add_row([colored(name, "yellow"), "\n".join(params), docstring])
             print(table)

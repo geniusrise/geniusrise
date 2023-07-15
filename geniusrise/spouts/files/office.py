@@ -8,7 +8,7 @@ from odf import text as odf_text
 from odf.opendocument import load
 from pptx import Presentation
 
-from geniusrise.preprocessing.files.base import TextExtractor
+from geniusrise.spouts.files.base import TextExtractor
 
 
 class DocExtractor(TextExtractor):
