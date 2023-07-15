@@ -1,5 +1,6 @@
 import argparse
-from typing import Optional, Any
+import logging
+import emoji  # type: ignore
 
 from geniusrise.core import Spout, K8sManager, ECSManager
 from geniusrise.cli.discover import DiscoveredSpout
@@ -19,6 +20,7 @@ class SpoutCtl:
         """
         self.discovered_spout = discovered_spout
         self.spout = None
+        self.log = logging.getLogger(self.__class__.__name__)
 
     def create_parser(self):
         """
@@ -46,8 +48,20 @@ class SpoutCtl:
         )
         create_parser.add_argument(
             "--output_folder",
-            help="Specify the directory where output files should be stored.",
+            help="Specify the directory where output files should be stored temporarily.",
             default="/tmp",
+            type=str,
+        )
+        create_parser.add_argument(
+            "--kafka_servers",
+            help="Kafka connection string for streaming spouts.",
+            default="localhost:9092",
+            type=str,
+        )
+        create_parser.add_argument(
+            "--output_topic",
+            help="Kafka output topic for streaming spouts.",
+            default="test",
             type=str,
         )
         create_parser.add_argument(
@@ -87,6 +101,11 @@ class SpoutCtl:
         create_parser.add_argument(
             "--dynamodb_region_name", help="Specify the AWS region for DynamoDB.", default="us-west-2", type=str
         )
+        create_parser.add_argument(
+            "--other",
+            nargs=argparse.REMAINDER,
+            help="Additional keyword arguments to pass to the spout.",
+        )
 
         # Create subparser for 'deploy' command
         deploy_parser = subparsers.add_parser("deploy", help="Deploy a spout remotely.")
@@ -109,12 +128,6 @@ class SpoutCtl:
             "--account_id",
             type=str,
             help="The id of the AWS account (required for ecs).",
-        )
-        deploy_parser.add_argument(
-            "--command",
-            type=str,
-            nargs="+",
-            help="The command that the container runs (required for both k8s and ecs).",
         )
         deploy_parser.add_argument(
             "--namespace",
@@ -174,6 +187,87 @@ class SpoutCtl:
             help="The memory value for the task (required for ecs, default is 512).",
             default=512,
         )
+        deploy_parser.add_argument(
+            "output_type",
+            choices=["batch", "streaming"],
+            help="Choose the type of output configuration: batch or streaming.",
+            default="batch",
+        )
+        deploy_parser.add_argument(
+            "state_type",
+            choices=["in_memory", "redis", "postgres", "dynamodb"],
+            help="Select the type of state manager: in_memory, redis, postgres, or dynamodb.",
+            default="in_memory",
+        )
+        deploy_parser.add_argument(
+            "--output_folder",
+            help="Specify the directory where output files should be stored.",
+            default="/tmp",
+            type=str,
+        )
+        deploy_parser.add_argument(
+            "--bucket", help="Provide the name of the S3 bucket for output storage.", default="my-bucket", type=str
+        )
+        deploy_parser.add_argument(
+            "--s3_folder", help="Indicate the S3 folder for output storage.", default="my-s3-folder", type=str
+        )
+        deploy_parser.add_argument(
+            "--redis_host", help="Enter the host address for the Redis server.", default="localhost", type=str
+        )
+        deploy_parser.add_argument(
+            "--redis_port", help="Enter the port number for the Redis server.", default=6379, type=int
+        )
+        deploy_parser.add_argument("--redis_db", help="Specify the Redis database to be used.", default=0, type=int)
+        deploy_parser.add_argument(
+            "--postgres_host", help="Enter the host address for the PostgreSQL server.", default="localhost", type=str
+        )
+        deploy_parser.add_argument(
+            "--postgres_port", help="Enter the port number for the PostgreSQL server.", default=5432, type=int
+        )
+        deploy_parser.add_argument(
+            "--postgres_user", help="Provide the username for the PostgreSQL server.", default="postgres", type=str
+        )
+        deploy_parser.add_argument(
+            "--postgres_password", help="Provide the password for the PostgreSQL server.", default="password", type=str
+        )
+        deploy_parser.add_argument(
+            "--postgres_database", help="Specify the PostgreSQL database to be used.", default="mydatabase", type=str
+        )
+        deploy_parser.add_argument(
+            "--postgres_table", help="Specify the PostgreSQL table to be used.", default="mytable", type=str
+        )
+        deploy_parser.add_argument(
+            "--dynamodb_table_name", help="Provide the name of the DynamoDB table.", default="mytable", type=str
+        )
+        deploy_parser.add_argument(
+            "--dynamodb_region_name", help="Specify the AWS region for DynamoDB.", default="us-west-2", type=str
+        )
+        deploy_parser.add_argument(
+            "--other",
+            nargs=argparse.REMAINDER,
+            help="Additional keyword arguments to pass to the spout.",
+        )
+
+        # Kubernetes commands
+        k8s_parser = subparsers.add_parser("k8s", help="Kubernetes management commands")
+        k8s_parser.add_argument(
+            "action",
+            choices=["scale", "delete", "status", "statistics", "logs"],
+            help="Action to perform",
+        )
+        k8s_parser.add_argument("--name", help="Name of the deployment")
+        k8s_parser.add_argument("--replicas", type=int, help="Number of replicas for update and scale actions")
+        k8s_parser.add_argument("--namespace", default="default", help="Namespace of the deployment")
+
+        # ECS commands
+        ecs_parser = subparsers.add_parser("ecs", help="ECS management commands")
+        ecs_parser.add_argument("action", choices=["describe", "stop", "update", "delete"], help="Action to perform")
+        ecs_parser.add_argument("--name", help="Name of the task or service")
+        ecs_parser.add_argument(
+            "--task-definition-arn", help="ARN of the task definition for run, describe, stop, and update actions"
+        )
+        ecs_parser.add_argument("--new-image", help="New Docker image for the update action")
+        ecs_parser.add_argument("--new-command", nargs="+", help="New command for the update action")
 
         # Create subparser for 'help' command
         execute_parser = subparsers.add_parser("help", help="Print help for the spout.")
@@ -192,23 +286,45 @@ class SpoutCtl:
             kwargs = {
                 k: v
                 for k, v in vars(args).items()
-                if v is not None and k not in ["command", "output_type", "state_type"]
+                if v is not None and k not in ["output_type", "state_type", "kwargs"]
             }
-            self.spout = self.create_spout(args.output_type, args.state_type, **kwargs)
+            other = args.other or {}
+            self.spout = self.create_spout(args.output_type, args.state_type, **{**kwargs, **other})
             result = self.execute_spout(self.spout, args.method)
             print(result)
         elif args.command == "deploy":
-            kwargs = {
-                k: v
-                for k, v in vars(args).items()
-                if v is not None and k not in ["command", "manager_type", "method_name"]
-            }
-            result = self.execute_remote(args.manager_type, args.method_name, **kwargs)
+            kwargs = {k: v for k, v in vars(args).items() if v is not None and k not in ["manager_type", "method_name"]}
+            other = args.other or {}
+            result = self.execute_remote(args.manager_type, args.method_name, **{**kwargs, **other})
             print(result)
+        elif args.command == "k8s":
+            k8s_manager = K8sManager()  # Initialize K8sManager
+            if args.action == "scale":
+                k8s_manager.scale_deployment(args.name, args.replicas, args.namespace)
+            elif args.action == "delete":
+                k8s_manager.delete_deployment(args.name, args.namespace)
+            elif args.action == "status":
+                k8s_manager.get_status(args.name, args.namespace)
+            elif args.action == "statistics":
+                k8s_manager.get_statistics(args.name, args.namespace)
+            elif args.action == "logs":
+                k8s_manager.get_logs(args.name, args.namespace)
+        elif args.command == "ecs":
+            ecs_manager = ECSManager()  # Initialize ECSManager
+            if args.action == "run":
+                ecs_manager.run_task(args.name, args.task_definition_arn)
+            elif args.action == "describe":
+                ecs_manager.describe_task(args.name, args.task_definition_arn)
+            elif args.action == "stop":
+                ecs_manager.stop_task(args.name, args.task_definition_arn)
+            elif args.action == "update":
+                ecs_manager.update_task(args.name, args.task_definition_arn, args.new_image, args.new_command)
+            elif args.action == "delete":
+                ecs_manager.stop_task(args.name)
         elif args.command == "help":
             self.discovered_spout.klass.print_help()
 
-    def create_spout(self, output_type: str, state_type: str, **kwargs):
+    def create_spout(self, output_type: str, state_type: str, **kwargs) -> Spout:
         """
         Create a spout of a specific type.
 
@@ -220,7 +336,7 @@ class SpoutCtl:
         Returns:
             Spout: The created spout.
         """
-        return self.discovered_spout.klass.create(output_type, state_type, **kwargs)  # type: ignore
+        return Spout.create(klass=self.discovered_spout.klass, output_type=output_type, state_type=state_type, **kwargs)  # type: ignore
 
     def execute_spout(self, spout: Spout, method_name: str, *args, **kwargs):
         """
@@ -237,7 +353,7 @@ class SpoutCtl:
         """
         return spout.__call__(method_name, *args, **kwargs)
 
-    def execute_remote(self, manager_type: str, method_name: str, **kwargs) -> Optional[Any]:
+    def execute_remote(self, manager_type: str, method_name: str, **kwargs) -> None:
         """
         Execute a method remotely and manage the state.
 
@@ -249,39 +365,15 @@ class SpoutCtl:
         Returns:
             Any: The result of the method.
         """
-        manager: K8sManager | ECSManager
-        if manager_type == "k8s":
-            manager = K8sManager(
-                name=kwargs["name"],
-                namespace=kwargs["namespace"],
-                image=kwargs["image"],
-                command=kwargs["command"],
-                replicas=kwargs["replicas"],
-                port=kwargs["port"],
-            )
-        elif manager_type == "ecs":
-            manager = ECSManager(
-                name=kwargs["name"],
-                account_id=kwargs["account_id"],
-                command=kwargs["command"],
-                cluster=kwargs["cluster"],
-                subnet_ids=kwargs["subnet_ids"],
-                security_group_ids=kwargs["security_group_ids"],
-                image=kwargs["image"],
-                replicas=kwargs["replicas"],
-                port=kwargs["port"],
-                log_group=kwargs["log_group"],
-                cpu=kwargs["cpu"],
-                memory=kwargs["memory"],
-            )
+        if self.spout:
+            self.manager = self.spout.execute_remote(manager_type=manager_type, method_name=method_name, **kwargs)
         else:
-            raise ValueError(f"Unknown manager type: {manager_type}")
-
-        return getattr(manager, method_name)()
+            self.log.error(f"Spout {self.discovered_spout.name} is not initialized.")
 
     def cli(self):
         """
         Main function to be called when geniusrise is run from the command line.
         """
         parser = self.create_parser()
+        self.log.info(emoji.emojize("Parser created successfully :smile:", use_aliases=True))
         return parser

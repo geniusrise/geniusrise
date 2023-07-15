@@ -170,7 +170,7 @@ class Spout(Task):
                 status["status"] = "success"
                 self.state_manager.set_state(self.id, status)
 
-                return status
+                return manager
             else:
                 raise Exception(f"Could not save the status of this task {status.__dict__}")
         except Exception as e:
@@ -205,6 +205,8 @@ class Spout(Task):
                     - postgres_table (str): The PostgreSQL table argument.
                     - dynamodb_table_name (str): The DynamoDB table name argument.
                     - dynamodb_region_name (str): The DynamoDB region name argument.
+                    - kafka_servers (str): The Kafka servers argument.
+                    - output_topic (str): The output topic argument.
 
         Returns:
             Spout: The created spout.
