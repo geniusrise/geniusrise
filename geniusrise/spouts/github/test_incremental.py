@@ -2,8 +2,9 @@ import json
 import os
 from datetime import datetime
 
-from .incremental import GithubIncremental
 from geniusrise.core import BatchOutputConfig, InMemoryStateManager
+
+from .incremental import GithubIncremental
 
 
 def test_fetch_pull_requests(tmpdir):

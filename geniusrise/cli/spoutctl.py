@@ -1,10 +1,11 @@
 import argparse
 import logging
+
 import emoji  # type: ignore
 from prettytable import PrettyTable
 
-from geniusrise.core import Spout, K8sManager, ECSManager
 from geniusrise.cli.discover import DiscoveredSpout
+from geniusrise.core import ECSManager, K8sManager, Spout
 
 
 class SpoutCtl:

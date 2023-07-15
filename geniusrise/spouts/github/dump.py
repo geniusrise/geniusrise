@@ -8,7 +8,7 @@ from github.ContentFile import ContentFile
 from github.PaginatedList import PaginatedList
 
 from geniusrise.config import GITHUB_ACCESS_TOKEN
-from geniusrise.core import Spout, BatchOutputConfig, InMemoryStateManager
+from geniusrise.core import BatchOutputConfig, InMemoryStateManager, Spout
 
 
 class GithubDump(Spout):

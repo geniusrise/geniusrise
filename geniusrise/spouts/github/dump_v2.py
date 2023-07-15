@@ -4,14 +4,14 @@ from typing import List
 
 import requests  # type: ignore
 from github import Github, GithubException, PaginatedList
-from github.ContentFile import ContentFile
-from github.PullRequest import PullRequest
 from github.Commit import Commit
-from github.Issue import Issue
+from github.ContentFile import ContentFile
 from github.GitRelease import GitRelease
+from github.Issue import Issue
+from github.PullRequest import PullRequest
 
 from geniusrise.config import GITHUB_ACCESS_TOKEN
-from geniusrise.core import Spout, BatchOutputConfig, InMemoryStateManager
+from geniusrise.core import BatchOutputConfig, InMemoryStateManager, Spout
 
 
 class GithubDumpV2(Spout):

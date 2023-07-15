@@ -1,8 +1,9 @@
 import json
 import os
 
-from .dump import GithubDump
 from geniusrise.core import BatchOutputConfig, InMemoryStateManager
+
+from .dump import GithubDump
 
 
 def test_fetch_pull_requests(tmpdir):

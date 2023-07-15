@@ -8,7 +8,7 @@ from github import Github, GithubException
 from github.ContentFile import ContentFile
 
 from geniusrise.config import GITHUB_ACCESS_TOKEN
-from geniusrise.core import Spout, BatchOutputConfig, InMemoryStateManager
+from geniusrise.core import BatchOutputConfig, InMemoryStateManager, Spout
 
 
 class GithubIncremental(Spout):
