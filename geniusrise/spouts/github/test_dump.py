@@ -50,7 +50,9 @@ def test_fetch_issues(tmpdir):
     output_config = BatchOutputConfig(
         output_folder=str(tmpdir), bucket="geniusrise-test-bucket", s3_folder="csv_to_json-6t7lqqpj"
     )
-    fetcher = GithubDump(output_config, InMemoryStateManager(), "zpqrtbnk/test-repo", tmpdir)
+    fetcher = GithubDump(
+        output_config=output_config, state_manager=InMemoryStateManager(), repo_name="zpqrtbnk/test-repo"
+    )
     fetcher.fetch_issues()
 
     with open(f"{tmpdir}/issue_104.json") as f:
@@ -70,7 +72,9 @@ def test_fetch_releases(tmpdir):
     output_config = BatchOutputConfig(
         output_folder=str(tmpdir), bucket="geniusrise-test-bucket", s3_folder="csv_to_json-6t7lqqpj"
     )
-    fetcher = GithubDump(output_config, InMemoryStateManager(), "zpqrtbnk/test-repo", tmpdir)
+    fetcher = GithubDump(
+        output_config=output_config, state_manager=InMemoryStateManager(), repo_name="zpqrtbnk/test-repo"
+    )
     fetcher.fetch_releases()
 
     with open(f"{tmpdir}/release_v4.5.6.json") as f:
@@ -87,7 +91,9 @@ def test_fetch_repo_details(tmpdir):
     output_config = BatchOutputConfig(
         output_folder=str(tmpdir), bucket="geniusrise-test-bucket", s3_folder="csv_to_json-6t7lqqpj"
     )
-    fetcher = GithubDump(output_config, InMemoryStateManager(), "zpqrtbnk/test-repo", tmpdir)
+    fetcher = GithubDump(
+        output_config=output_config, state_manager=InMemoryStateManager(), repo_name="zpqrtbnk/test-repo"
+    )
     fetcher.fetch_repo_details()
 
     with open(f"{tmpdir}/repo_details.json") as f:
@@ -111,7 +117,9 @@ def test_fetch_code(tmpdir):
     output_config = BatchOutputConfig(
         output_folder=str(tmpdir), bucket="geniusrise-test-bucket", s3_folder="csv_to_json-6t7lqqpj"
     )
-    fetcher = GithubDump(output_config, InMemoryStateManager(), "zpqrtbnk/test-repo", tmpdir)
+    fetcher = GithubDump(
+        output_config=output_config, state_manager=InMemoryStateManager(), repo_name="zpqrtbnk/test-repo"
+    )
     fetcher.fetch_code()
 
     assert os.path.isdir(f"{tmpdir}/.git")

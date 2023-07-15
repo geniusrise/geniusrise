@@ -14,7 +14,7 @@ def test_fetch_pull_requests(tmpdir):
     fetcher = GithubIncremental(
         output_config=output_config, state_manager=state_manager, repo_name="zpqrtbnk/test-repo"
     )
-    fetcher.fetch_pull_requests(start_date=datetime(2023, 1, 1), end_date=datetime(2023, 12, 31))
+    fetcher.fetch_pull_requests(start_date=datetime(1990, 1, 1), end_date=datetime(2023, 12, 31))
     # Check that the 5th pull request contains the word "fix"
     with open(f"{tmpdir}/pull_request_123.json") as f:
         pr_data = json.load(f)
@@ -36,7 +36,7 @@ def test_fetch_commits(tmpdir):
     fetcher = GithubIncremental(
         output_config=output_config, state_manager=state_manager, repo_name="zpqrtbnk/test-repo"
     )
-    fetcher.fetch_commits(start_date=datetime(2023, 1, 1), end_date=datetime(2023, 12, 31))
+    fetcher.fetch_commits(start_date=datetime(1990, 1, 1), end_date=datetime(2023, 12, 31))
     # Check that the 10th commit message contains the word "update"
     with open(f"{tmpdir}/commit_21c2a100246d498732557c67302bad1dd3c3c8d0.json") as f:
         commit_data = json.load(f)
@@ -55,8 +55,11 @@ def test_fetch_issues(tmpdir):
     output_config = BatchOutputConfig(
         output_folder=str(tmpdir), bucket="geniusrise-test-bucket", s3_folder="csv_to_json-6t7lqqpj"
     )
-    fetcher = GithubIncremental(output_config, InMemoryStateManager(), "zpqrtbnk/test-repo")
-    fetcher.fetch_issues(start_date=datetime(2023, 1, 1), end_date=datetime(2023, 12, 31))
+    state_manager = InMemoryStateManager()
+    fetcher = GithubIncremental(
+        output_config=output_config, state_manager=state_manager, repo_name="zpqrtbnk/test-repo"
+    )
+    fetcher.fetch_issues(start_date=datetime(1990, 1, 1), end_date=datetime(2023, 12, 31))
     # Check that the 3rd issue title contains the word "error"
     with open(f"{tmpdir}/issue_104.json") as f:
         issue_data = json.load(f)
@@ -79,7 +82,7 @@ def test_fetch_releases(tmpdir):
     fetcher = GithubIncremental(
         output_config=output_config, state_manager=state_manager, repo_name="zpqrtbnk/test-repo"
     )
-    fetcher.fetch_releases(start_date=datetime(2022, 1, 1), end_date=datetime(2022, 12, 31))
+    fetcher.fetch_releases(start_date=datetime(1990, 1, 1), end_date=datetime(2022, 12, 31))
     # Check that the 1st release tag name is "v2.26.0"
     with open(f"{tmpdir}/release_v4.5.6.json") as f:
         release_data = json.load(f)
@@ -95,7 +98,10 @@ def test_fetch_repo_details(tmpdir):
     output_config = BatchOutputConfig(
         output_folder=str(tmpdir), bucket="geniusrise-test-bucket", s3_folder="csv_to_json-6t7lqqpj"
     )
-    fetcher = GithubIncremental(output_config, InMemoryStateManager(), "zpqrtbnk/test-repo", tmpdir)
+    state_manager = InMemoryStateManager()
+    fetcher = GithubIncremental(
+        output_config=output_config, state_manager=state_manager, repo_name="zpqrtbnk/test-repo"
+    )
     fetcher.fetch_repo_details()
     # Check that the repository name is "requests"
     with open(f"{tmpdir}/repo_details.json") as f:
@@ -119,7 +125,10 @@ def test_fetch_code(tmpdir):
     output_config = BatchOutputConfig(
         output_folder=str(tmpdir), bucket="geniusrise-test-bucket", s3_folder="csv_to_json-6t7lqqpj"
     )
-    fetcher = GithubIncremental(output_config, InMemoryStateManager(), "zpqrtbnk/test-repo", tmpdir)
+    state_manager = InMemoryStateManager()
+    fetcher = GithubIncremental(
+        output_config=output_config, state_manager=state_manager, repo_name="zpqrtbnk/test-repo"
+    )
     fetcher.fetch_code()
     # Check that the repository was cloned by checking if the .git directory exists
     assert os.path.isdir(f"{tmpdir}/.git")
