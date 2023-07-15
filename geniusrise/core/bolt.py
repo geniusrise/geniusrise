@@ -217,7 +217,7 @@ class Bolt(Task):
             raise
 
     @staticmethod
-    def create(input_type: str, output_type: str, state_type: str, **kwargs) -> "Bolt":
+    def create(klass: type, input_type: str, output_type: str, state_type: str, **kwargs) -> "Bolt":
         """
         Create a bolt of a specific type.
 
@@ -228,6 +228,7 @@ class Bolt(Task):
         and then creates and returns a bolt using these configurations.
 
         Args:
+            klass (type): The Bolt class to create.
             input_type (str): The type of input config ("batch" or "streaming").
             output_type (str): The type of output config ("batch" or "streaming").
             state_type (str): The type of state manager ("in_memory", "redis", "postgres", or "dynamodb").
@@ -321,5 +322,5 @@ class Bolt(Task):
             raise ValueError(f"Invalid state type: {state_type}")
 
         # Create the bolt
-        bolt = Bolt(input_config, output_config, state_manager)
+        bolt = klass(input_config, output_config, state_manager)
         return bolt

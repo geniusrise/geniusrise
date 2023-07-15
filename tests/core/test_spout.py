@@ -74,9 +74,6 @@ def state_type(request):
 
 
 def test_spout_create(output_type, state_type, tmpdir):
-    output_types = ["batch", "streaming"]
-    state_types = ["in_memory", "redis", "postgres", "dynamodb"]
-
     kwargs = {
         "output_folder": tmpdir,
         "bucket": s3_bucket,
@@ -96,7 +93,7 @@ def test_spout_create(output_type, state_type, tmpdir):
         "dynamodb_region_name": dynamodb_region_name,
     }
 
-    spout = Spout.create(output_type, state_type, **kwargs)
+    spout = Spout.create(Spout, output_type, state_type, **kwargs)
 
     assert isinstance(spout, Spout)
 

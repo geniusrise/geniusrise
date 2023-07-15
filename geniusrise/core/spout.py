@@ -181,11 +181,12 @@ class Spout(Task):
             raise
 
     @staticmethod
-    def create(output_type: str, state_type: str, **kwargs) -> "Spout":
+    def create(klass: type, output_type: str, state_type: str, **kwargs) -> "Spout":
         """
         Create a spout of a specific type.
 
         Args:
+            klass (type): The Spout class to create.
             output_type (str): The type of output config ("batch" or "streaming").
             state_type (str): The type of state manager ("in_memory", "redis", "postgres", or "dynamodb").
             **kwargs: Additional keyword arguments for initializing the spout.
@@ -252,5 +253,5 @@ class Spout(Task):
             raise ValueError(f"Invalid state type: {state_type}")
 
         # Create the spout
-        spout = Spout(output_config, state_manager)
+        spout = klass(output_config=output_config, state_manager=state_manager, **kwargs)
         return spout
