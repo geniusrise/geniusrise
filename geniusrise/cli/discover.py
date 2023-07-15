@@ -2,7 +2,7 @@ import importlib
 import inspect
 import os
 from abc import ABCMeta
-from typing import Any, List, Optional, Tuple
+from typing import Any
 
 import pydantic
 
@@ -12,14 +12,13 @@ from geniusrise.core import Spout
 class DiscoveredSpout(pydantic.BaseModel):
     name: str
     klass: type
-    methods: List[Tuple[str, List[str], Optional[str]]]
     init_args: dict
 
 
 class Discover:
-    def __init__(self, directory):
+    def __init__(self, directory: str):
         self.directory = directory
-        self.classes = {}
+        self.classes: Any = {}
 
     def scan_directory(self):
         for root, _, files in os.walk(self.directory):
@@ -33,14 +32,13 @@ class Discover:
         module = importlib.import_module(path)
         return module
 
-    def find_classes(self, module):
+    def find_classes(self, module, klass=Spout):
         for name, obj in inspect.getmembers(module):
-            if inspect.isclass(obj) and issubclass(obj, Spout) and obj != Spout:
+            if inspect.isclass(obj) and issubclass(obj, Spout) and obj != klass:
                 self.classes[name] = DiscoveredSpout(
-                    {
+                    **{
                         "name": name,
                         "klass": obj,
-                        "methods": obj.get_methods,
                         "init_args": self.get_init_args(obj),
                     }
                 )

@@ -24,14 +24,13 @@ class SpoutCtl:
         self.spout = None
         self.log = logging.getLogger(self.__class__.__name__)
 
-    def create_parser(self):
+    def create_parser(self, parser):
         """
-        Create a command-line parser with arguments for managing the spout.
+        Add arguments to the command-line parser for managing the spout.
 
-        Returns:
-            argparse.ArgumentParser: Command-line parser.
+        Args:
+            parser (argparse.ArgumentParser): Command-line parser.
         """
-        parser = argparse.ArgumentParser(description="Manage a spout.")
         subparsers = parser.add_subparsers(dest="command")
 
         # Create subparser for 'create' command
