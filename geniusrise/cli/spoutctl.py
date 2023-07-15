@@ -1,6 +1,7 @@
 import argparse
 import logging
 import emoji  # type: ignore
+from prettytable import PrettyTable
 
 from geniusrise.core import Spout, K8sManager, ECSManager
 from geniusrise.cli.discover import DiscoveredSpout
@@ -282,6 +283,7 @@ class SpoutCtl:
         Args:
             args (argparse.Namespace): Parsed command-line arguments.
         """
+        self.log.info(emoji.emojize(f"Running command: {args.command} :rocket:", use_aliases=True))
         if args.command == "run":
             kwargs = {
                 k: v
@@ -375,5 +377,13 @@ class SpoutCtl:
         Main function to be called when geniusrise is run from the command line.
         """
         parser = self.create_parser()
-        self.log.info(emoji.emojize("Parser created successfully :smile:", use_aliases=True))
-        return parser
+        args = parser.parse_args()
+
+        # Print a summary of the parsed arguments
+        self.log.info(emoji.emojize("Parsed arguments :smile:", use_aliases=True))
+        arg_table = PrettyTable(["Argument", "Value"])
+        for arg, value in vars(args).items():
+            arg_table.add_row([arg, value])
+        self.log.info("\n" + str(arg_table))
+
+        return self.run(args)
