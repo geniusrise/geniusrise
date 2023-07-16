@@ -1,9 +1,11 @@
 import argparse
 import logging
 from prettytable import PrettyTable
+from termcolor import colored  # type: ignore
 
 from geniusrise.cli.discover import Discover
 from geniusrise.cli.spoutctl import SpoutCtl
+from geniusrise.cli.yamlctl import YamlCtl
 
 # from geniusrise.cli.boltctl import BoltCtl  # Uncomment when BoltCtl is ready
 
@@ -35,10 +37,19 @@ class GeniusCtl:
         subparsers = parser.add_subparsers(dest="command")
 
         # Create subparser for each discovered spout
+        spout_ctls = []
         for spout_name, discovered_spout in self.spouts.items():
             spout_parser = subparsers.add_parser(spout_name, help=f"Manage {spout_name}.")
             spout_ctl = SpoutCtl(discovered_spout)  # Initialize SpoutCtl with the discovered spout
+            spout_ctls.append(spout_ctl)  # Add the SpoutCtl to the list of spout
             spout_ctl.create_parser(spout_parser)  # Pass the spout_parser to the SpoutCtl's create_parser method
+        self.spout_ctls = spout_ctls
+
+        # Create subparser for YAML opserations
+        yaml_parser = subparsers.add_parser("yaml", help="Control spouts with a YAML file.")
+        yaml_parser.add_argument("file", help="The YAML file to use.")
+        yaml_ctl = YamlCtl("", self.spout_ctls)
+        yaml_ctl.create_parser(yaml_parser)
 
         # Add a 'help' command to print help for all spouts
         help_parser = subparsers.add_parser("help", help="Print help for all spouts.")
@@ -61,14 +72,17 @@ class GeniusCtl:
         if args.command in self.spouts:
             spout_ctl = SpoutCtl(self.spouts[args.command])  # Initialize SpoutCtl with the chosen spout
             spout_ctl.run(args)
+        elif args.command == "yaml":
+            yaml_ctl = YamlCtl(args.file, self.spout_ctls)
+            yaml_ctl.run(args)
         elif args.command == "help":
             if args.spout:
                 spout_ctl = SpoutCtl(self.spouts[args.spout])  # Initialize SpoutCtl with the chosen spout
-                spout_ctl.cli(["--help"])
+                spout_ctl.run(args)
             else:
                 for _, discovered_spout in self.spouts.items():
                     spout_ctl = SpoutCtl(discovered_spout)  # Initialize SpoutCtl with each spout
-                    spout_ctl.cli(["--help"])
+                    spout_ctl.run(args)
         elif args.command == "list":
             self.list_spouts()
 
@@ -76,9 +90,12 @@ class GeniusCtl:
         """
         List all discovered spouts in a table.
         """
-        table = PrettyTable(["Spout"])
+        table = PrettyTable([colored("Spout", "green"), colored("Methods", "green")], align="l")
         for spout_name in self.spouts.keys():
-            table.add_row([spout_name])
+            s = self.spouts[spout_name].klass
+            table.add_row(
+                [colored(spout_name, "yellow"), "\n".join([x for x in dir(s) if "fetch_" in x])], divider=True
+            )
         print(table)
 
     def cli(self):

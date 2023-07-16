@@ -2,7 +2,6 @@ import argparse
 import logging
 
 import emoji  # type: ignore
-from prettytable import PrettyTable
 
 from geniusrise.cli.discover import DiscoveredSpout
 from geniusrise.core import ECSManager, K8sManager, Spout
@@ -283,7 +282,7 @@ class SpoutCtl:
         Args:
             args (argparse.Namespace): Parsed command-line arguments.
         """
-        self.log.info(emoji.emojize(f"Running command: {args.command} :rocket:", use_aliases=True))
+        self.log.info(emoji.emojize(f"Running command: {args.command} :rocket:"))
         if args.command == "run":
             kwargs = {
                 k: v
@@ -294,11 +293,13 @@ class SpoutCtl:
             self.spout = self.create_spout(args.output_type, args.state_type, **{**kwargs, **other})
             result = self.execute_spout(self.spout, args.method)
             print(result)
+
         elif args.command == "deploy":
             kwargs = {k: v for k, v in vars(args).items() if v is not None and k not in ["manager_type", "method_name"]}
             other = args.other or {}
             result = self.execute_remote(args.manager_type, args.method_name, **{**kwargs, **other})
             print(result)
+
         elif args.command == "k8s":
             k8s_manager = K8sManager()  # Initialize K8sManager
             if args.action == "scale":
@@ -311,6 +312,7 @@ class SpoutCtl:
                 k8s_manager.get_statistics(args.name, args.namespace)
             elif args.action == "logs":
                 k8s_manager.get_logs(args.name, args.namespace)
+
         elif args.command == "ecs":
             ecs_manager = ECSManager()  # Initialize ECSManager
             if args.action == "run":
@@ -323,8 +325,9 @@ class SpoutCtl:
                 ecs_manager.update_task(args.name, args.task_definition_arn, args.new_image, args.new_command)
             elif args.action == "delete":
                 ecs_manager.stop_task(args.name)
+
         elif args.command == "help":
-            self.discovered_spout.klass.print_help()
+            self.discovered_spout.klass.print_help(self.discovered_spout.klass)
 
     def create_spout(self, output_type: str, state_type: str, **kwargs) -> Spout:
         """
@@ -372,18 +375,18 @@ class SpoutCtl:
         else:
             self.log.error(f"Spout {self.discovered_spout.name} is not initialized.")
 
-    def cli(self):
-        """
-        Main function to be called when geniusrise is run from the command line.
-        """
-        parser = self.create_parser()
-        args = parser.parse_args()
+    # def cli(self):
+    #     """
+    #     Main function to be called when geniusrise is run from the command line.
+    #     """
+    #     parser = self.create_parser()
+    #     args = parser.parse_args()
 
-        # Print a summary of the parsed arguments
-        self.log.info(emoji.emojize("Parsed arguments :smile:", use_aliases=True))
-        arg_table = PrettyTable(["Argument", "Value"])
-        for arg, value in vars(args).items():
-            arg_table.add_row([arg, value])
-        self.log.info("\n" + str(arg_table))
+    #     # Print a summary of the parsed arguments
+    #     self.log.info(emoji.emojize("Parsed arguments :smile:", use_aliases=True))
+    #     arg_table = PrettyTable(["Argument", "Value"])
+    #     for arg, value in vars(args).items():
+    #         arg_table.add_row([arg, value])
+    #     self.log.info("\n" + str(arg_table))
 
-        return self.run(args)
+    #     return self.run(args)
