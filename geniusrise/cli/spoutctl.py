@@ -2,7 +2,6 @@ import argparse
 import logging
 
 import emoji  # type: ignore
-from prettytable import PrettyTable
 
 from geniusrise.cli.discover import DiscoveredSpout
 from geniusrise.core import ECSManager, K8sManager, Spout
@@ -257,18 +256,16 @@ class SpoutCtl:
             help="Action to perform",
         )
         k8s_parser.add_argument("--name", help="Name of the deployment")
+        k8s_parser.add_argument("--namespace", default="geniusrise", help="Namespace of the deployment")
         k8s_parser.add_argument("--replicas", type=int, help="Number of replicas for update and scale actions")
-        k8s_parser.add_argument("--namespace", default="default", help="Namespace of the deployment")
 
         # ECS commands
         ecs_parser = subparsers.add_parser("ecs", help="ECS management commands")
-        ecs_parser.add_argument("action", choices=["describe", "stop", "update", "delete"], help="Action to perform")
+        ecs_parser.add_argument("action", choices=["describe", "stop", "delete"], help="Action to perform")
         ecs_parser.add_argument("--name", help="Name of the task or service")
         ecs_parser.add_argument(
             "--task-definition-arn", help="ARN of the task definition for run, describe, stop, and update actions"
         )
-        ecs_parser.add_argument("--new-image", help="New Docker image for the update action")
-        ecs_parser.add_argument("--new-command", nargs="+", help="New command for the update action")
 
         # Create subparser for 'help' command
         execute_parser = subparsers.add_parser("help", help="Print help for the spout.")
@@ -283,48 +280,57 @@ class SpoutCtl:
         Args:
             args (argparse.Namespace): Parsed command-line arguments.
         """
-        self.log.info(emoji.emojize(f"Running command: {args.command} :rocket:", use_aliases=True))
-        if args.command == "run":
-            kwargs = {
-                k: v
-                for k, v in vars(args).items()
-                if v is not None and k not in ["output_type", "state_type", "kwargs"]
-            }
-            other = args.other or {}
-            self.spout = self.create_spout(args.output_type, args.state_type, **{**kwargs, **other})
-            result = self.execute_spout(self.spout, args.method)
-            print(result)
-        elif args.command == "deploy":
-            kwargs = {k: v for k, v in vars(args).items() if v is not None and k not in ["manager_type", "method_name"]}
-            other = args.other or {}
-            result = self.execute_remote(args.manager_type, args.method_name, **{**kwargs, **other})
-            print(result)
-        elif args.command == "k8s":
-            k8s_manager = K8sManager()  # Initialize K8sManager
-            if args.action == "scale":
-                k8s_manager.scale_deployment(args.name, args.replicas, args.namespace)
-            elif args.action == "delete":
-                k8s_manager.delete_deployment(args.name, args.namespace)
-            elif args.action == "status":
-                k8s_manager.get_status(args.name, args.namespace)
-            elif args.action == "statistics":
-                k8s_manager.get_statistics(args.name, args.namespace)
-            elif args.action == "logs":
-                k8s_manager.get_logs(args.name, args.namespace)
-        elif args.command == "ecs":
-            ecs_manager = ECSManager()  # Initialize ECSManager
-            if args.action == "run":
-                ecs_manager.run_task(args.name, args.task_definition_arn)
-            elif args.action == "describe":
-                ecs_manager.describe_task(args.name, args.task_definition_arn)
-            elif args.action == "stop":
-                ecs_manager.stop_task(args.name, args.task_definition_arn)
-            elif args.action == "update":
-                ecs_manager.update_task(args.name, args.task_definition_arn, args.new_image, args.new_command)
-            elif args.action == "delete":
-                ecs_manager.stop_task(args.name)
-        elif args.command == "help":
-            self.discovered_spout.klass.print_help()
+        self.log.info(emoji.emojize(f"Running command: {args.command} :rocket:"))
+        try:
+            if args.command == "run":
+                kwargs = {
+                    k: v
+                    for k, v in vars(args).items()
+                    if v is not None and k not in ["output_type", "state_type", "kwargs"]
+                }
+                other = args.other or {}
+                self.spout = self.create_spout(args.output_type, args.state_type, **{**kwargs, **other})
+                result = self.execute_spout(self.spout, args.method)
+                print(result)
+
+            elif args.command == "deploy":
+                kwargs = {
+                    k: v for k, v in vars(args).items() if v is not None and k not in ["manager_type", "method_name"]
+                }
+                other = args.other or {}
+                result = self.execute_remote(args.manager_type, args.method_name, **{**kwargs, **other})
+                print(result)
+
+            elif args.command == "k8s":
+                k8s_manager = K8sManager(name=args.name, namespace=args.namespace)  # Initialize K8sManager
+                if args.action == "scale":
+                    k8s_manager.scale_deployment(args.replicas)
+                elif args.action == "delete":
+                    k8s_manager.delete_deployment()
+                elif args.action == "status":
+                    k8s_manager.get_status()
+                elif args.action == "statistics":
+                    k8s_manager.get_statistics()
+                elif args.action == "logs":
+                    k8s_manager.get_logs()
+
+            elif args.command == "ecs":
+                ecs_manager = ECSManager(name=args.name, account_id="")  # Initialize ECSManager
+                if args.action == "run":
+                    ecs_manager.run_task(args.task_definition_arn)
+                elif args.action == "describe":
+                    ecs_manager.describe_task(args.task_definition_arn)
+                elif args.action == "stop":
+                    ecs_manager.stop_task(args.task_definition_arn)
+                # elif args.action == "update": # TODO: did not init ECSManager full, this will call create_task_definition!
+                #     ecs_manager.update_task(args.new_image, args.new_command)
+                elif args.action == "delete":
+                    ecs_manager.stop_task(args.task_definition_arn)
+
+            elif args.command == "help":
+                self.discovered_spout.klass.print_help(self.discovered_spout.klass)
+        except Exception as e:
+            self.log.error(f"An error occurred: {e}")
 
     def create_spout(self, output_type: str, state_type: str, **kwargs) -> Spout:
         """
@@ -371,19 +377,3 @@ class SpoutCtl:
             self.manager = self.spout.execute_remote(manager_type=manager_type, method_name=method_name, **kwargs)
         else:
             self.log.error(f"Spout {self.discovered_spout.name} is not initialized.")
-
-    def cli(self):
-        """
-        Main function to be called when geniusrise is run from the command line.
-        """
-        parser = self.create_parser()
-        args = parser.parse_args()
-
-        # Print a summary of the parsed arguments
-        self.log.info(emoji.emojize("Parsed arguments :smile:", use_aliases=True))
-        arg_table = PrettyTable(["Argument", "Value"])
-        for arg, value in vars(args).items():
-            arg_table.add_row([arg, value])
-        self.log.info("\n" + str(arg_table))
-
-        return self.run(args)

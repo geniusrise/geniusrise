@@ -59,7 +59,8 @@ class Task(ABC):
         else:
             raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{method_name}'")
 
-    def get_methods(self) -> List[Tuple[str, List[str], Optional[str]]]:
+    @staticmethod
+    def get_methods(cls) -> List[Tuple[str, List[str], Optional[str]]]:
         """
         Get all the fetch_* methods and their parameters along with their default values and docstrings.
 
@@ -68,7 +69,7 @@ class Task(ABC):
             a list of its parameters along with their default values, and its docstring.
         """
         fetch_methods = []
-        for name, method in inspect.getmembers(self, predicate=inspect.ismethod):
+        for name, method in inspect.getmembers(cls, predicate=inspect.isfunction):
             if name.startswith("fetch_"):
                 params = inspect.signature(method).parameters
                 params_str = [
@@ -79,16 +80,17 @@ class Task(ABC):
                 fetch_methods.append((name, params_str, docstring))
         return fetch_methods
 
-    def print_help(self):
+    @staticmethod
+    def print_help(cls):
         """
         Pretty print the fetch_* methods and their parameters along with their default values and docstrings.
         Also prints the class's docstring and __init__ parameters.
         """
         # Print class docstring
-        print(self.__class__.__name__, colored(inspect.getdoc(self) if inspect.getdoc(self) else "", "green"))
+        print(cls.__name__, colored(inspect.getdoc(cls) if inspect.getdoc(cls) else "", "green"))
 
         # Print fetch_* methods
-        fetch_methods = self.get_methods()
+        fetch_methods = cls.get_methods(cls)
         if fetch_methods:
             table = PrettyTable(align="l")
             table.field_names = [
@@ -97,7 +99,8 @@ class Task(ABC):
                 colored("Description", "cyan"),
             ]
             for name, params, docstring in fetch_methods:
-                table.add_row([colored(name, "yellow"), "\n".join(params), docstring])
+                parameters = [_p.replace("=", "") for _p in params if "self" not in _p]
+                table.add_row([colored(name, "yellow"), "\n".join(parameters), docstring], divider=True)
             print(table)
         else:
             print(colored("No fetch_* methods found.", "red"))
