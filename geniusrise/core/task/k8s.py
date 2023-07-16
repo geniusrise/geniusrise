@@ -55,7 +55,7 @@ class K8sManager:
     def __init__(
         self,
         name: str,
-        command: list,
+        command: list = [],
         namespace: str = "default",
         image: str = "geniusrise/geniusrise",
         replicas: int = 1,

@@ -47,7 +47,7 @@ class GeniusCtl:
 
         # Create subparser for YAML opserations
         yaml_parser = subparsers.add_parser("yaml", help="Control spouts with a YAML file.")
-        yaml_parser.add_argument("file", help="The YAML file to use.")
+        yaml_parser.add_argument("--file", default="genius.yml", help="The YAML file to use.")
         yaml_ctl = YamlCtl("", self.spout_ctls)
         yaml_ctl.create_parser(yaml_parser)
 
