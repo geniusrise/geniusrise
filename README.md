@@ -2,7 +2,7 @@
 
 ![grace-hopper](./assets/grace-hopper.jpg)
 
-Welcome to geniusrise, an development platform for building geniuses.
+Welcome to geniusrise, a development platform for building geniuses.
 
 ## 📚 Structure
 
