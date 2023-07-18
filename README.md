@@ -1,10 +1,8 @@
 # 🧠 geniusrise
 
-![gr](./assets/geri-3.png)
+![grace-hopper](./assets/grace-hopper.jpg)
 
-Welcome to geniusrise, a powerful command-line tool that is part of the
-Geniusrise project. This tool is designed to pull data from various sources,
-format it, and create and manage fine-tuned Language Learning Models (LLMs).
+Welcome to geniusrise, an development platform for building geniuses.
 
 ## 📚 Structure
 
