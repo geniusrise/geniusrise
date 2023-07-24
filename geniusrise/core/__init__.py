@@ -1,5 +1,12 @@
 from geniusrise.core.bolt import Bolt
-from geniusrise.core.data import BatchOutputConfig, OutputConfig, StreamingOutputConfig
+from geniusrise.core.data import (
+    BatchInputConfig,
+    BatchOutputConfig,
+    InputConfig,
+    OutputConfig,
+    StreamingInputConfig,
+    StreamingOutputConfig,
+)
 from geniusrise.core.spout import Spout
 from geniusrise.core.state import (
     DynamoDBStateManager,

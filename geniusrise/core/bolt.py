@@ -28,7 +28,9 @@ class Bolt(Task):
     A bolt is a component that consumes streams of data, processes them, and possibly emits new data streams.
     """
 
-    def __init__(self, input_config: InputConfig, output_config: OutputConfig, state_manager: StateManager) -> None:
+    def __init__(
+        self, input_config: InputConfig, output_config: OutputConfig, state_manager: StateManager, **kwargs
+    ) -> None:
         """
         The `Bolt` class is a base class for all bolts in the given context.
         It inherits from the `Task` class and provides methods for executing tasks
@@ -234,24 +236,35 @@ class Bolt(Task):
             state_type (str): The type of state manager ("in_memory", "redis", "postgres", or "dynamodb").
             **kwargs: Additional keyword arguments for initializing the bolt.
                 Keyword Arguments:
+                    Batch input config:
                     - input_folder (str): The input folder argument.
-                    - bucket (str): The bucket argument.
-                    - s3_folder (str): The S3 folder argument.
+                    - input_bucket (str): The input bucket argument.
+                    - input_s3_folder (str): The input S3 folder argument.
+                    Batch outupt config:
                     - output_folder (str): The output folder argument.
-                    - kafka_output_topic (str): The output topic argument.
-                    - kafka_cluster_connection_string (str): The Kafka servers argument.
+                    - output_bucket (str): The output bucket argument.
+                    - output_s3_folder (str): The output S3 folder argument.
+                    Streaming input config:
+                    - input_kafka_cluster_connection_string (str): The input Kafka servers argument.
+                    - input_kafka_topic (str): The input kafka topic argument.
+                    - input_kafka_consumer_group_id (str): The Kafka consumer group id.
+                    Streaming output config:
+                    - output_kafka_cluster_connection_string (str): The output Kafka servers argument.
+                    - output_kafka_topic (str): The output kafka topic argument.
+                    Redis state manager config:
                     - redis_host (str): The Redis host argument.
                     - redis_port (str): The Redis port argument.
                     - redis_db (str): The Redis database argument.
+                    Postgres state manager config:
                     - postgres_host (str): The PostgreSQL host argument.
                     - postgres_port (str): The PostgreSQL port argument.
                     - postgres_user (str): The PostgreSQL user argument.
                     - postgres_password (str): The PostgreSQL password argument.
                     - postgres_database (str): The PostgreSQL database argument.
                     - postgres_table (str): The PostgreSQL table argument.
+                    DynamoDB state manager config:
                     - dynamodb_table_name (str): The DynamoDB table name argument.
                     - dynamodb_region_name (str): The DynamoDB region name argument.
-                    - kafka_consumer_group_id (str): The Kafka consumer group id.
 
         Returns:
             Bolt: The created bolt.
@@ -264,16 +277,16 @@ class Bolt(Task):
         if input_type == "batch":
             input_config = BatchInputConfig(
                 input_folder=kwargs["input_folder"] if "input_folder" in kwargs else tempfile.mkdtemp(),
-                bucket=kwargs["bucket"] if "bucket" in kwargs else None,
-                s3_folder=kwargs["s3_folder"] if "s3_folder" in kwargs else None,
+                bucket=kwargs["input_bucket"] if "bucket" in kwargs else None,
+                s3_folder=kwargs["input_s3_folder"] if "s3_folder" in kwargs else None,
             )
         elif input_type == "streaming":
             input_config = StreamingInputConfig(
-                input_topic=kwargs["input_topic"] if "input_topic" in kwargs else None,
-                kafka_cluster_connection_string=kwargs["kafka_cluster_connection_string"]
-                if "kafka_cluster_connection_string" in kwargs
+                input_topic=kwargs["input_kafka_topic"] if "input_kafka_topic" in kwargs else None,
+                kafka_cluster_connection_string=kwargs["input_kafka_cluster_connection_string"]
+                if "input_kafka_cluster_connection_string" in kwargs
                 else None,
-                group_id=kwargs["group_id"] if "group_id" in kwargs else None,
+                group_id=kwargs["input_kafka_consumer_group_id"] if "input_kafka_consumer_group_id" in kwargs else None,
             )
         else:
             raise ValueError(f"Invalid input type: {input_type}")
@@ -283,13 +296,15 @@ class Bolt(Task):
         if output_type == "batch":
             output_config = BatchOutputConfig(
                 output_folder=kwargs["output_folder"] if "output_folder" in kwargs else tempfile.mkdtemp(),
-                bucket=kwargs["bucket"] if "bucket" in kwargs else tempfile.mkdtemp(),
-                s3_folder=kwargs["s3_folder"] if "s3_folder" in kwargs else tempfile.mkdtemp(),
+                bucket=kwargs["output_bucket"] if "output_bucket" in kwargs else tempfile.mkdtemp(),
+                s3_folder=kwargs["output_s3_folder"] if "output_s3_folder" in kwargs else tempfile.mkdtemp(),
             )
         elif output_type == "streaming":
             output_config = StreamingOutputConfig(
-                kwargs["output_topic"] if "output_topic" in kwargs else None,
-                kwargs["kafka_servers"] if "kafka_servers" in kwargs else None,
+                kwargs["output_kafka_topic"] if "output_kafka_topic" in kwargs else None,
+                kwargs["output_kafka_cluster_connection_string"]
+                if "output_kafka_cluster_connection_string" in kwargs
+                else None,
             )
         else:
             raise ValueError(f"Invalid output type: {output_type}")
@@ -322,5 +337,5 @@ class Bolt(Task):
             raise ValueError(f"Invalid state type: {state_type}")
 
         # Create the bolt
-        bolt = klass(input_config, output_config, state_manager)
+        bolt = klass(input_config=input_config, output_config=output_config, state_manager=state_manager, **kwargs)
         return bolt

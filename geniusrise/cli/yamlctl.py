@@ -1,10 +1,12 @@
 import argparse
+from typing import Dict, List, Optional
+
 import yaml  # type: ignore
 from pydantic import ValidationError
-from typing import Dict, Optional, List
-from geniusrise.cli.spoutctl import SpoutCtl
+
 from geniusrise.cli.schema import SpoutConfig
-from geniusrise.core import K8sManager, ECSManager
+from geniusrise.cli.spoutctl import SpoutCtl
+from geniusrise.core import ECSManager, K8sManager
 
 
 class YamlCtl:

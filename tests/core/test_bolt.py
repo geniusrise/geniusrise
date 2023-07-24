@@ -97,14 +97,16 @@ def state_type(request):
 def test_bolt_create(input_type, output_type, state_type, tmpdir):
     kwargs = {
         "input_folder": tmpdir,
-        "bucket": bucket,
-        "s3_folder": s3_folder,
-        "kafka_input_topic": input_topic,
-        "kafka_cluster_connection_string": kafka_cluster_connection_string,
-        "kafka_consumer_group_id": group_id,
+        "input_bucket": bucket,
+        "input_s3_folder": s3_folder,
         "output_folder": tmpdir,
-        "output_topic": output_topic,
-        "kafka_servers": kafka_servers,
+        "output_bucket": bucket,
+        "output_s3_folder": s3_folder,
+        "input_kafka_cluster_connection_string": kafka_cluster_connection_string,
+        "input_kafka_topic": input_topic,
+        "input_kafka_consumer_group_id": group_id,
+        "output_kafka_cluster_connection_string": kafka_cluster_connection_string,
+        "output_kafka_topic": output_topic,
         "redis_host": redis_host,
         "redis_port": redis_port,
         "redis_db": redis_db,
@@ -118,7 +120,7 @@ def test_bolt_create(input_type, output_type, state_type, tmpdir):
         "dynamodb_region_name": dynamodb_region_name,
     }
 
-    bolt = Bolt.create(Bolt, input_type, output_type, state_type, **kwargs)
+    bolt = Bolt.create(klass=TestBolt, input_type=input_type, output_type=output_type, state_type=state_type, **kwargs)
 
     assert isinstance(bolt, Bolt)
 
