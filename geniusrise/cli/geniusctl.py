@@ -1,5 +1,6 @@
 import argparse
 import logging
+
 from prettytable import PrettyTable
 from termcolor import colored  # type: ignore
 
