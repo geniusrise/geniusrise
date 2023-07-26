@@ -4,6 +4,7 @@ from abc import abstractmethod
 
 import numpy as np
 from torch.utils.data import Dataset
+from datasets import DatasetDict
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 from transformers import (
     AdamW,
@@ -72,7 +73,7 @@ class HuggingFaceBatchFineTuner(Bolt):
             self.eval_dataset = self.load_dataset(eval_dataset_path)
 
     @abstractmethod
-    def load_dataset(self, dataset_path: str, **kwargs) -> Dataset:
+    def load_dataset(self, dataset_path: str, **kwargs) -> Dataset | DatasetDict:
         """
         Load a dataset from a file.
 
