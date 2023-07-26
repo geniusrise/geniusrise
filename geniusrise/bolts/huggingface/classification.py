@@ -44,6 +44,9 @@ class ClassificationDataset(Dataset):
 
         Returns:
             Dict[str, torch.Tensor]: The encoded example.
+
+        Raises:
+            Exception: If there was an error reading the file.
         """
         try:
             text = self.files[idx].read_text().strip()
@@ -70,7 +73,7 @@ class HuggingFaceClassificationFineTuner(HuggingFaceBatchFineTuner):
         state_manager (StateManager): The state manager.
     """
 
-    def load_dataset(self, dataset_path: str) -> Dataset:
+    def load_dataset(self, dataset_path: str, **kwargs) -> Dataset:
         """
         Load a classification dataset from a directory.
 
@@ -79,6 +82,9 @@ class HuggingFaceClassificationFineTuner(HuggingFaceBatchFineTuner):
 
         Returns:
             Dataset: The loaded dataset.
+
+        Raises:
+            Exception: If there was an error loading the dataset.
         """
         try:
             logging.info(f"Loading dataset from {dataset_path}")

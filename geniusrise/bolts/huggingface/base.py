@@ -3,8 +3,17 @@ import os
 from abc import abstractmethod
 
 import numpy as np
+from torch.utils.data import Dataset
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
-from transformers import AdamW, EvalPrediction, Trainer, TrainingArguments, get_linear_schedule_with_warmup
+from transformers import (
+    AdamW,
+    EvalPrediction,
+    PreTrainedModel,
+    PreTrainedTokenizer,
+    Trainer,
+    TrainingArguments,
+    get_linear_schedule_with_warmup,
+)
 
 from geniusrise.core import BatchInputConfig, BatchOutputConfig, Bolt, StateManager
 
@@ -19,8 +28,8 @@ class HuggingFaceBatchFineTuner(Bolt):
 
     def __init__(
         self,
-        model,
-        tokenizer,
+        model: PreTrainedModel,
+        tokenizer: PreTrainedTokenizer,
         input_config: BatchInputConfig,
         output_config: BatchOutputConfig,
         state_manager: StateManager,
@@ -31,11 +40,13 @@ class HuggingFaceBatchFineTuner(Bolt):
         Initialize the bolt.
 
         Args:
-            model: The pre-trained model to fine-tune.
-            tokenizer: The tokenizer associated with the model.
+            model (PreTrainedModel): The pre-trained model to fine-tune.
+            tokenizer (PreTrainedTokenizer): The tokenizer associated with the model.
             input_config (BatchInputConfig): The batch input configuration.
             output_config (OutputConfig): The output configuration.
             state_manager (StateManager): The state manager.
+            eval (bool, optional): Whether to evaluate the model after training. Defaults to False.
+            **kwargs: Additional keyword arguments.
         """
         super().__init__(
             input_config=input_config,
@@ -61,7 +72,7 @@ class HuggingFaceBatchFineTuner(Bolt):
             self.eval_dataset = self.load_dataset(eval_dataset_path)
 
     @abstractmethod
-    def load_dataset(self, dataset_path, **kwargs):
+    def load_dataset(self, dataset_path: str, **kwargs) -> Dataset:
         """
         Load a dataset from a file.
 
@@ -71,11 +82,13 @@ class HuggingFaceBatchFineTuner(Bolt):
 
         Returns:
             Dataset: The loaded dataset.
-        """
-        # Implement your custom dataset loading logic here
-        pass
 
-    def compute_metrics(self, eval_pred: EvalPrediction):
+        Raises:
+            NotImplementedError: This method should be overridden by subclasses.
+        """
+        raise NotImplementedError("Subclasses should implement this!")
+
+    def compute_metrics(self, eval_pred: EvalPrediction) -> dict:
         """
         Compute metrics for evaluation.
 
@@ -95,7 +108,7 @@ class HuggingFaceBatchFineTuner(Bolt):
             "f1": precision_recall_fscore_support(labels, predictions, average="binary")[2],
         }
 
-    def create_optimizer_and_scheduler(self, num_training_steps: int):
+    def create_optimizer_and_scheduler(self, num_training_steps: int) -> tuple:
         """
         Customize the optimizer and the learning rate scheduler.
 
@@ -112,29 +125,7 @@ class HuggingFaceBatchFineTuner(Bolt):
 
         return optimizer, scheduler
 
-    def fine_tune(
-        self,
-        output_dir: str,
-        num_train_epochs: int,
-        per_device_train_batch_size: int,
-        learning_rate: float = 5e-5,
-        weight_decay: float = 0.01,
-        logging_steps: int = 100,
-        use_ipex: bool = False,
-        bf16: bool = False,
-        fp16: bool = False,
-        fp16_opt_level: str = "O1",
-        half_precision_backend: str = "auto",
-        bf16_full_eval: bool = False,
-        fp16_full_eval: bool = False,
-        tf32: bool = False,
-        save_safetensors: bool = False,
-        save_on_each_node: bool = False,
-        adam_beta1: float = 0.9,
-        adam_beta2: float = 0.999,
-        adam_epsilon: float = 1e-8,
-        max_grad_norm: float = 1.0,
-    ):
+    def fine_tune(self, output_dir: str, num_train_epochs: int, per_device_train_batch_size: int, **kwargs):
         """
         Fine-tune the model.
 
@@ -142,46 +133,20 @@ class HuggingFaceBatchFineTuner(Bolt):
             output_dir (str): The output directory where the model predictions and checkpoints will be written.
             num_train_epochs (int): Total number of training epochs to perform.
             per_device_train_batch_size (int): Batch size per device during training.
-            learning_rate (float): The learning rate for the optimizer.
-            weight_decay (float): The weight decay for the optimizer.
-            logging_steps (int): Log metrics every this many steps.
-            use_ipex (bool): Use Intel extension for PyTorch when it is available.
-            bf16 (bool): Whether to use bf16 16-bit (mixed) precision training instead of 32-bit training.
-            fp16 (bool): Whether to use fp16 16-bit (mixed) precision training instead of 32-bit training.
-            fp16_opt_level (str): For `fp16` training, Apex AMP optimization level selected in ['O0', 'O1', 'O2', and 'O3'].
-            half_precision_backend (str): The backend to use for mixed precision training.
-            bf16_full_eval (bool): Whether to use full bfloat16 evaluation instead of 32-bit.
-            fp16_full_eval (bool): Whether to use full float16 evaluation instead of 32-bit.
-            tf32 (bool): Whether to enable the TF32 mode, available in Ampere and newer GPU architectures.
-            save_safetensors (bool): Use safetensors saving and loading for state dicts instead of default `torch.load` and `torch.save`.
-            save_on_each_node (bool): When doing multi-node distributed training, whether to save models and checkpoints on each node, or only on the main one.
-            adam_beta1 (float): The beta1 hyperparameter for the AdamW optimizer.
-            adam_beta2 (float): The beta2 hyperparameter for the AdamW optimizer.
-            adam_epsilon (float): The epsilon hyperparameter for the AdamW optimizer.
-            max_grad_norm (float): Maximum gradient norm (for gradient clipping).
+            **kwargs: Additional keyword arguments for training.
+
+        Raises:
+            FileNotFoundError: If the output directory does not exist.
         """
+        if not os.path.exists(output_dir):
+            raise FileNotFoundError(f"Output directory {output_dir} does not exist.")
+
         # Define the training arguments
         training_args = TrainingArguments(
             output_dir=output_dir,
             num_train_epochs=num_train_epochs,
             per_device_train_batch_size=per_device_train_batch_size,
-            learning_rate=learning_rate,
-            weight_decay=weight_decay,
-            logging_steps=logging_steps,
-            use_ipex=use_ipex,
-            bf16=bf16,
-            fp16=fp16,
-            fp16_opt_level=fp16_opt_level,
-            half_precision_backend=half_precision_backend,
-            bf16_full_eval=bf16_full_eval,
-            fp16_full_eval=fp16_full_eval,
-            tf32=tf32,
-            save_safetensors=save_safetensors,
-            save_on_each_node=save_on_each_node,
-            adam_beta1=adam_beta1,
-            adam_beta2=adam_beta2,
-            adam_epsilon=adam_epsilon,
-            max_grad_norm=max_grad_norm,
+            **kwargs,
         )
 
         # Initialize the trainer
@@ -192,7 +157,6 @@ class HuggingFaceBatchFineTuner(Bolt):
             eval_dataset=self.eval_dataset if self.eval else None,
             tokenizer=self.tokenizer,
             compute_metrics=self.compute_metrics,
-            data_collator=getattr(self, "data_collator") if hasattr(self, "data_collator") else None,
         )
 
         # Train the model
