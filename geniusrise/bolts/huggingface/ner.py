@@ -67,8 +67,12 @@ class NamedEntityRecognitionFineTuner(HuggingFaceBatchFineTuner):
         Returns:
             DatasetDict: The loaded dataset.
         """
+        # Load the dataset from the directory
         dataset = load_from_disk(dataset_path)
+
+        # Preprocess the dataset
         tokenized_dataset = dataset.map(self.prepare_train_features, batched=True, remove_columns=dataset.column_names)
+
         return tokenized_dataset
 
     def prepare_train_features(
