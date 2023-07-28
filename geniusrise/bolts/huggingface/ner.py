@@ -1,11 +1,12 @@
-from datasets import load_from_disk, DatasetDict
-from transformers import DataCollatorForTokenClassification, PreTrainedModel, PreTrainedTokenizerBase, EvalPrediction
-from geniusrise.core import BatchInputConfig, BatchOutputConfig, StateManager
-from typing import List, Dict, Union, Any
-import torch
-import numpy as np
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from typing import Any, Dict, List, Union
 
+import numpy as np
+import torch
+from datasets import DatasetDict, load_from_disk
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+from transformers import DataCollatorForTokenClassification, EvalPrediction, PreTrainedModel, PreTrainedTokenizerBase
+
+from geniusrise.core import BatchInputConfig, BatchOutputConfig, StateManager
 
 from .base import HuggingFaceBatchFineTuner
 

@@ -1,11 +1,12 @@
 import logging
 import os
 from abc import abstractmethod
+from typing import Dict, Optional
 
 import numpy as np
-from torch.utils.data import Dataset
 from datasets import DatasetDict
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+from torch.utils.data import Dataset
 from transformers import (
     AdamW,
     EvalPrediction,
@@ -15,7 +16,6 @@ from transformers import (
     TrainingArguments,
     get_linear_schedule_with_warmup,
 )
-from typing import Optional, Dict
 
 from geniusrise.core import BatchInputConfig, BatchOutputConfig, Bolt, StateManager
 

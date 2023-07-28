@@ -1,11 +1,12 @@
 import os
 import tempfile
-from transformers import BertForSequenceClassification, BertTokenizer, EvalPrediction
-from geniusrise.bolts.huggingface.classification import HuggingFaceClassificationFineTuner
-from geniusrise.core import BatchInputConfig, BatchOutputConfig, InMemoryStateManager
 
 import numpy as np
 import pytest
+from transformers import BertForSequenceClassification, BertTokenizer, EvalPrediction
+
+from geniusrise.bolts.huggingface.classification import HuggingFaceClassificationFineTuner
+from geniusrise.core import BatchInputConfig, BatchOutputConfig, InMemoryStateManager
 
 
 # Create synthetic data

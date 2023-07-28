@@ -1,7 +1,7 @@
-from datasets import load_from_disk
-from transformers import DataCollatorForSeq2Seq
-from datasets import DatasetDict
 from typing import Any
+
+from datasets import DatasetDict, load_from_disk
+from transformers import DataCollatorForSeq2Seq
 
 from .base import HuggingFaceBatchFineTuner
 

@@ -1,11 +1,14 @@
-from typing import Optional, Dict, Union, List, Any
-from datasets import load_from_disk, Dataset
-from transformers import PreTrainedModel, PreTrainedTokenizer, EvalPrediction
-from geniusrise.core import BatchInputConfig, BatchOutputConfig, StateManager
-from .base import HuggingFaceBatchFineTuner
-from sklearn.metrics import accuracy_score
-import numpy as np
 import logging
+from typing import Any, Dict, List, Optional, Union
+
+import numpy as np
+from datasets import Dataset, load_from_disk
+from sklearn.metrics import accuracy_score
+from transformers import EvalPrediction, PreTrainedModel, PreTrainedTokenizer
+
+from geniusrise.core import BatchInputConfig, BatchOutputConfig, StateManager
+
+from .base import HuggingFaceBatchFineTuner
 
 # Set up logging
 logger = logging.getLogger(__name__)

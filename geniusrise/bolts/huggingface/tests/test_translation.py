@@ -1,11 +1,13 @@
 import os
 import tempfile
-from transformers import MarianMTModel, MarianTokenizer, EvalPrediction
-from geniusrise.bolts.huggingface.translation import TranslationFineTuner
-from geniusrise.core import BatchInputConfig, BatchOutputConfig, InMemoryStateManager
-from datasets import Dataset
+
 import numpy as np
 import pytest
+from datasets import Dataset
+from transformers import EvalPrediction, MarianMTModel, MarianTokenizer
+
+from geniusrise.bolts.huggingface.translation import TranslationFineTuner
+from geniusrise.core import BatchInputConfig, BatchOutputConfig, InMemoryStateManager
 
 
 def create_synthetic_data(size: int, temp_dir: str):
