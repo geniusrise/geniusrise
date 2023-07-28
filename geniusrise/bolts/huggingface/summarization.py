@@ -1,10 +1,18 @@
-from datasets import load_from_disk, load_metric
-from transformers import DataCollatorForSeq2Seq, AdamW, get_linear_schedule_with_warmup, EvalPrediction
-from datasets import DatasetDict
-from typing import Any
+from datasets import load_from_disk, load_metric, DatasetDict
+from transformers import (
+    DataCollatorForSeq2Seq,
+    AdamW,
+    get_linear_schedule_with_warmup,
+    EvalPrediction,
+)
+from typing import Any, Tuple, Dict, List, Union, Optional
 import numpy as np
+import logging
 
 from .base import HuggingFaceBatchFineTuner
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 
 class SummarizationFineTuner(HuggingFaceBatchFineTuner):
@@ -32,14 +40,24 @@ class SummarizationFineTuner(HuggingFaceBatchFineTuner):
             Dataset: The loaded dataset.
         """
         # Load the dataset from the directory
-        dataset = load_from_disk(dataset_path)
+        try:
+            dataset = load_from_disk(dataset_path)
+        except Exception as e:
+            logger.error(f"Error loading dataset from {dataset_path}: {e}")
+            return None
 
         # Preprocess the dataset
-        tokenized_dataset = dataset.map(self.prepare_train_features, batched=True, remove_columns=dataset.column_names)
+        try:
+            tokenized_dataset = dataset.map(
+                self.prepare_train_features, batched=True, remove_columns=dataset.column_names
+            )
+        except Exception as e:
+            logger.error(f"Error tokenizing dataset: {e}")
+            return None
 
         return tokenized_dataset
 
-    def prepare_train_features(self, examples):
+    def prepare_train_features(self, examples: Dict[str, Union[str, List[str]]]) -> Optional[Dict[str, List[int]]]:
         """
         Tokenize the examples and prepare the features for training.
 
@@ -50,15 +68,21 @@ class SummarizationFineTuner(HuggingFaceBatchFineTuner):
             dict: The processed features.
         """
         # Tokenize the examples
-        tokenized_inputs = self.tokenizer(examples["document"], truncation=True, padding=False)
-        tokenized_targets = self.tokenizer(examples["summary"], truncation=True, padding=False)
+        try:
+            tokenized_inputs = self.tokenizer(examples["document"], truncation=True, padding=False)
+            tokenized_targets = self.tokenizer(examples["summary"], truncation=True, padding=False)
+        except Exception as e:
+            logger.error(f"Error tokenizing examples: {e}")
+            return None
 
         # Prepare the labels
         tokenized_inputs["labels"] = tokenized_targets["input_ids"]
 
         return tokenized_inputs
 
-    def data_collator(self, examples):
+    def data_collator(
+        self, examples: List[Dict[str, Union[str, List[int]]]]
+    ) -> Dict[str, Union[List[int], List[List[int]]]]:
         """
         Customize the data collator.
 
@@ -70,7 +94,7 @@ class SummarizationFineTuner(HuggingFaceBatchFineTuner):
         """
         return DataCollatorForSeq2Seq(self.tokenizer, model=self.model)(examples)
 
-    def compute_metrics(self, pred: EvalPrediction):
+    def compute_metrics(self, pred: EvalPrediction) -> Dict[str, float]:
         """
         Compute ROUGE metrics.
 
@@ -112,7 +136,7 @@ class SummarizationFineTuner(HuggingFaceBatchFineTuner):
             "rougeL": rouge_output["rougeL"].mid.fmeasure,
         }
 
-    def create_optimizer_and_scheduler(self, num_training_steps):
+    def create_optimizer_and_scheduler(self, num_training_steps: int) -> Tuple[AdamW, Any]:
         """
         Create an optimizer and a learning rate scheduler.
 

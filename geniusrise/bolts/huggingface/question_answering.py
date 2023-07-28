@@ -1,9 +1,14 @@
-from datasets import load_from_disk
-from transformers import PreTrainedModel, PreTrainedTokenizer
+from typing import Optional, Dict, Union, List, Any
+from datasets import load_from_disk, Dataset
+from transformers import PreTrainedModel, PreTrainedTokenizer, EvalPrediction
 from geniusrise.core import BatchInputConfig, BatchOutputConfig, StateManager
 from .base import HuggingFaceBatchFineTuner
 from sklearn.metrics import accuracy_score
 import numpy as np
+import logging
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 
 class QuestionAnsweringFineTuner(HuggingFaceBatchFineTuner):
@@ -25,7 +30,7 @@ class QuestionAnsweringFineTuner(HuggingFaceBatchFineTuner):
         max_length: int,
         doc_stride: int,
         eval: bool = False,
-        **kwargs,
+        **kwargs: Dict[str, Any],
     ) -> None:
         """
         Initialize the bolt.
@@ -55,17 +60,16 @@ class QuestionAnsweringFineTuner(HuggingFaceBatchFineTuner):
             **kwargs,
         )
 
-    def load_dataset(self, dataset_path, pad_on_right=None, max_length=None, doc_stride=None):
+    def load_dataset(
+        self,
+        dataset_path: str,
+        pad_on_right: Optional[bool] = None,
+        max_length: Optional[int] = None,
+        doc_stride: Optional[int] = None,
+        **kwargs: Dict[str, Any],
+    ) -> Optional[Dataset]:
         """
         Load a dataset from a directory.
-
-        The directory should contain one or multiple files in the following formats: .txt, .csv, .json, .jsonl, .parquet, .tfrecord.
-        Each file should contain a list of examples. Each example should be a dictionary with the following keys:
-        - 'context': a string representing the context in which the question is asked.
-        - 'question': a string representing the question.
-        - 'answers': a dictionary with the following keys:
-            - 'text': a list of strings representing the possible answers to the question.
-            - 'answer_start': a list of integers representing the start character position of each answer in the context.
 
         Args:
             dataset_path (str): The path to the directory containing the dataset files.
@@ -73,33 +77,56 @@ class QuestionAnsweringFineTuner(HuggingFaceBatchFineTuner):
         Returns:
             Dataset: The loaded dataset.
         """
-        self.pad_on_right = pad_on_right if pad_on_right else self.pad_on_right
-        self.max_length = max_length if max_length else self.max_length
-        self.doc_stride = doc_stride if doc_stride else self.doc_stride
+        # Update padding, max_length, and doc_stride if provided
+        self.pad_on_right = pad_on_right if pad_on_right is not None else self.pad_on_right
+        self.max_length = max_length if max_length is not None else self.max_length
+        self.doc_stride = doc_stride if doc_stride is not None else self.doc_stride
+
         # Load the dataset from the directory
-        dataset = load_from_disk(dataset_path)
+        try:
+            dataset = load_from_disk(dataset_path)
+        except Exception as e:
+            logger.error(f"Error loading dataset from {dataset_path}: {e}")
+            return None
 
         # Preprocess the dataset
-        tokenized_dataset = dataset.map(self.prepare_train_features, batched=True, remove_columns=dataset.column_names)
+        try:
+            tokenized_dataset = dataset.map(
+                self.prepare_train_features, batched=True, remove_columns=dataset.column_names
+            )
+        except Exception as e:
+            logger.error(f"Error tokenizing dataset: {e}")
+            return None
 
         return tokenized_dataset
 
-    def prepare_train_features(self, examples):
+    def prepare_train_features(
+        self, examples: Dict[str, Union[str, List[str]]]
+    ) -> Optional[Dict[str, Union[List[int], List[List[int]]]]]:
         """
-        Tokenize our examples with truncation and padding, but keep the overflows using a stride. This results
-        in one example possible giving several features when a context is long, each of those features having a
-        context that overlaps a bit the context of the previous feature.
+        Tokenize our examples with truncation and padding, but keep the overflows using a stride.
+
+        Args:
+            examples: The examples to be tokenized.
+
+        Returns:
+            The tokenized examples.
         """
-        tokenized_examples = self.tokenizer(
-            examples["question" if self.pad_on_right else "context"],
-            examples["context" if self.pad_on_right else "question"],
-            truncation="only_second" if self.pad_on_right else "only_first",
-            max_length=self.max_length,
-            stride=self.doc_stride,
-            return_overflowing_tokens=True,
-            return_offsets_mapping=True,
-            padding="max_length",
-        )
+        # Tokenize the examples
+        try:
+            tokenized_examples = self.tokenizer(
+                examples["question" if self.pad_on_right else "context"],
+                examples["context" if self.pad_on_right else "question"],
+                truncation="only_second" if self.pad_on_right else "only_first",
+                max_length=self.max_length,
+                stride=self.doc_stride,
+                return_overflowing_tokens=True,
+                return_offsets_mapping=True,
+                padding="max_length",
+            )
+        except Exception as e:
+            logger.error(f"Error tokenizing examples: {e}")
+            return None
 
         # Since one example might give us several features if it has a long context, we need a map from a feature to
         # its corresponding example. This key gives us just that.
@@ -125,13 +152,13 @@ class QuestionAnsweringFineTuner(HuggingFaceBatchFineTuner):
             sample_index = sample_mapping[i]
             answers = examples["answers"][sample_index]
             # If no answers are given, set the cls_index as answer.
-            if len(answers["answer_start"]) == 0:
+            if len(answers["answer_start"]) == 0:  # type: ignore
                 tokenized_examples["start_positions"].append(cls_index)
                 tokenized_examples["end_positions"].append(cls_index)
             else:
                 # Start/end character index of the answer in the text.
-                start_char = answers["answer_start"][0]
-                end_char = start_char + len(answers["text"][0])
+                start_char = answers["answer_start"][0]  # type: ignore
+                end_char = start_char + len(answers["text"][0])  # type: ignore
 
                 # Start token index of the current span in the text.
                 token_start_index = 0
@@ -149,7 +176,8 @@ class QuestionAnsweringFineTuner(HuggingFaceBatchFineTuner):
                     tokenized_examples["end_positions"].append(cls_index)
                 else:
                     # Otherwise move the token_start_index and token_end_index to the two ends of the answer.
-                    # Note: we could go after the last offset if the answer is the last word (edge case).
+                    # Note: we could go after the last offset if the answer is the
+                    # last word (edge case).
                     while token_start_index < len(offsets) and offsets[token_start_index][0] <= start_char:
                         token_start_index += 1
                     tokenized_examples["start_positions"].append(token_start_index - 1)
@@ -159,7 +187,7 @@ class QuestionAnsweringFineTuner(HuggingFaceBatchFineTuner):
 
         return tokenized_examples
 
-    def compute_metrics(self, eval_pred):
+    def compute_metrics(self, eval_pred: EvalPrediction) -> Optional[Dict[str, float]]:
         """
         Compute the accuracy of the model's predictions.
 
@@ -171,16 +199,18 @@ class QuestionAnsweringFineTuner(HuggingFaceBatchFineTuner):
         Returns:
             dict: A dictionary mapping metric names to computed values.
         """
-        predictions, labels = eval_pred
-        if isinstance(predictions, tuple):
-            predictions = predictions[0]
-        if isinstance(labels, tuple):
-            labels = labels[0]
+        # Compute the metrics
+        try:
+            predictions, labels = eval_pred
+            if isinstance(predictions, tuple):
+                predictions = predictions[0]
+            if isinstance(labels, tuple):
+                labels = labels[0]
 
-        # Convert predictions from list of 1D arrays to 1D array
-        predictions = np.array([np.argmax(p) for p in predictions])
+            # Convert predictions from list of 1D arrays to 1D array
+            predictions = np.array([np.argmax(p) for p in predictions])
 
-        print(labels, [x.shape for x in labels])
-        print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
-        print(predictions.shape)
-        return {"accuracy": accuracy_score(labels, predictions)}
+            return {"accuracy": accuracy_score(labels, predictions)}
+        except Exception as e:
+            logger.error(f"Error computing metrics: {e}")
+            return None

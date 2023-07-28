@@ -15,6 +15,7 @@ from transformers import (
     TrainingArguments,
     get_linear_schedule_with_warmup,
 )
+from typing import Optional, Dict
 
 from geniusrise.core import BatchInputConfig, BatchOutputConfig, Bolt, StateManager
 
@@ -73,7 +74,7 @@ class HuggingFaceBatchFineTuner(Bolt):
             self.eval_dataset = self.load_dataset(eval_dataset_path)
 
     @abstractmethod
-    def load_dataset(self, dataset_path: str, **kwargs) -> Dataset | DatasetDict:
+    def load_dataset(self, dataset_path: str, **kwargs) -> Dataset | DatasetDict | Optional[Dataset]:
         """
         Load a dataset from a file.
 
@@ -89,7 +90,7 @@ class HuggingFaceBatchFineTuner(Bolt):
         """
         raise NotImplementedError("Subclasses should implement this!")
 
-    def compute_metrics(self, eval_pred: EvalPrediction) -> dict:
+    def compute_metrics(self, eval_pred: EvalPrediction) -> Optional[Dict[str, float]] | Dict[str, float]:
         """
         Compute metrics for evaluation.
 
