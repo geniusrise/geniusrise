@@ -1,3 +1,4 @@
+absl-py==1.4.0
 accelerate==0.21.0
 aioboto3==11.2.0
 aiobotocore==2.5.0
@@ -112,6 +113,7 @@ murmurhash==1.0.9
 mypy==1.3.0
 mypy-extensions==1.0.0
 networkx==3.1
+nltk==3.8.1
 numpy==1.24.3
 nvidia-cublas-cu11==11.10.3.66
 nvidia-cuda-cupti-cu11==11.7.101
@@ -193,6 +195,7 @@ rfc3339-validator==0.1.4
 rfc3986==1.5.0
 rich==13.3.5
 rich_argparse==1.1.0
+rouge-score==0.1.2
 rsa==4.9
 s3transfer==0.6.1
 safetensors==0.3.1
