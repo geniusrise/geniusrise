@@ -1,12 +1,12 @@
 import os
 import tempfile
-from transformers import BertForSequenceClassification, BertTokenizer
 
 import pytest
+from datasets import load_dataset
+from transformers import BertForSequenceClassification, BertTokenizer
+
 from geniusrise.bolts.huggingface.base import HuggingFaceBatchFineTuner
 from geniusrise.core import BatchInputConfig, BatchOutputConfig, InMemoryStateManager, StateManager
-
-from datasets import load_dataset
 
 
 class TestHuggingFaceBatchFineTuner(HuggingFaceBatchFineTuner):
@@ -68,8 +68,8 @@ def test_load_dataset(bolt):
 
 
 def test_compute_metrics(bolt):
-    from transformers import EvalPrediction
     import numpy as np
+    from transformers import EvalPrediction
 
     # Mocking an EvalPrediction object
     logits = np.array([[0.6, 0.4], [0.4, 0.6]])
