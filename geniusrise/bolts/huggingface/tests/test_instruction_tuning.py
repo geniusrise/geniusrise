@@ -1,7 +1,6 @@
 import os
 import tempfile
 
-
 import pytest
 from datasets import Dataset
 from transformers import BartForConditionalGeneration, BartTokenizer

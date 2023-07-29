@@ -4,9 +4,9 @@ import logging
 from typing import Dict
 
 import torch
+from datasets import Dataset as HFDataset
 from torch.utils.data import Dataset
 from transformers import PreTrainedTokenizerBase
-from datasets import Dataset as HFDataset
 
 from .base import HuggingFaceBatchFineTuner
 

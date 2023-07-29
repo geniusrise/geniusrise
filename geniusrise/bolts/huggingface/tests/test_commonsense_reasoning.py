@@ -2,13 +2,11 @@ import os
 import tempfile
 
 import pytest
+from datasets import Dataset
 from transformers import BertForSequenceClassification, BertTokenizer
 
 from geniusrise.bolts.huggingface.commonsense_reasoning import CommonsenseReasoningFineTuner
 from geniusrise.core import BatchInputConfig, BatchOutputConfig, InMemoryStateManager
-
-
-from datasets import Dataset
 
 
 def create_synthetic_data(directory, num_examples):

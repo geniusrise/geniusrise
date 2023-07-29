@@ -2,12 +2,11 @@ import os
 import tempfile
 
 import pytest
+from datasets import Dataset
 from transformers import BertForMaskedLM, BertTokenizer
 
 from geniusrise.bolts.huggingface.lanuage_model import LanguageModelingFineTuner
 from geniusrise.core import BatchInputConfig, BatchOutputConfig, InMemoryStateManager
-
-from datasets import Dataset
 
 
 # Create synthetic data
