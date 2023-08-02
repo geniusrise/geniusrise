@@ -1,4 +1,4 @@
-# geniusrise
+# 🧠 Geniusrise
 # Copyright (C) 2023  geniusrise.ai
 #
 # This program is free software: you can redistribute it and/or modify
