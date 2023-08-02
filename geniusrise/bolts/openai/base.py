@@ -1,19 +1,3 @@
-# 🧠 Geniusrise
-# Copyright (C) 2023  geniusrise.ai
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 import logging
 import os
 from abc import abstractmethod
@@ -124,10 +108,10 @@ class OpenAIFineTuner(Bolt):
 
         # Apply necessary remediations and store optional remediations
         for validator in validators:
-            remediation = validator(data)
+            remediation = validator(df)
             if remediation is not None:
                 optional_remediations.append(remediation)
-                data = apply_necessary_remediation(data, remediation)  # type: ignore
+                df = apply_necessary_remediation(df, remediation)  # type: ignore
 
         # Check if there are any optional or necessary remediations
         any_optional_or_necessary_remediations = any(
@@ -142,7 +126,7 @@ class OpenAIFineTuner(Bolt):
         if any_optional_or_necessary_remediations and apply_optional_remediations:
             self.log.info("Based on the analysis we will perform the following actions:")
             for remediation in optional_remediations:
-                data, _ = apply_optional_remediation(data, remediation, auto_accept=True)  # type: ignore
+                df, _ = apply_optional_remediation(df, remediation, auto_accept=True)  # type: ignore
         else:
             self.log.info("Validations passed, no remediations needed to be applied.")
 
