@@ -88,3 +88,31 @@ def test_prepare_fine_tuning_data(bolt):
         train_data[0]
         == '{"prompt":"The capital of France is Paris.\\n\\nWhat is the capital of France?","completion":"Paris"}'
     )
+
+
+def test_fine_tune(bolt):
+    # Create a sample dataset
+    data = [
+        {"text": "The capital of France is Paris.", "question": "What is the capital of France?", "answer": "Paris"},
+        {"text": "The capital of India is Delhi.", "question": "What is the capital of India?", "answer": "Delhi"},
+    ]
+    data_df = pd.DataFrame(data)
+
+    # Convert data_df to a Dataset
+    dataset = Dataset.from_pandas(data_df)
+
+    # Prepare the fine-tuning data
+    bolt.prepare_fine_tuning_data(dataset)
+
+    # Initiate the fine-tuning process
+    fine_tune_job = bolt.fine_tune(
+        model="ada",
+        suffix="test",
+        n_epochs=1,
+        batch_size=1,
+        learning_rate_multiplier=0.5,
+        prompt_loss_weight=1,
+    )
+
+    # Check that the job ID is returned and has the expected prefix
+    assert "ft-" in fine_tune_job.id
