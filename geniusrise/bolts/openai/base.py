@@ -160,7 +160,7 @@ class OpenAIFineTuner(Bolt):
         batch_size: int,
         learning_rate_multiplier: int,
         prompt_loss_weight: int,
-    ) -> FineTune:
+    ) -> openai.FineTune:  # type: ignore
         """
         Fine-tune the model with the given parameters and training data.
         The training data and optional validation data are uploaded to OpenAI's servers.
@@ -186,20 +186,20 @@ class OpenAIFineTuner(Bolt):
         fine_tune_params = {k: v for k, v in fine_tune_params.items() if v is not None}
 
         # Make the fine-tuning request
-        fine_tune_job = FineTune.create(**fine_tune_params)
+        fine_tune_job = openai.FineTune.create(**fine_tune_params)  # type: ignore
 
         # Log the job ID
         self.log.info(f"🚀 Started fine-tuning job with ID {fine_tune_job.id}")
 
         return fine_tune_job
 
-    def get_fine_tuning_job(self, job_id: str) -> FineTune:
+    def get_fine_tuning_job(self, job_id: str) -> openai.FineTune:  # type: ignore
         """
         Get the status of a fine-tuning job.
         """
-        return FineTune.retrieve(job_id)
+        return openai.FineTune.retrieve(job_id)  # type: ignore
 
-    def wait_for_fine_tuning(self, job_id: str, check_interval: int = 60) -> Optional[FineTune]:
+    def wait_for_fine_tuning(self, job_id: str, check_interval: int = 60) -> Optional[openai.FineTune]:  # type: ignore
         """Wait for a fine-tuning job to complete, checking the status every `check_interval` seconds."""
         while True:
             job = self.get_fine_tuning_job(job_id)
@@ -213,6 +213,6 @@ class OpenAIFineTuner(Bolt):
                 for _ in tqdm(range(check_interval), desc="Waiting for fine-tuning to complete", ncols=100):
                     sleep(1)
 
-    def delete_fine_tuned_model(self, model_id: str) -> FineTune:
+    def delete_fine_tuned_model(self, model_id: str) -> openai.FineTune:  # type: ignore
         """Delete a fine-tuned model."""
-        return FineTune.delete(model_id)
+        return openai.FineTune.delete(model_id)  # type: ignore
