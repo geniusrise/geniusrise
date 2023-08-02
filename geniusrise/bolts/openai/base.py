@@ -203,10 +203,10 @@ class OpenAIFineTuner(Bolt):
         """Wait for a fine-tuning job to complete, checking the status every `check_interval` seconds."""
         while True:
             job = self.get_fine_tuning_job(job_id)
-            if job.status == "succeeded":
+            if job.status == "succeeded":  # type: ignore
                 self.log.info(f"🎉 Fine-tuning job {job_id} succeeded.")
                 return job
-            elif job.status == "failed":
+            elif job.status == "failed":  # type: ignore
                 self.log.info(f"😭 Fine-tuning job {job_id} failed.")
                 return job
             else:
