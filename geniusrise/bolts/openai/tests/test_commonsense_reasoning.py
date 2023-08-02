@@ -1,11 +1,12 @@
 import os
+import json
 import tempfile
 import pandas as pd
 import pytest
 from datasets import Dataset
 
 from geniusrise.core import BatchInputConfig, BatchOutputConfig, InMemoryStateManager
-from geniusrise.bolts.openai.classification import OpenAIClassificationFineTuner
+from geniusrise.bolts.openai.commonsense_reasoning import OpenAICommonsenseReasoningFineTuner
 
 # Retrieve environment variables
 api_key = os.getenv("OPENAI_API_KEY")
@@ -14,29 +15,32 @@ api_base_url = os.getenv("OPENAI_API_BASE_URL")
 api_version = os.getenv("OPENAI_API_VERSION")
 
 
+def create_mock_data(dataset_path):
+    os.makedirs(dataset_path, exist_ok=True)
+    data = [
+        {"premise": "The premise text", "hypothesis": "The hypothesis text", "label": 0},
+        # Add more examples as needed
+    ]
+    with open(os.path.join(dataset_path, "data.jsonl"), "w") as file:
+        for item in data:
+            file.write(json.dumps(item) + "\n")
+
+
 @pytest.fixture
 def bolt():
     # Use temporary directories for input and output
     input_dir = tempfile.mkdtemp()
     output_dir = tempfile.mkdtemp()
 
-    # Create the expected directory structure for the train and eval datasets
-    train_dataset_path = os.path.join(input_dir, "train")
-    eval_dataset_path = os.path.join(input_dir, "eval")
-    os.makedirs(train_dataset_path)
-    os.makedirs(eval_dataset_path)
-
-    # Create a sample class directory with a text file
-    class_dir = os.path.join(train_dataset_path, "class1")
-    os.makedirs(class_dir)
-    with open(os.path.join(class_dir, "example1.txt"), "w") as f:
-        f.write("This is a sample text.")
+    # Create mock data in the input directory
+    dataset_path = os.path.join(input_dir, "train")
+    create_mock_data(dataset_path)
 
     input_config = BatchInputConfig(input_dir, "geniusrise-test-bucket", "test-openai-input")
     output_config = BatchOutputConfig(output_dir, "geniusrise-test-bucket", "test-openai-output")
     state_manager = InMemoryStateManager()
 
-    return OpenAIClassificationFineTuner(
+    return OpenAICommonsenseReasoningFineTuner(
         input_config=input_config,
         output_config=output_config,
         state_manager=state_manager,
@@ -51,24 +55,23 @@ def bolt():
 def test_load_dataset(bolt):
     # Create a temporary directory with a sample dataset
     dataset_dir = tempfile.mkdtemp()
-    class_dir = os.path.join(dataset_dir, "class1")
-    os.makedirs(class_dir)
-    with open(os.path.join(class_dir, "example1.txt"), "w") as f:
-        f.write("This is a sample text.")
+    with open(os.path.join(dataset_dir, "example.jsonl"), "w") as f:
+        f.write('{"premise": "The sun is shining.", "hypothesis": "It is day.", "label": 0}\n')
 
     # Load the dataset
     dataset = bolt.load_dataset(dataset_dir)
     assert dataset is not None
     assert len(dataset) == 1
-    assert dataset[0]["text"] == "This is a sample text."
-    assert dataset[0]["label"] == "class1"
+    assert dataset[0]["premise"] == "The sun is shining."
+    assert dataset[0]["hypothesis"] == "It is day."
+    assert dataset[0]["label"] == 0
 
 
 def test_prepare_fine_tuning_data(bolt):
     # Create a sample dataset
     data = [
-        {"text": "Hello", "label": "greeting"},
-        {"text": "Goodbye", "label": "farewell"},
+        {"premise": "The sun is shining.", "hypothesis": "It is day.", "label": 0},
+        {"premise": "It is raining.", "hypothesis": "The ground is wet.", "label": 1},
     ]
     data_df = pd.DataFrame(data)
 
@@ -84,15 +87,15 @@ def test_prepare_fine_tuning_data(bolt):
     # Check the content of the train file
     with open(bolt.train_file, "r") as f:
         train_data = [line.strip() for line in f.readlines()]
-    assert train_data[0] == '{"prompt":"Hello","completion":"greeting"}'
-    assert train_data[1] == '{"prompt":"Goodbye","completion":"farewell"}'
+    assert train_data[0] == '{"prompt":"The sun is shining.\\nIt is day.","completion":"entailment"}'
+    assert train_data[1] == '{"prompt":"It is raining.\\nThe ground is wet.","completion":"neutral"}'
 
 
 def test_fine_tune(bolt):
     # Create a sample dataset
     data = [
-        {"text": "Hello", "label": "greeting"},
-        {"text": "Goodbye", "label": "farewell"},
+        {"premise": "The sun is shining.", "hypothesis": "It is day.", "label": 0},
+        {"premise": "It is raining.", "hypothesis": "The ground is wet.", "label": 1},
     ]
     data_df = pd.DataFrame(data)
 
