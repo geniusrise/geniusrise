@@ -23,10 +23,16 @@ import logging
 
 import pydantic
 
-from geniusrise.core import Spout
+from geniusrise.core import Spout, Bolt
 
 
 class DiscoveredSpout(pydantic.BaseModel):
+    name: str
+    klass: type
+    init_args: dict
+
+
+class DiscoveredBolt(pydantic.BaseModel):
     name: str
     klass: type
     init_args: dict
@@ -60,8 +66,18 @@ class Discover:
 
     def find_classes(self, module, klass=Spout):
         for name, obj in inspect.getmembers(module):
-            if inspect.isclass(obj) and issubclass(obj, klass) and obj != klass:
+            if inspect.isclass(obj) and issubclass(obj, Spout) and obj != klass:
                 discovered = DiscoveredSpout(
+                    **{
+                        "name": name,
+                        "klass": obj,
+                        "init_args": self.get_init_args(obj),
+                    }
+                )
+                self.log.info(f"Discovered {klass.__name__} {discovered.name}")
+                self.classes[name] = discovered
+            elif inspect.isclass(obj) and issubclass(obj, Bolt) and obj != klass:
+                discovered = DiscoveredBolt(
                     **{
                         "name": name,
                         "klass": obj,
