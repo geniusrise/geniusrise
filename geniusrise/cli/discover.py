@@ -19,6 +19,7 @@ import inspect
 import os
 from abc import ABCMeta
 from typing import Any
+import logging
 
 import pydantic
 
@@ -35,29 +36,40 @@ class Discover:
     def __init__(self, directory: str):
         self.directory = directory
         self.classes: Any = {}
+        self.log = logging.getLogger(self.__class__.__name__)
 
     def scan_directory(self):
         for root, _, files in os.walk(self.directory):
+            print(root, files)
             if "__init__.py" in files:
                 module = self.import_module(root)
                 self.find_classes(module)
         return self.classes
 
     def import_module(self, path):
-        path = path.replace("/", ".")
-        module = importlib.import_module(path)
+        # Assuming your project root is at 'geniusrise'
+        project_root = os.path.abspath(os.path.join(self.directory, "../../../../"))
+        relative_path = os.path.relpath(path, project_root)
+        module_path = relative_path.replace(os.sep, ".")
+        if module_path.endswith("__init__"):
+            module_path = module_path[:-9]  # remove trailing '__init__'
+
+        self.log.info(f"Importing module {module_path}")
+        module = importlib.import_module(module_path)
         return module
 
     def find_classes(self, module, klass=Spout):
         for name, obj in inspect.getmembers(module):
-            if inspect.isclass(obj) and issubclass(obj, Spout) and obj != klass:
-                self.classes[name] = DiscoveredSpout(
+            if inspect.isclass(obj) and issubclass(obj, klass) and obj != klass:
+                discovered = DiscoveredSpout(
                     **{
                         "name": name,
                         "klass": obj,
                         "init_args": self.get_init_args(obj),
                     }
                 )
+                self.log.info(f"Discovered {klass.__name__} {discovered.name}")
+                self.classes[name] = discovered
 
     def get_init_args(self, cls):
         init_signature = inspect.signature(cls.__init__)

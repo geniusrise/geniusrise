@@ -53,7 +53,7 @@ class BatchInputConfig(InputConfig):
         if self.input_folder:
             return self.input_folder
         else:
-            log.error("No input folder specified.")
+            log.exception("No input folder specified.")
             return None
 
     def copy_from_remote(self):
@@ -73,7 +73,7 @@ class BatchInputConfig(InputConfig):
                     os.makedirs(os.path.dirname(f"{self.input_folder}/{obj.key}"))
                 _bucket.download_file(obj.key, f"{self.input_folder}/{obj.key}")
         else:
-            log.error("No input folder specified.")
+            log.exception("No input folder specified.")
 
     def list_files(self):
         """
@@ -89,7 +89,7 @@ class BatchInputConfig(InputConfig):
                 if os.path.isfile(os.path.join(self.input_folder, f))
             ]
         else:
-            log.error("No input folder specified.")
+            log.exception("No input folder specified.")
             return []
 
     def read_file(self, filename):
@@ -106,7 +106,7 @@ class BatchInputConfig(InputConfig):
             with open(os.path.join(self.input_folder, filename), "r") as file:
                 return file.read()
         else:
-            log.error("No input folder specified.")
+            log.exception("No input folder specified.")
             return None
 
     def delete_file(self, filename):
@@ -119,7 +119,7 @@ class BatchInputConfig(InputConfig):
         if self.input_folder:
             os.remove(os.path.join(self.input_folder, filename))
         else:
-            log.error("No input folder specified.")
+            log.exception("No input folder specified.")
 
     def copy_to_remote(self, filename, bucket, s3_folder):
         """
@@ -136,4 +136,4 @@ class BatchInputConfig(InputConfig):
                 os.path.join(self.input_folder, filename), bucket, os.path.join(s3_folder, filename)
             )
         else:
-            log.error("No input folder specified.")
+            log.exception("No input folder specified.")

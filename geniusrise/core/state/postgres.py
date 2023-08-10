@@ -73,7 +73,7 @@ class PostgresStateManager(StateManager):
                 log.exception(f"Failed to get state from PostgreSQL: {e}")
                 return None
         else:
-            log.error("No PostgreSQL connection.")
+            log.exception("No PostgreSQL connection.")
             return None
 
     def set_state(self, key: str, value: Dict) -> None:

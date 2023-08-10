@@ -46,7 +46,7 @@ class StreamingOutputConfig(OutputConfig):
         try:
             self.producer = KafkaProducer(bootstrap_servers=kafka_servers)
         except Exception as e:
-            log.error(f"Failed to create Kafka producer: {e}")
+            log.exception(f"Failed to create Kafka producer: {e}")
             self.producer = None
 
     def save(self, data: Any, filename: str):
@@ -62,9 +62,9 @@ class StreamingOutputConfig(OutputConfig):
                 self.producer.send(self.output_topic, bytes(json.dumps(data).encode("utf-8")))
                 log.debug(f"Inserted the data into {self.output_topic} topic.")
             except Exception as e:
-                log.error(f"Failed to send data to Kafka topic: {e}")
+                log.exception(f"Failed to send data to Kafka topic: {e}")
         else:
-            log.error("No Kafka producer available.")
+            log.exception("No Kafka producer available.")
 
     def flush(self):
         """
@@ -73,7 +73,7 @@ class StreamingOutputConfig(OutputConfig):
         if self.producer:
             self.producer.flush()
         else:
-            log.error("No Kafka producer available.")
+            log.exception("No Kafka producer available.")
 
     def send_key_value(self, key: Any, value: Any):
         """
@@ -92,9 +92,9 @@ class StreamingOutputConfig(OutputConfig):
                 )
                 log.debug(f"Inserted the key-value pair into {self.output_topic} topic.")
             except Exception as e:
-                log.error(f"Failed to send key-value pair to Kafka topic: {e}")
+                log.exception(f"Failed to send key-value pair to Kafka topic: {e}")
         else:
-            log.error("No Kafka producer available.")
+            log.exception("No Kafka producer available.")
 
     def close(self):
         """
@@ -104,7 +104,7 @@ class StreamingOutputConfig(OutputConfig):
             self.producer.close()
             self.producer = None
         else:
-            log.error("No Kafka producer available.")
+            log.exception("No Kafka producer available.")
 
     def partition_available(self, partition: int):
         """
@@ -119,7 +119,7 @@ class StreamingOutputConfig(OutputConfig):
         if self.producer:
             return partition in self.producer.partitions_for(self.output_topic)
         else:
-            log.error("No Kafka producer available.")
+            log.exception("No Kafka producer available.")
             return False
 
     def save_to_partition(self, value: Any, partition: int):
@@ -137,9 +137,9 @@ class StreamingOutputConfig(OutputConfig):
                 )
                 log.debug(f"Inserted the message into partition {partition} of {self.output_topic} topic.")
             except Exception as e:
-                log.error(f"Failed to send message to Kafka topic: {e}")
+                log.exception(f"Failed to send message to Kafka topic: {e}")
         else:
-            log.error("No Kafka producer available.")
+            log.exception("No Kafka producer available.")
 
     def save_bulk(self, messages: list):
         """
@@ -154,6 +154,6 @@ class StreamingOutputConfig(OutputConfig):
                     self.producer.send(self.output_topic, bytes(json.dumps(message).encode("utf-8")))
                 log.debug(f"Inserted {len(messages)} messages into {self.output_topic} topic.")
             except Exception as e:
-                log.error(f"Failed to send messages to Kafka topic: {e}")
+                log.exception(f"Failed to send messages to Kafka topic: {e}")
         else:
-            log.error("No Kafka producer available.")
+            log.exception("No Kafka producer available.")

@@ -69,7 +69,7 @@ class DynamoDBStateManager(StateManager):
                 log.exception(f"Failed to get state from DynamoDB: {e}")
                 return None
         else:
-            log.error("No DynamoDB table.")
+            log.exception("No DynamoDB table.")
             return None
 
     def set_state(self, key: str, value: Dict) -> None:
@@ -86,4 +86,4 @@ class DynamoDBStateManager(StateManager):
             except Exception as e:
                 log.exception(f"Failed to set state in DynamoDB: {e}")
         else:
-            log.error("No DynamoDB table.")
+            log.exception("No DynamoDB table.")

@@ -16,9 +16,13 @@
 
 import logging
 import tempfile
-from typing import Any, Optional
+from typing import Any
 
-from geniusrise.core.data import BatchOutputConfig, OutputConfig, StreamingOutputConfig
+from geniusrise.core.data import (
+    BatchOutputConfig,
+    OutputConfig,
+    StreamingOutputConfig,
+)
 from geniusrise.core.state import (
     DynamoDBStateManager,
     InMemoryStateManager,
@@ -26,7 +30,7 @@ from geniusrise.core.state import (
     RedisStateManager,
     StateManager,
 )
-from geniusrise.core.task import ECSManager, K8sManager, Task
+from geniusrise.core.task import Task
 
 
 class Spout(Task):
@@ -34,7 +38,7 @@ class Spout(Task):
     Base class for all spouts.
     """
 
-    def __init__(self, output_config: OutputConfig, state_manager: StateManager) -> None:
+    def __init__(self, output_config: OutputConfig, state_manager: StateManager, **kwargs) -> None:
         """
         The `Spout` class is a base class for all spouts in the given context.
         It inherits from the `Task` class and provides methods for executing tasks
@@ -111,91 +115,6 @@ class Spout(Task):
             self.state_manager.set_state(self.id, state)
             raise
 
-    def execute_remote(self, manager_type: str, method_name: str, **kwargs) -> Optional[Any]:
-        """
-        Execute a method remotely and manage the state.
-
-        Args:
-            manager_type (str): The type of manager to use for remote execution ("ecs" or "k8s").
-            method_name (str): The name of the method to execute.
-            **kwargs: Keyword arguments to pass to the method.
-                Keyword Arguments:
-                    - name (str): The name argument.
-                    - account_id (str): The account ID argument.
-                    - cluster (str): The cluster argument.
-                    - subnet_ids (str): The subnet IDs argument.
-                    - security_group_ids (str): The security group IDs argument.
-                    - image (str): The image argument.
-                    - replicas (str): The replicas argument.
-                    - port (str): The port argument.
-                    - log_group (str): The log group argument.
-                    - cpu (str): The CPU argument.
-                    - memory (str): The memory argument.
-
-        Returns:
-            Any: The result of the method.
-        """
-        try:
-            manager: StateManager | ECSManager | K8sManager
-            if manager_type == "ecs":
-                manager = ECSManager(
-                    name=kwargs["name"] if "name" in kwargs else None,
-                    account_id=kwargs["account_id"] if "account_id" in kwargs else None,
-                    cluster=kwargs["cluster"] if "cluster" in kwargs else None,
-                    subnet_ids=kwargs["subnet_ids"] if "subnet_ids" in kwargs else None,
-                    security_group_ids=kwargs["security_group_ids"] if "security_group_ids" in kwargs else None,
-                    image=kwargs["image"] if "image" in kwargs else None,
-                    replicas=kwargs["replicas"] if "replicas" in kwargs else None,
-                    port=kwargs["port"] if "port" in kwargs else None,
-                    log_group=kwargs["log_group"] if "log_group" in kwargs else None,
-                    cpu=kwargs["cpu"] if "cpu" in kwargs else None,
-                    memory=kwargs["memory"] if "memory" in kwargs else None,
-                    command=["run", method_name] + [f"--{k} {v}" for k, v in kwargs.items()],
-                )
-
-                # Create the task definition and run the task
-                task_definition_arn = manager.create_task_definition()
-                if task_definition_arn:
-                    manager.run_task(task_definition_arn)
-                else:
-                    raise Exception(f"Could not create task definition {kwargs}")
-
-                # Get the status of the task
-                status = manager.describe_task(task_definition_arn)
-
-            elif manager_type == "k8s":
-                manager = K8sManager(
-                    name=kwargs["name"] if "name" in kwargs else None,
-                    namespace=kwargs["namespace"] if "namespace" in kwargs else None,
-                    image=kwargs["image"] if "image" in kwargs else None,
-                    replicas=kwargs["replicas"] if "replicas" in kwargs else None,
-                    port=kwargs["port"] if "port" in kwargs else None,
-                    command=["run", method_name] + [f"--{k} {v}" for k, v in kwargs.items()],
-                )
-
-                # Run the task
-                manager.run()
-
-                # Get the status of the task
-                status = manager.get_status()
-            else:
-                raise ValueError(f"Invalid manager type '{manager_type}'")
-
-            # Store the status in the state manager
-            if status:
-                status["status"] = "success"
-                self.state_manager.set_state(self.id, status)
-
-                return manager
-            else:
-                raise Exception(f"Could not save the status of this task {status.__dict__}")
-        except Exception as e:
-            status = {}
-            status["status"] = "failed"
-            self.state_manager.set_state(self.id, status)
-            self.log.exception(f"Failed to execute remote method '{method_name}': {e}")
-            raise
-
     @staticmethod
     def create(klass: type, output_type: str, state_type: str, **kwargs) -> "Spout":
         """
@@ -207,38 +126,46 @@ class Spout(Task):
             state_type (str): The type of state manager ("in_memory", "redis", "postgres", or "dynamodb").
             **kwargs: Additional keyword arguments for initializing the spout.
                 Keyword Arguments:
-                    - output_folder (str): The output folder argument.
-                    - bucket (str): The bucket argument.
-                    - s3_folder (str): The S3 folder argument.
-                    - redis_host (str): The Redis host argument.
-                    - redis_port (str): The Redis port argument.
-                    - redis_db (str): The Redis database argument.
-                    - postgres_host (str): The PostgreSQL host argument.
-                    - postgres_port (str): The PostgreSQL port argument.
-                    - postgres_user (str): The PostgreSQL user argument.
-                    - postgres_password (str): The PostgreSQL password argument.
-                    - postgres_database (str): The PostgreSQL database argument.
-                    - postgres_table (str): The PostgreSQL table argument.
-                    - dynamodb_table_name (str): The DynamoDB table name argument.
-                    - dynamodb_region_name (str): The DynamoDB region name argument.
-                    - kafka_servers (str): The Kafka servers argument.
-                    - output_topic (str): The output topic argument.
+                    Batch output config:
+                    - output_folder (str): The directory where output files should be stored temporarily.
+                    - output_bucket (str): The name of the S3 bucket for output storage.
+                    - output_s3_folder (str): The S3 folder for output storage.
+                    Streaming output config:
+                    - output_kafka_topic (str): Kafka output topic for streaming spouts.
+                    - output_kafka_cluster_connection_string (str): Kafka connection string for streaming spouts.
+                    Redis state manager config:
+                    - redis_host (str): The host address for the Redis server.
+                    - redis_port (int): The port number for the Redis server.
+                    - redis_db (int): The Redis database to be used.
+                    Postgres state manager config:
+                    - postgres_host (str): The host address for the PostgreSQL server.
+                    - postgres_port (int): The port number for the PostgreSQL server.
+                    - postgres_user (str): The username for the PostgreSQL server.
+                    - postgres_password (str): The password for the PostgreSQL server.
+                    - postgres_database (str): The PostgreSQL database to be used.
+                    - postgres_table (str): The PostgreSQL table to be used.
+                    DynamoDB state manager config:
+                    - dynamodb_table_name (str): The name of the DynamoDB table.
+                    - dynamodb_region_name (str): The AWS region for DynamoDB.
 
         Returns:
             Spout: The created spout.
+
+        Raises:
+            ValueError: If an invalid output type or state type is provided.
         """
         # Create the output config
         output_config: BatchOutputConfig | StreamingOutputConfig
         if output_type == "batch":
             output_config = BatchOutputConfig(
-                output_folder=kwargs["output_folder"] if "output_folder" in kwargs else tempfile.mkdtemp(),
-                bucket=kwargs["bucket"] if "bucket" in kwargs else tempfile.mkdtemp(),
-                s3_folder=kwargs["s3_folder"] if "s3_folder" in kwargs else tempfile.mkdtemp(),
+                output_folder=kwargs.get("output_folder", tempfile.mkdtemp()),
+                bucket=kwargs.get("output_bucket", "geniusrise"),
+                s3_folder=kwargs.get("output_s3_folder", klass.__class__.__name__),
             )
         elif output_type == "streaming":
             output_config = StreamingOutputConfig(
-                kwargs["output_topic"] if "output_topic" in kwargs else None,
-                kwargs["kafka_servers"] if "kafka_servers" in kwargs else None,
+                output_topic=kwargs.get("output_kafka_topic", None),
+                kafka_servers=kwargs.get("output_kafka_cluster_connection_string", None),
             )
         else:
             raise ValueError(f"Invalid output type: {output_type}")

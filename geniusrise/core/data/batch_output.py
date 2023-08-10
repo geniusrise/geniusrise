@@ -58,7 +58,7 @@ class BatchOutputConfig(OutputConfig):
                 f.write(json.dumps(data))
             log.debug(f"Wrote the data into {self.output_folder}/{filename}.")
         except Exception as e:
-            log.error(f"Failed to write data to file: {e}")
+            log.exception(f"Failed to write data to file: {e}")
 
     def copy_to_remote(self):
         """
@@ -77,7 +77,7 @@ class BatchOutputConfig(OutputConfig):
                     s3_key = os.path.join(self.s3_folder, relative_path)
                     s3.upload_file(local_path, self.bucket, s3_key)
         except Exception as e:
-            log.error(f"Failed to copy files to S3: {e}")
+            log.exception(f"Failed to copy files to S3: {e}")
 
     def flush(self):
         """
@@ -134,4 +134,4 @@ class BatchOutputConfig(OutputConfig):
                 os.path.join(self.output_folder, filename), self.bucket, os.path.join(self.s3_folder, filename)
             )
         except Exception as e:
-            log.error(f"Failed to copy file to S3: {e}")
+            log.exception(f"Failed to copy file to S3: {e}")

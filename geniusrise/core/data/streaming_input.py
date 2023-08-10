@@ -48,7 +48,7 @@ class StreamingInputConfig(InputConfig):
                 self.input_topic, bootstrap_servers=kafka_cluster_connection_string, group_id=group_id
             )
         except Exception as e:
-            log.error(f"Failed to create Kafka consumer: {e}")
+            log.exception(f"Failed to create Kafka consumer: {e}")
             self.consumer = None
 
     def get(self):
@@ -62,10 +62,10 @@ class StreamingInputConfig(InputConfig):
             try:
                 return self.consumer
             except Exception as e:
-                log.error(f"Failed to consume from Kafka topic {self.input_topic}: {e}")
+                log.exception(f"Failed to consume from Kafka topic {self.input_topic}: {e}")
                 return None
         else:
-            log.error("No input source specified.")
+            log.exception("No input source specified.")
             return None
 
     def iterator(self):
@@ -80,9 +80,9 @@ class StreamingInputConfig(InputConfig):
                 for message in self.consumer:
                     yield message
             except Exception as e:
-                log.error(f"Failed to iterate over Kafka consumer: {e}")
+                log.exception(f"Failed to iterate over Kafka consumer: {e}")
         else:
-            log.error("No Kafka consumer available.")
+            log.exception("No Kafka consumer available.")
 
     def __iter__(self):
         """
@@ -100,10 +100,10 @@ class StreamingInputConfig(InputConfig):
             except StopIteration:
                 raise
             except Exception as e:
-                log.error(f"Failed to get next message from Kafka consumer: {e}")
+                log.exception(f"Failed to get next message from Kafka consumer: {e}")
                 return None
         else:
-            log.error("No Kafka consumer available.")
+            log.exception("No Kafka consumer available.")
             return None
 
     def close(self):
@@ -114,7 +114,7 @@ class StreamingInputConfig(InputConfig):
             try:
                 self.consumer.close()
             except Exception as e:
-                log.error(f"Failed to close Kafka consumer: {e}")
+                log.exception(f"Failed to close Kafka consumer: {e}")
 
     def seek(self, partition: int, offset: int):
         """
@@ -124,7 +124,7 @@ class StreamingInputConfig(InputConfig):
             try:
                 self.consumer.seek(partition, offset)
             except Exception as e:
-                log.error(f"Failed to seek Kafka consumer: {e}")
+                log.exception(f"Failed to seek Kafka consumer: {e}")
 
     def commit(self):
         """
@@ -134,7 +134,7 @@ class StreamingInputConfig(InputConfig):
             try:
                 self.consumer.commit()
             except Exception as e:
-                log.error(f"Failed to commit offsets: {e}")
+                log.exception(f"Failed to commit offsets: {e}")
 
     def filter_messages(self, filter_func: Callable):
         """
@@ -152,6 +152,6 @@ class StreamingInputConfig(InputConfig):
                     if filter_func(message):
                         yield message
             except Exception as e:
-                log.error(f"Failed to filter messages from Kafka consumer: {e}")
+                log.exception(f"Failed to filter messages from Kafka consumer: {e}")
         else:
-            log.error("No Kafka consumer available.")
+            log.exception("No Kafka consumer available.")

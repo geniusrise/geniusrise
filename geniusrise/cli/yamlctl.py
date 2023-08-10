@@ -20,7 +20,9 @@ from typing import Dict, List, Optional
 import yaml  # type: ignore
 from pydantic import ValidationError
 
-from geniusrise.cli.schema import SpoutConfig
+from geniusrise.cli.schema import (
+    SpoutConfig,
+)  # change this to Geniusfile and make corresponding changes everywhere else
 from geniusrise.cli.spoutctl import SpoutCtl
 from geniusrise.core import ECSManager, K8sManager
 

@@ -92,10 +92,10 @@ def state_type(request):
 def test_spout_create(output_type, state_type, tmpdir):
     kwargs = {
         "output_folder": tmpdir,
-        "bucket": s3_bucket,
-        "s3_folder": s3_folder,
-        "output_topic": output_topic,
-        "kafka_servers": kafka_servers,
+        "output_bucket": s3_bucket,
+        "output_s3_folder": s3_folder,
+        "output_kafka_topic": output_topic,
+        "output_kafka_cluster_connection_string": kafka_servers,
         "redis_host": redis_host,
         "redis_port": redis_port,
         "redis_db": redis_db,
