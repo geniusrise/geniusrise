@@ -24,13 +24,26 @@ def test_spoutctl_init(discovered_spout):
 
 
 # fmt: off
-def test_spoutctl_run(spoutctl):
+@pytest.mark.parametrize(
+    "output_type,state_type",
+    [
+        ("batch", "in_memory"),
+        ("batch", "redis"),
+        ("batch", "postgres"),
+        ("batch", "dynamodb"),
+        ("streaming", "in_memory"),
+        ("streaming", "redis"),
+        ("streaming", "postgres"),
+        ("streaming", "dynamodb"),
+    ],
+)
+def test_spoutctl_run(spoutctl, output_type, state_type, tmpdir):
     parser = argparse.ArgumentParser()
     spoutctl.create_parser(parser)
     args = parser.parse_args([
         "run",
-        "batch",
-        "in_memory",
+        output_type,
+        state_type,
         "test_method",
         "--output_kafka_topic", "test_topic",
         "--output_kafka_cluster_connection_string", "localhost:9092",
@@ -45,10 +58,13 @@ def test_spoutctl_run(spoutctl):
         "--postgres_table", "geniusrise_state",
         "--dynamodb_table_name", "test_table",
         "--dynamodb_region_name", "ap-south-1",
-        "--output_bucket", "geniusrise-test-bucket",
-        "--output_s3_folder", "csv_to_json-6t7lqqpj"
+        "--output_folder", str(tmpdir),
+        "--output_s3_bucket", "geniusrise-test-bucket",
+        "--output_s3_folder", "whatever",
+        "--args", "1", "2", "3", "a=4", "b=5", "c=6"
     ])
-    spoutctl.run(args)
+    result = spoutctl.run(args)
+    assert result == 90
     assert isinstance(spoutctl.spout, Spout)
 # fmt: on
 
@@ -82,8 +98,8 @@ def test_spoutctl_create_spout(spoutctl, output_type, state_type, tmpdir):
         "postgres_table": "geniusrise_state",
         "dynamodb_table_name": "test_table",
         "dynamodb_region_name": "ap-south-1",
-        "output_bucket": "geniusrise-test-bucket",
-        "output_s3_folder": "csv_to_json-6t7lqqpj",
+        "output_s3_bucket": "geniusrise-test-bucket",
+        "output_s3_folder": "whatever",
     }
 
     spout = spoutctl.create_spout(output_type, state_type, **kwargs)
@@ -92,7 +108,11 @@ def test_spoutctl_create_spout(spoutctl, output_type, state_type, tmpdir):
 
 def test_spoutctl_execute_spout(spoutctl, tmpdir):
     spout = spoutctl.create_spout(
-        "batch", "in_memory", output_folder=tmpdir, output_bucket="geniusrise-test-bucket", output_s3_folder="whatever"
+        "batch",
+        "in_memory",
+        output_folder=tmpdir,
+        output_s3_bucket="geniusrise-test-bucket",
+        output_s3_folder="whatever",
     )
     result = spoutctl.execute_spout(spout, "test_method", 1, 2, 3, a=4, b=5, c=6)
     assert result == 6 * (4 + 5 + 6)

@@ -81,7 +81,7 @@ class SpoutCtl:
             type=str,
         )
         create_parser.add_argument(
-            "--output_bucket",
+            "--output_s3_bucket",
             help="Provide the name of the S3 bucket for output storage.",
             default="my-bucket",
             type=str,
@@ -150,23 +150,49 @@ class SpoutCtl:
                 kwargs = {
                     k: v
                     for k, v in vars(args).items()
-                    if v is not None and k not in ["output_type", "state_type", "kwargs"]
+                    if v is not None and k not in ["output_type", "state_type", "args", "method_name"]
                 }
-                other = args.args or {}
-                self.spout = self.create_spout(args.output_type, args.state_type, **{**kwargs, **other})
+                other = args.args or []
+                other_args, other_kwargs = self.parse_args_kwargs(other)
+                self.spout = self.create_spout(args.output_type, args.state_type, **kwargs)
 
                 # Pass the method_name from args to execute_spout
-                result = self.execute_spout(self.spout, args.method_name)
+                result = self.execute_spout(self.spout, args.method_name, *other_args, **other_kwargs)
                 return result
 
             elif args.command == "help":
                 self.discovered_spout.klass.print_help(self.discovered_spout.klass)
         except ValueError as ve:
             self.log.exception(f"Value error: {ve}")
+            raise
         except AttributeError as ae:
             self.log.exception(f"Attribute error: {ae}")
+            raise
         except Exception as e:
             self.log.exception(f"An unexpected error occurred: {e}")
+            raise
+
+    @staticmethod
+    def parse_args_kwargs(args_list):
+        args = []
+        kwargs = {}
+
+        def convert(value):
+            try:
+                return int(value)
+            except ValueError:
+                try:
+                    return float(value)
+                except ValueError:
+                    return value
+
+        for item in args_list:
+            if "=" in item:
+                key, value = item.split("=", 1)
+                kwargs[key] = convert(value)
+            else:
+                args.append(convert(item))
+        return args, kwargs
 
     def create_spout(self, output_type: str, state_type: str, **kwargs) -> Spout:
         """
@@ -179,7 +205,7 @@ class SpoutCtl:
                 Keyword Arguments:
                     Batch output config:
                     - output_folder (str): The directory where output files should be stored temporarily.
-                    - output_bucket (str): The name of the S3 bucket for output storage.
+                    - output_s3_bucket (str): The name of the S3 bucket for output storage.
                     - output_s3_folder (str): The S3 folder for output storage.
                     Streaming output config:
                     - output_kafka_topic (str): Kafka output topic for streaming spouts.
