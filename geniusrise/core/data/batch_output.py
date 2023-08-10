@@ -59,6 +59,7 @@ class BatchOutputConfig(OutputConfig):
             log.debug(f"Wrote the data into {self.output_folder}/{filename}.")
         except Exception as e:
             log.exception(f"Failed to write data to file: {e}")
+            raise
 
     def copy_to_remote(self):
         """
@@ -78,6 +79,7 @@ class BatchOutputConfig(OutputConfig):
                     s3.upload_file(local_path, self.bucket, s3_key)
         except Exception as e:
             log.exception(f"Failed to copy files to S3: {e}")
+            raise
 
     def flush(self):
         """
@@ -135,3 +137,4 @@ class BatchOutputConfig(OutputConfig):
             )
         except Exception as e:
             log.exception(f"Failed to copy file to S3: {e}")
+            raise

@@ -34,7 +34,7 @@ postgres_table = "geniusrise_state"
 dynamodb_table_name = "test_table"
 dynamodb_region_name = "ap-south-1"
 s3_bucket = "geniusrise-test-bucket"
-s3_folder = "csv_to_json-6t7lqqpj"
+s3_folder = "whatever"
 
 
 class TestSpout(Spout):
@@ -92,7 +92,7 @@ def state_type(request):
 def test_spout_create(output_type, state_type, tmpdir):
     kwargs = {
         "output_folder": tmpdir,
-        "output_bucket": s3_bucket,
+        "output_s3_bucket": s3_bucket,
         "output_s3_folder": s3_folder,
         "output_kafka_topic": output_topic,
         "output_kafka_cluster_connection_string": kafka_servers,
@@ -131,7 +131,7 @@ def test_spout_create(output_type, state_type, tmpdir):
 def test_spout_run(output_type, state_type, tmpdir):
     kwargs = {
         "output_folder": tmpdir,
-        "output_bucket": s3_bucket,
+        "output_s3_bucket": s3_bucket,
         "output_s3_folder": s3_folder,
         "output_kafka_topic": output_topic,
         "output_kafka_cluster_connection_string": kafka_servers,

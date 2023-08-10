@@ -113,10 +113,10 @@ def state_type(request):
 def test_bolt_create(input_type, output_type, state_type, tmpdir):
     kwargs = {
         "input_folder": tmpdir,
-        "input_bucket": bucket,
+        "input_s3_bucket": bucket,
         "input_s3_folder": s3_folder,
         "output_folder": tmpdir,
-        "output_bucket": bucket,
+        "output_s3_bucket": bucket,
         "output_s3_folder": s3_folder,
         "input_kafka_cluster_connection_string": kafka_cluster_connection_string,
         "input_kafka_topic": input_topic,
@@ -163,10 +163,10 @@ def test_bolt_create(input_type, output_type, state_type, tmpdir):
 def test_bolt_call_with_types(input_type, output_type, state_type, tmpdir):
     kwargs = {
         "input_folder": tmpdir,
-        "input_bucket": bucket,
+        "input_s3_bucket": bucket,
         "input_s3_folder": s3_folder,
         "output_folder": tmpdir,
-        "output_bucket": bucket,
+        "output_s3_bucket": bucket,
         "output_s3_folder": s3_folder,
         "input_kafka_cluster_connection_string": kafka_cluster_connection_string,
         "input_kafka_topic": input_topic,

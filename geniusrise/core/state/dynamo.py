@@ -48,6 +48,7 @@ class DynamoDBStateManager(StateManager):
             self.table = self.dynamodb.Table(table_name)
         except Exception as e:
             log.exception(f"Failed to connect to DynamoDB: {e}")
+            raise
             self.dynamodb = None
             self.table = None
 
@@ -67,9 +68,11 @@ class DynamoDBStateManager(StateManager):
                 return jsonpickle.decode(response["Item"]["value"]) if "Item" in response else None
             except Exception as e:
                 log.exception(f"Failed to get state from DynamoDB: {e}")
+                raise
                 return None
         else:
             log.exception("No DynamoDB table.")
+            raise
             return None
 
     def set_state(self, key: str, value: Dict) -> None:
@@ -85,5 +88,7 @@ class DynamoDBStateManager(StateManager):
                 self.table.put_item(Item={"id": key, "value": jsonpickle.encode(value)})
             except Exception as e:
                 log.exception(f"Failed to set state in DynamoDB: {e}")
+                raise
         else:
             log.exception("No DynamoDB table.")
+            raise

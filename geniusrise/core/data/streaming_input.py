@@ -49,6 +49,7 @@ class StreamingInputConfig(InputConfig):
             )
         except Exception as e:
             log.exception(f"Failed to create Kafka consumer: {e}")
+            raise
             self.consumer = None
 
     def get(self):
@@ -63,9 +64,11 @@ class StreamingInputConfig(InputConfig):
                 return self.consumer
             except Exception as e:
                 log.exception(f"Failed to consume from Kafka topic {self.input_topic}: {e}")
+                raise
                 return None
         else:
             log.exception("No input source specified.")
+            raise
             return None
 
     def iterator(self):
@@ -81,8 +84,10 @@ class StreamingInputConfig(InputConfig):
                     yield message
             except Exception as e:
                 log.exception(f"Failed to iterate over Kafka consumer: {e}")
+                raise
         else:
             log.exception("No Kafka consumer available.")
+            raise
 
     def __iter__(self):
         """
@@ -101,9 +106,11 @@ class StreamingInputConfig(InputConfig):
                 raise
             except Exception as e:
                 log.exception(f"Failed to get next message from Kafka consumer: {e}")
+                raise
                 return None
         else:
             log.exception("No Kafka consumer available.")
+            raise
             return None
 
     def close(self):
@@ -115,6 +122,7 @@ class StreamingInputConfig(InputConfig):
                 self.consumer.close()
             except Exception as e:
                 log.exception(f"Failed to close Kafka consumer: {e}")
+                raise
 
     def seek(self, partition: int, offset: int):
         """
@@ -125,6 +133,7 @@ class StreamingInputConfig(InputConfig):
                 self.consumer.seek(partition, offset)
             except Exception as e:
                 log.exception(f"Failed to seek Kafka consumer: {e}")
+                raise
 
     def commit(self):
         """
@@ -135,6 +144,7 @@ class StreamingInputConfig(InputConfig):
                 self.consumer.commit()
             except Exception as e:
                 log.exception(f"Failed to commit offsets: {e}")
+                raise
 
     def filter_messages(self, filter_func: Callable):
         """
@@ -153,5 +163,7 @@ class StreamingInputConfig(InputConfig):
                         yield message
             except Exception as e:
                 log.exception(f"Failed to filter messages from Kafka consumer: {e}")
+                raise
         else:
             log.exception("No Kafka consumer available.")
+            raise

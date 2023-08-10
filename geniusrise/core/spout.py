@@ -109,10 +109,10 @@ class Spout(Task):
 
             return result
         except Exception as e:
-            self.log.exception(f"Failed to execute method '{method_name}': {e}")
             state = {}
             state["status"] = "failed"
             self.state_manager.set_state(self.id, state)
+            self.log.exception(f"Failed to execute method '{method_name}': {e}")
             raise
 
     @staticmethod
@@ -128,7 +128,7 @@ class Spout(Task):
                 Keyword Arguments:
                     Batch output config:
                     - output_folder (str): The directory where output files should be stored temporarily.
-                    - output_bucket (str): The name of the S3 bucket for output storage.
+                    - output_s3_bucket (str): The name of the S3 bucket for output storage.
                     - output_s3_folder (str): The S3 folder for output storage.
                     Streaming output config:
                     - output_kafka_topic (str): Kafka output topic for streaming spouts.
@@ -159,7 +159,7 @@ class Spout(Task):
         if output_type == "batch":
             output_config = BatchOutputConfig(
                 output_folder=kwargs.get("output_folder", tempfile.mkdtemp()),
-                bucket=kwargs.get("output_bucket", "geniusrise"),
+                bucket=kwargs.get("output_s3_bucket", "geniusrise"),
                 s3_folder=kwargs.get("output_s3_folder", klass.__class__.__name__),
             )
         elif output_type == "streaming":

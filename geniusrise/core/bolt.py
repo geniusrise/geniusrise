@@ -130,10 +130,10 @@ class Bolt(Task):
 
             return result
         except Exception as e:
-            self.log.error(f"Failed to execute method '{method_name}': {e}")
             state = {}
             state["status"] = "failed"
             self.state_manager.set_state(self.id, state)
+            self.log.exception(f"Failed to execute method '{method_name}': {e}")
             raise
 
     @staticmethod
@@ -156,11 +156,11 @@ class Bolt(Task):
                 Keyword Arguments:
                     Batch input config:
                     - input_folder (str): The input folder argument.
-                    - input_bucket (str): The input bucket argument.
+                    - input_s3_bucket (str): The input bucket argument.
                     - input_s3_folder (str): The input S3 folder argument.
                     Batch outupt config:
                     - output_folder (str): The output folder argument.
-                    - output_bucket (str): The output bucket argument.
+                    - output_s3_bucket (str): The output bucket argument.
                     - output_s3_folder (str): The output S3 folder argument.
                     Streaming input config:
                     - input_kafka_cluster_connection_string (str): The input Kafka servers argument.
@@ -195,7 +195,7 @@ class Bolt(Task):
         if input_type == "batch":
             input_config = BatchInputConfig(
                 input_folder=kwargs["input_folder"] if "input_folder" in kwargs else tempfile.mkdtemp(),
-                bucket=kwargs["input_bucket"] if "input_bucket" in kwargs else None,
+                bucket=kwargs["input_s3_bucket"] if "input_s3_bucket" in kwargs else None,
                 s3_folder=kwargs["input_s3_folder"] if "input_s3_folder" in kwargs else None,
             )
         elif input_type == "streaming":
@@ -214,7 +214,7 @@ class Bolt(Task):
         if output_type == "batch":
             output_config = BatchOutputConfig(
                 output_folder=kwargs["output_folder"] if "output_folder" in kwargs else tempfile.mkdtemp(),
-                bucket=kwargs["output_bucket"] if "output_bucket" in kwargs else tempfile.mkdtemp(),
+                bucket=kwargs["output_s3_bucket"] if "output_s3_bucket" in kwargs else tempfile.mkdtemp(),
                 s3_folder=kwargs["output_s3_folder"] if "output_s3_folder" in kwargs else tempfile.mkdtemp(),
             )
         elif output_type == "streaming":

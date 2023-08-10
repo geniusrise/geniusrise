@@ -24,7 +24,7 @@ from geniusrise.core.data import BatchOutputConfig
 
 # Define your S3 bucket and folder details as constants
 BUCKET = "geniusrise-test-bucket"
-S3_FOLDER = "csv_to_json-6t7lqqpj"
+S3_FOLDER = "whatever"
 
 
 # Define a fixture for your BatchOutputConfig

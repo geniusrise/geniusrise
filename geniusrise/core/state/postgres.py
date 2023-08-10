@@ -51,6 +51,7 @@ class PostgresStateManager(StateManager):
             self.conn = psycopg2.connect(host=host, port=port, user=user, password=password, database=database)
         except psycopg2.Error as e:
             log.exception(f"Failed to connect to PostgreSQL: {e}")
+            raise
             self.conn = None
 
     def get_state(self, key: str) -> Optional[Dict]:
@@ -71,9 +72,11 @@ class PostgresStateManager(StateManager):
                     return jsonpickle.decode(result[0]["data"]) if result else None
             except psycopg2.Error as e:
                 log.exception(f"Failed to get state from PostgreSQL: {e}")
+                raise
                 return None
         else:
             log.exception("No PostgreSQL connection.")
+            raise
             return None
 
     def set_state(self, key: str, value: Dict) -> None:
@@ -100,5 +103,6 @@ class PostgresStateManager(StateManager):
                 self.conn.commit()
             except psycopg2.Error as e:
                 log.exception(f"Failed to set state in PostgreSQL: {e}")
+                raise
         else:
             log.error("No PostgreSQL connection.")
