@@ -109,9 +109,9 @@ def test_spout_create(output_type, state_type, tmpdir):
         "dynamodb_region_name": dynamodb_region_name,
     }
 
-    spout = Spout.create(Spout, output_type, state_type, **kwargs)
+    spout = Spout.create(TestSpout, output_type, state_type, **kwargs)
 
-    assert isinstance(spout, Spout)
+    assert isinstance(spout, TestSpout)
 
     if output_type == "batch":
         assert isinstance(spout.output_config, BatchOutputConfig)
@@ -126,3 +126,35 @@ def test_spout_create(output_type, state_type, tmpdir):
         assert isinstance(spout.state_manager, PostgresStateManager)
     elif state_type == "dynamodb":
         assert isinstance(spout.state_manager, DynamoDBStateManager)
+
+
+def test_spout_run(output_type, state_type, tmpdir):
+    kwargs = {
+        "output_folder": tmpdir,
+        "output_bucket": s3_bucket,
+        "output_s3_folder": s3_folder,
+        "output_kafka_topic": output_topic,
+        "output_kafka_cluster_connection_string": kafka_servers,
+        "redis_host": redis_host,
+        "redis_port": redis_port,
+        "redis_db": redis_db,
+        "postgres_host": postgres_host,
+        "postgres_port": postgres_port,
+        "postgres_user": postgres_user,
+        "postgres_password": postgres_password,
+        "postgres_database": postgres_database,
+        "postgres_table": postgres_table,
+        "dynamodb_table_name": dynamodb_table_name,
+        "dynamodb_region_name": dynamodb_region_name,
+    }
+
+    spout = Spout.create(TestSpout, output_type, state_type, **kwargs)
+    method_name = "test_method"
+    args = (1, 2, 3)
+    kwargs_for_method = {"a": 4, "b": 5, "c": 6}
+
+    # Running the spout
+    result = spout.__call__(method_name, *args, **kwargs_for_method)
+
+    # Verifying the result
+    assert result == 6 * (4 + 5 + 6)

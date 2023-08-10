@@ -158,3 +158,39 @@ def test_bolt_create(input_type, output_type, state_type, tmpdir):
         assert isinstance(bolt.state_manager, PostgresStateManager)
     elif state_type == "dynamodb":
         assert isinstance(bolt.state_manager, DynamoDBStateManager)
+
+
+def test_bolt_call_with_types(input_type, output_type, state_type, tmpdir):
+    kwargs = {
+        "input_folder": tmpdir,
+        "input_bucket": bucket,
+        "input_s3_folder": s3_folder,
+        "output_folder": tmpdir,
+        "output_bucket": bucket,
+        "output_s3_folder": s3_folder,
+        "input_kafka_cluster_connection_string": kafka_cluster_connection_string,
+        "input_kafka_topic": input_topic,
+        "input_kafka_consumer_group_id": group_id,
+        "output_kafka_cluster_connection_string": kafka_cluster_connection_string,
+        "output_kafka_topic": output_topic,
+        "redis_host": redis_host,
+        "redis_port": redis_port,
+        "redis_db": redis_db,
+        "postgres_host": postgres_host,
+        "postgres_port": postgres_port,
+        "postgres_user": postgres_user,
+        "postgres_password": postgres_password,
+        "postgres_database": postgres_database,
+        "postgres_table": postgres_table,
+        "dynamodb_table_name": dynamodb_table_name,
+        "dynamodb_region_name": dynamodb_region_name,
+    }
+
+    bolt = Bolt.create(klass=TestBolt, input_type=input_type, output_type=output_type, state_type=state_type, **kwargs)
+
+    method_name = "test_method"
+    args = (1, 2, 3)
+    kwargs_for_method = {"a": 4, "b": 5, "c": 6}
+    result = bolt(method_name, *args, **kwargs_for_method)
+
+    assert result == 6 * (4 + 5 + 6)

@@ -34,7 +34,7 @@ from geniusrise.core.state import (
     StateManager,
 )
 
-from .task import ECSManager, K8sManager, Task
+from .task import Task
 
 
 class Bolt(Task):
@@ -136,104 +136,6 @@ class Bolt(Task):
             self.state_manager.set_state(self.id, state)
             raise
 
-    def execute_remote(self, manager_type: str, method_name: str, **kwargs) -> Any:
-        """
-        Execute a method remotely and manage the state.
-
-        This method is used to execute a method remotely on either Amazon ECS or Kubernetes,
-        depending on the manager type specified. It uses the `ECSManager` and `K8sManager` classes
-        to manage tasks on Amazon ECS and Kubernetes, respectively.
-
-        The method takes in a manager type, a method name, and additional keyword arguments
-        that are passed to the method. The manager type can be either "ecs" or "k8s", and the method
-        name is the name of the method to execute.
-
-        The method creates an instance of the appropriate manager, runs the task, gets the status of the task,
-        and stores the status in the state manager. If the task fails, the method logs the exception and raises it.
-
-        Args:
-            manager_type (str): The type of manager to use for remote execution ("ecs" or "k8s").
-            method_name (str): The name of the method to execute.
-            **kwargs: Keyword arguments to pass to the method.
-                Keyword Arguments:
-                    - name (str): The name argument.
-                    - account_id (str): The account ID argument.
-                    - cluster (str): The cluster argument.
-                    - subnet_ids (str): The subnet IDs argument.
-                    - security_group_ids (str): The security group IDs argument.
-                    - image (str): The image argument.
-                    - replicas (str): The replicas argument.
-                    - port (str): The port argument.
-                    - log_group (str): The log group argument.
-                    - cpu (str): The CPU argument.
-                    - memory (str): The memory argument.
-
-        Returns:
-            Any: The result of the method.
-
-        Raises:
-            ValueError: If an invalid manager type is provided.
-            Exception: If there is an error executing the method.
-        """
-        try:
-            manager: StateManager | ECSManager | K8sManager
-            if manager_type == "ecs":
-                manager = ECSManager(
-                    name=kwargs["name"] if "name" in kwargs else None,
-                    account_id=kwargs["account_id"] if "account_id" in kwargs else None,
-                    cluster=kwargs["cluster"] if "cluster" in kwargs else None,
-                    subnet_ids=kwargs["subnet_ids"] if "subnet_ids" in kwargs else None,
-                    security_group_ids=kwargs["security_group_ids"] if "security_group_ids" in kwargs else None,
-                    image=kwargs["image"] if "image" in kwargs else None,
-                    replicas=kwargs["replicas"] if "replicas" in kwargs else None,
-                    port=kwargs["port"] if "port" in kwargs else None,
-                    log_group=kwargs["log_group"] if "log_group" in kwargs else None,
-                    cpu=kwargs["cpu"] if "cpu" in kwargs else None,
-                    memory=kwargs["memory"] if "memory" in kwargs else None,
-                    command=["run", method_name] + [f"--{k} {v}" for k, v in kwargs.items()],
-                )
-
-                # Create the task definition and run the task
-                task_definition_arn = manager.create_task_definition()
-                if task_definition_arn:
-                    manager.run_task(task_definition_arn)
-                else:
-                    raise Exception(f"Could not create task definition {kwargs}")
-
-                # Get the status of the task
-                status = manager.describe_task(task_definition_arn)
-
-            elif manager_type == "k8s":
-                manager = K8sManager(
-                    name=kwargs["name"] if "name" in kwargs else None,
-                    namespace=kwargs["namespace"] if "namespace" in kwargs else None,
-                    image=kwargs["image"] if "image" in kwargs else None,
-                    replicas=kwargs["replicas"] if "replicas" in kwargs else None,
-                    port=kwargs["port"] if "port" in kwargs else None,
-                    command=["run", method_name] + [f"--{k} {v}" for k, v in kwargs.items()],
-                )
-
-                # Run the task
-                manager.run()
-
-                # Get the status of the task
-                status = manager.get_status()
-            else:
-                raise ValueError(f"Invalid manager type '{manager_type}'")
-
-            # Store the status in the state manager
-            if status:
-                status["status"] = "success"
-                self.state_manager.set_state(self.id, status)
-
-                return status
-        except Exception as e:
-            status = {}
-            status["status"] = False
-            self.state_manager.set_state(self.id, status)
-            self.log.exception(f"Failed to execute remote method '{method_name}': {e}")
-            raise
-
     @staticmethod
     def create(klass: type, input_type: str, output_type: str, state_type: str, **kwargs) -> "Bolt":
         """
@@ -293,8 +195,8 @@ class Bolt(Task):
         if input_type == "batch":
             input_config = BatchInputConfig(
                 input_folder=kwargs["input_folder"] if "input_folder" in kwargs else tempfile.mkdtemp(),
-                bucket=kwargs["input_bucket"] if "bucket" in kwargs else None,
-                s3_folder=kwargs["input_s3_folder"] if "s3_folder" in kwargs else None,
+                bucket=kwargs["input_bucket"] if "input_bucket" in kwargs else None,
+                s3_folder=kwargs["input_s3_folder"] if "input_s3_folder" in kwargs else None,
             )
         elif input_type == "streaming":
             input_config = StreamingInputConfig(
