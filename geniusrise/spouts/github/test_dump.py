@@ -23,9 +23,7 @@ from .dump import GithubDump
 
 
 def test_fetch_pull_requests(tmpdir):
-    output_config = BatchOutputConfig(
-        output_folder=str(tmpdir), bucket="geniusrise-test-bucket", s3_folder="csv_to_json-6t7lqqpj"
-    )
+    output_config = BatchOutputConfig(output_folder=str(tmpdir), bucket="geniusrise-test-bucket", s3_folder="whatever")
     state_manager = InMemoryStateManager()
     fetcher = GithubDump(output_config=output_config, state_manager=state_manager, repo_name="zpqrtbnk/test-repo")
     fetcher.fetch_pull_requests()
@@ -43,9 +41,7 @@ def test_fetch_pull_requests(tmpdir):
 
 
 def test_fetch_commits(tmpdir):
-    output_config = BatchOutputConfig(
-        output_folder=str(tmpdir), bucket="geniusrise-test-bucket", s3_folder="csv_to_json-6t7lqqpj"
-    )
+    output_config = BatchOutputConfig(output_folder=str(tmpdir), bucket="geniusrise-test-bucket", s3_folder="whatever")
     state_manager = InMemoryStateManager()
     fetcher = GithubDump(output_config=output_config, state_manager=state_manager, repo_name="zpqrtbnk/test-repo")
     fetcher.fetch_commits()
@@ -64,9 +60,7 @@ def test_fetch_commits(tmpdir):
 
 
 def test_fetch_issues(tmpdir):
-    output_config = BatchOutputConfig(
-        output_folder=str(tmpdir), bucket="geniusrise-test-bucket", s3_folder="csv_to_json-6t7lqqpj"
-    )
+    output_config = BatchOutputConfig(output_folder=str(tmpdir), bucket="geniusrise-test-bucket", s3_folder="whatever")
     fetcher = GithubDump(
         output_config=output_config, state_manager=InMemoryStateManager(), repo_name="zpqrtbnk/test-repo"
     )
@@ -86,9 +80,7 @@ def test_fetch_issues(tmpdir):
 
 
 def test_fetch_releases(tmpdir):
-    output_config = BatchOutputConfig(
-        output_folder=str(tmpdir), bucket="geniusrise-test-bucket", s3_folder="csv_to_json-6t7lqqpj"
-    )
+    output_config = BatchOutputConfig(output_folder=str(tmpdir), bucket="geniusrise-test-bucket", s3_folder="whatever")
     fetcher = GithubDump(
         output_config=output_config, state_manager=InMemoryStateManager(), repo_name="zpqrtbnk/test-repo"
     )
@@ -105,9 +97,7 @@ def test_fetch_releases(tmpdir):
 
 
 def test_fetch_repo_details(tmpdir):
-    output_config = BatchOutputConfig(
-        output_folder=str(tmpdir), bucket="geniusrise-test-bucket", s3_folder="csv_to_json-6t7lqqpj"
-    )
+    output_config = BatchOutputConfig(output_folder=str(tmpdir), bucket="geniusrise-test-bucket", s3_folder="whatever")
     fetcher = GithubDump(
         output_config=output_config, state_manager=InMemoryStateManager(), repo_name="zpqrtbnk/test-repo"
     )
@@ -131,9 +121,7 @@ def test_fetch_repo_details(tmpdir):
 
 
 def test_fetch_code(tmpdir):
-    output_config = BatchOutputConfig(
-        output_folder=str(tmpdir), bucket="geniusrise-test-bucket", s3_folder="csv_to_json-6t7lqqpj"
-    )
+    output_config = BatchOutputConfig(output_folder=str(tmpdir), bucket="geniusrise-test-bucket", s3_folder="whatever")
     fetcher = GithubDump(
         output_config=output_config, state_manager=InMemoryStateManager(), repo_name="zpqrtbnk/test-repo"
     )
