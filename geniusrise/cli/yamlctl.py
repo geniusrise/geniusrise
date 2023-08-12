@@ -54,28 +54,25 @@ class YamlCtl:
         bolt_ctls (Dict[str, BoltCtl]): Dictionary of BoltCtl instances.
     """
 
-    def __init__(self, yaml_path: str, spout_ctls: Dict[str, SpoutCtl], bolt_ctls: Dict[str, BoltCtl]):
+    def __init__(self, spout_ctls: Dict[str, SpoutCtl], bolt_ctls: Dict[str, BoltCtl]):
         """
         Initialize YamlCtl with the path to the YAML file and control instances for spouts and bolts.
 
         Args:
-            yaml_path (str): Path to the YAML configuration file.
             spout_ctls (Dict[str, SpoutCtl]): Dictionary of SpoutCtl instances.
             bolt_ctls (Dict[str, BoltCtl]): Dictionary of BoltCtl instances.
         """
-        with open(yaml_path, "r") as file:
-            self.geniusfile = Geniusfile.parse_obj(yaml.safe_load(file))
         self.spout_ctls = spout_ctls
         self.bolt_ctls = bolt_ctls
         self.log = logging.getLogger(self.__class__.__name__)
 
-    def create_parser(self):
+    def create_parser(self, parser):
         """
         Create and return the command-line parser for managing spouts and bolts.
         """
-        parser = argparse.ArgumentParser(description="Run spouts and bolts from a YAML configuration.")
         parser.add_argument("--spout", type=str, help="Name of the specific spout to run.")
         parser.add_argument("--bolt", type=str, help="Name of the specific bolt to run.")
+        parser.add_argument("--file", default=".", type=str, help="Path of the genius.yml file, default to .")
         return parser
 
     def run(self, args):
@@ -87,6 +84,8 @@ class YamlCtl:
         Args:
             args (argparse.Namespace): Parsed command-line arguments.
         """
+        with open(args.file, "r") as file:
+            self.geniusfile = Geniusfile.parse_obj(yaml.safe_load(file))
         if args.spout == "all":
             self.run_spouts()
         elif args.bolt == "all":

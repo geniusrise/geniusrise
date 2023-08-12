@@ -1,30 +1,16 @@
-# 🧠 Geniusrise
-# Copyright (C) 2023  geniusrise.ai
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 import argparse
 import logging
+from typing import Dict
+import os
 
 from prettytable import PrettyTable
 from termcolor import colored  # type: ignore
 
 from geniusrise.cli.discover import Discover
 from geniusrise.cli.spoutctl import SpoutCtl
+from geniusrise.cli.boltctl import BoltCtl
 from geniusrise.cli.yamlctl import YamlCtl
-
-# from geniusrise.cli.boltctl import BoltCtl  # Uncomment when BoltCtl is ready
+from geniusrise.cli.discover import DiscoveredSpout, DiscoveredBolt
 
 
 class GeniusCtl:
@@ -32,16 +18,31 @@ class GeniusCtl:
     Main class for managing the geniusrise CLI application.
     """
 
-    def __init__(self, directory: str):
+    def __init__(self):
         """
         Initialize GeniusCtl.
 
         Args:
-            directory (str): The directory to scan for spouts.
+            directory (str): The directory to scan for spouts and bolts.
         """
         self.log = logging.getLogger(self.__class__.__name__)
-        self.discover = Discover(directory)
-        self.spouts = self.discover.scan_directory()
+        self.discover = Discover()
+        discovered_components = self.discover.scan_directory(os.getenv("GENIUS_COMPONENTS_DIR", "."))
+
+        # Segregate the discovered components based on their type
+        self.spouts = {
+            name: component
+            for name, component in discovered_components.items()
+            if isinstance(component, DiscoveredSpout)
+        }
+        self.bolts = {
+            name: component
+            for name, component in discovered_components.items()
+            if isinstance(component, DiscoveredBolt)
+        }
+
+        self.spout_ctls: Dict[str, SpoutCtl] = {}
+        self.bolt_ctls: Dict[str, BoltCtl] = {}
 
     def create_parser(self):
         """
@@ -54,26 +55,31 @@ class GeniusCtl:
         subparsers = parser.add_subparsers(dest="command")
 
         # Create subparser for each discovered spout
-        spout_ctls = []
         for spout_name, discovered_spout in self.spouts.items():
             spout_parser = subparsers.add_parser(spout_name, help=f"Manage {spout_name}.")
-            spout_ctl = SpoutCtl(discovered_spout)  # Initialize SpoutCtl with the discovered spout
-            spout_ctls.append(spout_ctl)  # Add the SpoutCtl to the list of spout
-            spout_ctl.create_parser(spout_parser)  # Pass the spout_parser to the SpoutCtl's create_parser method
-        self.spout_ctls = spout_ctls
+            spout_ctl = SpoutCtl(discovered_spout)
+            self.spout_ctls[spout_name] = spout_ctl
+            spout_ctl.create_parser(spout_parser)
 
-        # Create subparser for YAML opserations
-        yaml_parser = subparsers.add_parser("yaml", help="Control spouts with a YAML file.")
-        yaml_parser.add_argument("--file", default="genius.yml", help="The YAML file to use.")
-        yaml_ctl = YamlCtl("", self.spout_ctls)
-        yaml_ctl.create_parser(yaml_parser)
+        # Create subparser for each discovered bolt
+        for bolt_name, discovered_bolt in self.bolts.items():
+            bolt_parser = subparsers.add_parser(bolt_name, help=f"Manage {bolt_name}.")
+            bolt_ctl = BoltCtl(discovered_bolt)
+            self.bolt_ctls[bolt_name] = bolt_ctl
+            bolt_ctl.create_parser(bolt_parser)
 
-        # Add a 'help' command to print help for all spouts
-        help_parser = subparsers.add_parser("help", help="Print help for all spouts.")
-        help_parser.add_argument("spout", nargs="?", help="The spout to print help for.")
+        # Create subparser for YAML operations
+        yaml_parser = subparsers.add_parser("yaml", help="Control spouts and bolts with a YAML file.")
+        # Initialize YamlCtl with both spout_ctls and bolt_ctls
+        self.yaml_ctl = YamlCtl(self.spout_ctls, self.bolt_ctls)
+        self.yaml_ctl.create_parser(yaml_parser)
 
-        # Add a 'list' command to list all discovered spouts
-        list_parser = subparsers.add_parser("list", help="List all discovered spouts.")
+        # Add a 'help' command to print help for all spouts and bolts
+        help_parser = subparsers.add_parser("help", help="Print help for all spouts and bolts.")
+        help_parser.add_argument("spout_or_bolt", nargs="?", help="The spout or bolt to print help for.")
+
+        # Add a 'list' command to list all discovered spouts and bolts
+        list_parser = subparsers.add_parser("list", help="List all discovered spouts and bolts.")
 
         return parser
 
@@ -87,31 +93,52 @@ class GeniusCtl:
         self.log.info(f"Running command: {args.command}")
 
         if args.command in self.spouts:
-            spout_ctl = SpoutCtl(self.spouts[args.command])  # Initialize SpoutCtl with the chosen spout
-            spout_ctl.run(args)
+            self.spout_ctls[args.command].run(args)
+        elif args.command in self.bolts:
+            self.bolt_ctls[args.command].run(args)
         elif args.command == "yaml":
-            yaml_ctl = YamlCtl(args.file, self.spout_ctls)
-            yaml_ctl.run(args)
+            self.yaml_ctl.run(args)
         elif args.command == "help":
-            if args.spout:
-                spout_ctl = SpoutCtl(self.spouts[args.spout])  # Initialize SpoutCtl with the chosen spout
-                spout_ctl.run(args)
+            if args.spout_or_bolt in self.spouts:
+                self.spout_ctls[args.spout_or_bolt].run(args)
+            elif args.spout_or_bolt in self.bolts:
+                self.bolt_ctls[args.spout_or_bolt].run(args)
             else:
-                for _, discovered_spout in self.spouts.items():
-                    spout_ctl = SpoutCtl(discovered_spout)  # Initialize SpoutCtl with each spout
+                for spout_ctl in self.spout_ctls.values():
                     spout_ctl.run(args)
+                for bolt_ctl in self.bolt_ctls.values():
+                    bolt_ctl.run(args)
         elif args.command == "list":
-            self.list_spouts()
+            if len(self.spout.keys()) == 0:
+                print("No spouts or bolts discovered.")
+            self.list_spouts_and_bolts()
 
-    def list_spouts(self):
+    def list_spouts_and_bolts(self):
         """
-        List all discovered spouts in a table.
+        List all discovered spouts and bolts in a table.
         """
-        table = PrettyTable([colored("Spout", "green"), colored("Methods", "green")], align="l")
+        table = PrettyTable(
+            [colored("Name", "green"), colored("Type", "green"), colored("Methods", "green")], align="l"
+        )
         for spout_name in self.spouts.keys():
             s = self.spouts[spout_name].klass
             table.add_row(
-                [colored(spout_name, "yellow"), "\n".join([x for x in dir(s) if "fetch_" in x])], divider=True
+                [
+                    colored(spout_name, "yellow"),
+                    colored("Spout", "cyan"),
+                    "\n".join([x for x in dir(s) if "fetch_" in x]),
+                ],
+                divider=True,
+            )
+        for bolt_name in self.bolts.keys():
+            b = self.bolts[bolt_name].klass
+            table.add_row(
+                [
+                    colored(bolt_name, "yellow"),
+                    colored("Bolt", "magenta"),
+                    "\n".join([x for x in dir(b) if not x.startswith("_")]),
+                ],
+                divider=True,
             )
         print(table)
 
@@ -125,6 +152,5 @@ class GeniusCtl:
 
 
 if __name__ == "__main__":
-    directory = "geniusrise/spouts"
-    genius_ctl = GeniusCtl(directory)
+    genius_ctl = GeniusCtl()
     genius_ctl.cli()

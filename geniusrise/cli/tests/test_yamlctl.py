@@ -115,15 +115,8 @@ def discovered_bolt():
 
 
 @pytest.fixture
-def yamlctl(discovered_spout, discovered_bolt, sample_geniusfile, tmpdir):
-    geniusfile_content = sample_geniusfile("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "in_memory")
-    with open(tmpdir + "/geniusrise.yaml", "w") as f:
-        f.write(geniusfile_content)
-
-    geniusfile_path = os.path.join(tmpdir, "geniusrise.yaml")
-    with open(geniusfile_path, "w") as f:
-        f.write(geniusfile_content)
-    return YamlCtl(geniusfile_path, discovered_spout, discovered_bolt)
+def yamlctl(discovered_spout, discovered_bolt):
+    return YamlCtl(discovered_spout, discovered_bolt)
 
 
 def test_yamlctl_init(yamlctl):
@@ -156,8 +149,11 @@ def test_yamlctl_run(yamlctl, sample_geniusfile, spout_name, bolt_name, input_ty
     with open(tmpdir + "/geniusrise.yaml", "w") as f:
         f.write(geniusfile_content)
 
+    geniusfile_path = os.path.join(tmpdir, "geniusrise.yaml")
     # Create an instance of argparse.Namespace with the necessary attributes
-    args = argparse.Namespace(spout="all", bolt=None)  # This will run all spouts. Adjust as needed.
+    args = argparse.Namespace(
+        spout="all", bolt=None, file=geniusfile_path
+    )  # This will run all spouts. Adjust as needed.
 
     # Call the run method with the created args
     yamlctl.run(args)
@@ -188,9 +184,10 @@ def test_yamlctl_run_2(yamlctl, sample_geniusfile, spout_name, bolt_name, input_
     geniusfile_content = sample_geniusfile(spout_name, bolt_name, input_type, output_type, state_type)
     with open(tmpdir + "/geniusrise.yaml", "w") as f:
         f.write(geniusfile_content)
+    geniusfile_path = os.path.join(tmpdir, "geniusrise.yaml")
 
     # Create an instance of argparse.Namespace with the necessary attributes
-    args = argparse.Namespace(bolt="all", spout=None)
+    args = argparse.Namespace(bolt="all", spout=None, file=geniusfile_path)
 
     # Call the run method with the created args
     yamlctl.run(args)
