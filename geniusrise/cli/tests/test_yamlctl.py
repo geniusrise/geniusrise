@@ -190,42 +190,7 @@ def test_yamlctl_run_2(yamlctl, sample_geniusfile, spout_name, bolt_name, input_
         f.write(geniusfile_content)
 
     # Create an instance of argparse.Namespace with the necessary attributes
-    args = argparse.Namespace(bolt="all", spout=None)  # This will run all spouts. Adjust as needed.
+    args = argparse.Namespace(bolt="all", spout=None)
 
     # Call the run method with the created args
     yamlctl.run(args)
-
-
-# def test_run_specific_spout(yamlctl):
-#     yamlctl.run_spout("TestSpoutCtlSpout")
-
-# def test_run_specific_bolt(yamlctl):
-#     yamlctl.run_bolt("TestBoltCtlBolt")
-
-# def test_resolve_reference_spout(yamlctl):
-#     output = yamlctl.resolve_reference("spout", "TestSpoutCtlSpout")
-#     # Add assertions based on expected behavior
-
-# def test_resolve_reference_bolt(yamlctl):
-#     output = yamlctl.resolve_reference("bolt", "TestBoltCtlBolt")
-#     # Add assertions based on expected behavior
-
-# def test_resolve_reference_invalid(yamlctl):
-#     output = yamlctl.resolve_reference("invalid", "TestSpoutCtlSpout")
-#     # Add assertions based on expected behavior
-
-# def test_run_all_spouts(yamlctl):
-#     yamlctl.run_spouts()
-#     # Add assertions based on expected behavior
-
-# def test_run_all_bolts(yamlctl):
-#     yamlctl.run_bolts()
-#     # Add assertions based on expected behavior
-
-# def test_run_nonexistent_spout(yamlctl):
-#     with pytest.raises(Exception):  # Replace with the specific exception you expect
-#         yamlctl.run_spout("NonexistentSpout")
-
-# def test_run_nonexistent_bolt(yamlctl):
-#     with pytest.raises(Exception):  # Replace with the specific exception you expect
-#         yamlctl.run_bolt("NonexistentBolt")
