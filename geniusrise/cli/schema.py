@@ -130,7 +130,7 @@ class Output(BaseModel):
 
 class InputArgs(BaseModel):
     """
-    This class defines the arguments for the input. Depending on the type of input (batch, streaming),
+    This class defines the arguments for the input. Depending on the type of input (batch, streaming, spout, bolt),
     different arguments are required.
     """
 
@@ -139,6 +139,7 @@ class InputArgs(BaseModel):
     output_folder: Optional[str]
     bucket: Optional[str]
     folder: Optional[str]
+    name: Optional[str]
 
     class Config:
         extra = Extra.allow
@@ -146,7 +147,7 @@ class InputArgs(BaseModel):
 
 class Input(BaseModel):
     """
-    This class defines the input of the bolt. The input can be of type batch or streaming.
+    This class defines the input of the bolt. The input can be of type batch, streaming, spout, or bolt.
     """
 
     type: str
@@ -154,7 +155,7 @@ class Input(BaseModel):
 
     @validator("type")
     def validate_type(cls, v, values, **kwargs):
-        if v not in ["batch", "streaming"]:
+        if v not in ["batch", "streaming", "spout", "bolt"]:
             raise ValueError("Invalid input type")
         return v
 
@@ -167,6 +168,9 @@ class Input(BaseModel):
             elif values["type"] == "streaming":
                 if not v or "input_topic" not in v or "kafka_servers" not in v:
                     raise ValueError("Missing required fields for streaming input type")
+            elif values["type"] in ["spout", "bolt"]:
+                if not v or "name" not in v:
+                    raise ValueError(f"Missing required fields for {values['type']} input type")
         return v
 
 

@@ -14,224 +14,259 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import argparse
-from typing import Dict, List, Optional
-
 import yaml  # type: ignore
-from pydantic import ValidationError
+import argparse
+import logging
+import emoji  # type: ignore
+import typing
+from typing import Dict, List
 
-from geniusrise.cli.schema import (
-    SpoutConfig,
-)  # change this to Geniusfile and make corresponding changes everywhere else
 from geniusrise.cli.spoutctl import SpoutCtl
-from geniusrise.core import ECSManager, K8sManager
+from geniusrise.cli.boltctl import BoltCtl
+from geniusrise.cli.schema import Geniusfile, Spout, Bolt
 
 
 class YamlCtl:
-    def __init__(self, yaml_file: str, spout_ctls: Dict[str, SpoutCtl]):
+    """
+    Command-line interface for managing spouts and bolts based on a YAML configuration.
+
+    The YamlCtl class provides methods to run specific or all spouts and bolts defined in a YAML file.
+    The YAML file's structure is defined by the Geniusfile schema.
+
+    Example YAML structure:
+    ```
+    version: "1"
+    spouts:
+      spout_name1:
+        name: "spout1"
+        method: "method_name"
+        ...
+    bolts:
+      bolt_name1:
+        name: "bolt1"
+        method: "method_name"
+        ...
+    ```
+
+    Attributes:
+        geniusfile (Geniusfile): Parsed YAML configuration.
+        spout_ctls (Dict[str, SpoutCtl]): Dictionary of SpoutCtl instances.
+        bolt_ctls (Dict[str, BoltCtl]): Dictionary of BoltCtl instances.
+    """
+
+    def __init__(self, yaml_path: str, spout_ctls: Dict[str, SpoutCtl], bolt_ctls: Dict[str, BoltCtl]):
         """
-        Initialize a new YamlCtl instance.
+        Initialize YamlCtl with the path to the YAML file and control instances for spouts and bolts.
 
         Args:
-            yaml_file (str): The path to the YAML configuration file.
-            spout_ctls (Dict[str, SpoutCtl]): A dictionary mapping spout names to their corresponding SpoutCtl instances.
+            yaml_path (str): Path to the YAML configuration file.
+            spout_ctls (Dict[str, SpoutCtl]): Dictionary of SpoutCtl instances.
+            bolt_ctls (Dict[str, BoltCtl]): Dictionary of BoltCtl instances.
         """
-        self.yaml_file = yaml_file
-        self.config: SpoutConfig
+        with open(yaml_path, "r") as file:
+            self.geniusfile = Geniusfile.parse_obj(yaml.safe_load(file))
         self.spout_ctls = spout_ctls
+        self.bolt_ctls = bolt_ctls
+        self.log = logging.getLogger(self.__class__.__name__)
 
-    def load_config(self) -> bool:
+    def create_parser(self):
         """
-        Load the configuration from the YAML file.
-
-        Returns:
-            bool: True if the configuration was loaded successfully, False otherwise.
+        Create and return the command-line parser for managing spouts and bolts.
         """
-        with open(self.yaml_file, "r") as file:
-            config_data = yaml.safe_load(file)
-        try:
-            self.config = SpoutConfig(**config_data)
-        except ValidationError as e:
-            print(f"Invalid configuration: {e}")
-            return False
-        return True
-
-    def run_spouts(self, spout_names: Optional[List[str]] = None):
-        """
-        Run specified spouts or all spouts if no spout names are provided.
-
-        Args:
-            spout_names (Optional[List[str]]): The names of the spouts to run. If not provided, all spouts are run.
-
-        Returns:
-            Dict[str, Any]: A dictionary mapping spout names to the results of the method.
-        """
-        if spout_names is None:
-            spout_names = list(self.spout_ctls.keys())
-        results = {}
-        for spout_name in spout_names:
-            if spout_name in self.spout_ctls:
-                spout_ctl = self.spout_ctls[spout_name]
-                yaml_config = self.config.spouts[spout_name]
-                spout = spout_ctl.create_spout(
-                    output_type=yaml_config.output.type,
-                    state_type=yaml_config.state_type,
-                    **{
-                        **yaml_config.state.args.dict(),  # type: ignore
-                        **yaml_config.output.args.dict(),  # type: ignore
-                        **yaml_config.other.dict(),  # type: ignore
-                    },
-                )
-                results[spout_name] = spout_ctl.execute_spout(spout=spout, method_name=yaml_config.method)
-            else:
-                print(f"Spout {spout_name} not found in configuration")
-        return results
-
-    def deploy_spouts(self, spout_names: Optional[List[str]] = None):
-        """
-        Deploy specified spouts or all spouts if no spout names are provided.
-
-        Args:
-            spout_names (Optional[List[str]]): The names of the spouts to deploy. If not provided, all spouts are deployed.
-
-        Returns:
-            Dict[str, Any]: A dictionary mapping spout names to the results of the method.
-        """
-        if spout_names is None:
-            spout_names = list(self.spout_ctls.keys())
-        results = {}
-        for spout_name in spout_names:
-            if spout_name in self.spout_ctls:
-                spout_ctl = self.spout_ctls[spout_name]
-                yaml_config = self.config.spouts[spout_name]
-                results[spout_name] = spout_ctl.execute_remote(
-                    manager_type=yaml_config.deploy.type,
-                    method_name=yaml_config.method,
-                    **{
-                        **yaml_config.state.args.dict(),  # type: ignore
-                        **yaml_config.output.args.dict(),  # type: ignore
-                        **yaml_config.other.dict(),  # type: ignore
-                    },
-                )
-            else:
-                print(f"Spout {spout_name} not found in configuration")
-        return results
-
-    def create_parser(self, parser: argparse.ArgumentParser):
-        """
-        Create a subparser for the YAML control commands.
-
-        Args:
-            parser (argparse.ArgumentParser): The parent argument parser.
-        """
-        subparsers = parser.add_subparsers(dest="command")
-
-        run_parser = subparsers.add_parser("run", help="Run a spout locally.")
-        run_parser.add_argument(
-            "spout_names",
-            nargs="*",
-            default=None,
-            help="The names of the spouts to run. If not provided, all spouts are run.",
-        )
-
-        deploy_parser = subparsers.add_parser("deploy", help="Deploy a spout remotely.")
-        deploy_parser.add_argument(
-            "spout_names",
-            nargs="*",
-            default=None,
-            help="The names of the spouts to deploy. If not provided, all spouts are deployed.",
-        )
-
-        # Kubernetes commands
-        k8s_parser = subparsers.add_parser("k8s", help="Kubernetes management commands")
-        k8s_parser.add_argument(
-            "action",
-            choices=["scale", "delete", "status", "statistics", "logs"],
-            help="Action to perform",
-        )
-        k8s_parser.add_argument("--name", help="Name of the deployment")
-        k8s_parser.add_argument(
-            "--names",
-            nargs="*",
-            default=None,
-            help="Names of the spout k8s deployments. If not provided, all spouts are considered in the yaml.",
-        )
-        k8s_parser.add_argument("--replicas", type=int, help="Number of replicas for update and scale actions")
-
-        # ECS commands
-        ecs_parser = subparsers.add_parser("ecs", help="ECS management commands")
-        ecs_parser.add_argument("action", choices=["describe", "stop", "delete"], help="Action to perform")
-        ecs_parser.add_argument(
-            "--names",
-            nargs="*",
-            default=None,
-            help="Name of the spout ECS tasks. If not provided, all spouts are considered in the yaml.",
-        )
-        # TODO: The ECS interface needs to improve
-        ecs_parser.add_argument(
-            "--task-definition-arns",
-            nargs="*",
-            default=None,
-            help="Task definition ARNs of spout ECS tasks.",
-        )
-        # ecs_parser.add_argument("--name", help="Name of the task or service")
-        # ecs_parser.add_argument(
-        #     "--task-definition-arn", help="ARN of the task definition for run, describe, stop, and update actions"
-        # )
-
-        # Create subparser for 'help' command
-        execute_parser = subparsers.add_parser("help", help="Print help for the spout.")
-        execute_parser.add_argument("method", help="The method to execute.")
+        parser = argparse.ArgumentParser(description="Run spouts and bolts from a YAML configuration.")
+        parser.add_argument("--spout", type=str, help="Name of the specific spout to run.")
+        parser.add_argument("--bolt", type=str, help="Name of the specific bolt to run.")
+        return parser
 
     def run(self, args):
         """
-        Run the appropriate command based on the provided arguments.
+        Run the command-line interface for managing spouts and bolts based on provided arguments.
+        Please note that there is no ordering of the spouts and bolts in the YAML configuration.
+        Each spout and bolt is an independent entity even when connected together.
 
         Args:
-            args: The command line arguments.
+            args (argparse.Namespace): Parsed command-line arguments.
         """
-        if not self.load_config():
+        if args.spout == "all":
+            self.run_spouts()
+        elif args.bolt == "all":
+            self.run_bolts()
+        elif args.spout:
+            self.run_spout(args.spout)
+        elif args.bolt:
+            self.run_bolt(args.bolt)
+        else:
+            self.run_spouts()
+            self.run_bolts()
+
+    def run_spouts(self):
+        """Run all spouts defined in the YAML configuration."""
+        self.log.info(emoji.emojize(":rocket: Running all spouts..."))
+        for spout_name, _ in self.geniusfile.spouts.items():
+            self.run_spout(spout_name)
+
+    def run_bolts(self):
+        """Run all bolts defined in the YAML configuration."""
+        self.log.info(emoji.emojize(":rocket: Running all bolts..."))
+        for bolt_name, _ in self.geniusfile.bolts.items():
+            self.run_bolt(bolt_name)
+
+    def run_spout(self, spout_name: str):
+        """
+        Run a specific spout based on its name.
+
+        Args:
+            spout_name (str): Name of the spout to run.
+        """
+        spout = self.geniusfile.spouts.get(spout_name)
+        if not spout:
+            self.log.error(emoji.emojize(f":x: Spout {spout_name} not found."))
             return
 
-        if args.command == "run":
-            results = self.run_spouts(args.spout_names)
-            print(results)
-        elif args.command == "deploy":
-            results = self.deploy_spouts(args.spout_names)
-            print(results)
-        elif args.command == "k8s":
-            if args.names is None:
-                spout_names = list(self.spout_ctls.keys())
-            else:
-                spout_names = args.names
-            for spout in spout_names:
-                k8s_manager = K8sManager(
-                    name=spout, namespace=self.config.spouts[spout].delpoy.args.namespace
-                )  # Initialize K8sManager
-                if args.action == "scale":
-                    k8s_manager.scale_deployment(args.replicas)
-                elif args.action == "delete":
-                    k8s_manager.delete_deployment()
-                elif args.action == "status":
-                    k8s_manager.get_status()
-                elif args.action == "statistics":
-                    k8s_manager.get_statistics()
-                elif args.action == "logs":
-                    k8s_manager.get_logs()
-        elif args.command == "ecs":
-            if args.names is None:
-                spout_names = list(self.spout_ctls.keys())
-            else:
-                spout_names = args.names
-            for spout in spout_names:
-                ecs_manager = ECSManager(name=spout, account_id="")  # Initialize ECSManager
-                if args.action == "run":
-                    ecs_manager.run_task(args.task_definition_arn)
-                elif args.action == "describe":
-                    ecs_manager.describe_task(args.task_definition_arn)
-                elif args.action == "stop":
-                    ecs_manager.stop_task(args.task_definition_arn)
-                # elif args.action == "update": # TODO: did not init ECSManager full, this will call create_task_definition!
-                #     ecs_manager.update_task(args.new_image, args.new_command)
-                elif args.action == "delete":
-                    ecs_manager.stop_task(args.task_definition_arn)
+        spout_ctl = self.spout_ctls.get(spout_name)
+        if not spout_ctl:
+            self.log.error(emoji.emojize(f":x: SpoutCtl for {spout_name} not found."))
+            return
+
+        self.log.info(emoji.emojize(f":rocket: Running spout {spout_name}..."))
+        flat_args = ["run", spout.output.type, spout.state.type, spout.method] + self._convert_spout(spout)
+
+        parser = argparse.ArgumentParser()
+        self.spout_ctls[spout_name].create_parser(parser)
+        namespace_args = parser.parse_args(flat_args)
+        spout_ctl.run(namespace_args)
+
+    def run_bolt(self, bolt_name: str):
+        """
+        Run a specific bolt based on its name.
+
+        Args:
+            bolt_name (str): Name of the bolt to run.
+        """
+        bolt = self.geniusfile.bolts.get(bolt_name)
+        if not bolt:
+            self.log.error(emoji.emojize(f":x: Bolt {bolt_name} not found."))
+            return
+
+        # Resolve reference if input type is "spout" or "bolt"
+        if bolt.input.type in ["spout", "bolt"]:
+            if not bolt.input.args or not bolt.input.args.name:
+                raise ValueError(emoji.emojize(f"Need referenced spouts or bolt to be mentioned here {bolt.input}"))
+            ref_name = bolt.input.args.name
+            resolved_output = self.resolve_reference(bolt.input.type, ref_name)
+            if not resolved_output:
+                self.log.error(emoji.emojize(f":x: Failed to resolve reference for bolt {bolt_name}."))
+                return
+            bolt.input.type = resolved_output.type  # Set the resolved output type as the bolt's input type
+            bolt.input.args = resolved_output.args  # Set the resolved output args as the bolt's input args
+
+        bolt_ctl = self.bolt_ctls.get(bolt_name)
+        if not bolt_ctl:
+            self.log.error(emoji.emojize(f":x: BoltCtl for {bolt_name} not found."))
+            return
+
+        self.log.info(emoji.emojize(f":rocket: Running bolt {bolt_name}..."))
+        flat_args = ["run", bolt.input.type, bolt.output.type, bolt.state.type, bolt.method] + self._convert_bolt(bolt)
+
+        parser = argparse.ArgumentParser()
+        self.bolt_ctls[bolt_name].create_parser(parser)
+        namespace_args = parser.parse_args(flat_args)
+        bolt_ctl.run(namespace_args)
+
+    def resolve_reference(self, input_type: str, ref_name: str):
+        """
+        Resolve the reference of a bolt's input based on the input type (spout or bolt).
+
+        Args:
+            input_type (str): Type of the input ("spout" or "bolt").
+            ref_name (str): Name of the spout or bolt to refer to.
+
+        Returns:
+            Output: The output configuration of the referred spout or bolt.
+        """
+        if input_type == "spout":
+            referred_spout = self.geniusfile.spouts.get(ref_name)
+            if not referred_spout:
+                self.log.error(emoji.emojize(f":x: Referred spout {ref_name} not found."))
+                return None
+            return referred_spout.output
+        elif input_type == "bolt":
+            referred_bolt = self.geniusfile.bolts.get(ref_name)
+            if not referred_bolt:
+                self.log.error(emoji.emojize(f":x: Referred bolt {ref_name} not found."))
+                return None
+            return referred_bolt.output
+        else:
+            self.log.error(emoji.emojize(f":x: Invalid reference type {input_type}."))
+            return None
+
+    @typing.no_type_check
+    def _convert_spout(self, spout: Spout) -> List[str]:
+        spout_args = []
+
+        # Convert output
+        if spout.output.type == "batch":
+            spout_args.append(f"--output_folder={spout.output.args.folder}")
+            spout_args.append(f"--output_s3_bucket={spout.output.args.bucket}")
+            spout_args.append(f"--output_s3_folder={spout.output.args.folder}")
+        elif spout.output.type == "streaming":
+            spout_args.append(f"--output_kafka_topic={spout.output.args.output_topic}")
+            spout_args.append(f"--output_kafka_cluster_connection_string={spout.output.args.kafka_servers}")
+
+        # Convert state
+        if spout.state.type == "redis":
+            spout_args.append(f"--redis_host={spout.state.args.redis_host}")
+            spout_args.append(f"--redis_port={spout.state.args.redis_port}")
+            spout_args.append(f"--redis_db={spout.state.args.redis_db}")
+        elif spout.state.type == "postgres":
+            spout_args.append(f"--postgres_host={spout.state.args.postgres_host}")
+            spout_args.append(f"--postgres_port={spout.state.args.postgres_port}")
+            spout_args.append(f"--postgres_user={spout.state.args.postgres_user}")
+            spout_args.append(f"--postgres_password={spout.state.args.postgres_password}")
+            spout_args.append(f"--postgres_database={spout.state.args.postgres_database}")
+            spout_args.append(f"--postgres_table={spout.state.args.postgres_table}")
+        elif spout.state.type == "dynamodb":
+            spout_args.append(f"--dynamodb_table_name={spout.state.args.dynamodb_table_name}")
+            spout_args.append(f"--dynamodb_region_name={spout.state.args.dynamodb_region_name}")
+
+        return spout_args
+
+    @typing.no_type_check
+    def _convert_bolt(self, bolt: Bolt) -> List[str]:
+        bolt_args = []
+
+        # Convert input
+        if bolt.input.type == "batch":
+            bolt_args.append(f"--input_folder={bolt.input.args.folder}")
+            bolt_args.append(f"--input_s3_bucket={bolt.input.args.bucket}")
+            bolt_args.append(f"--input_s3_folder={bolt.input.args.folder}")
+        elif bolt.input.type == "streaming":
+            bolt_args.append(f"--input_kafka_topic={bolt.input.args.input_topic}")
+            bolt_args.append(f"--input_kafka_cluster_connection_string={bolt.input.args.kafka_servers}")
+
+        # Convert output
+        if bolt.output.type == "batch":
+            bolt_args.append(f"--output_folder={bolt.output.args.folder}")
+            bolt_args.append(f"--output_s3_bucket={bolt.output.args.bucket}")
+            bolt_args.append(f"--output_s3_folder={bolt.output.args.folder}")
+        elif bolt.output.type == "streaming":
+            bolt_args.append(f"--output_kafka_topic={bolt.output.args.output_topic}")
+            bolt_args.append(f"--output_kafka_cluster_connection_string={bolt.output.args.kafka_servers}")
+
+        # Convert state
+        if bolt.state.type == "redis":
+            bolt_args.append(f"--redis_host={bolt.state.args.redis_host}")
+            bolt_args.append(f"--redis_port={bolt.state.args.redis_port}")
+            bolt_args.append(f"--redis_db={bolt.state.args.redis_db}")
+        elif bolt.state.type == "postgres":
+            bolt_args.append(f"--postgres_host={bolt.state.args.postgres_host}")
+            bolt_args.append(f"--postgres_port={bolt.state.args.postgres_port}")
+            bolt_args.append(f"--postgres_user={bolt.state.args.postgres_user}")
+            bolt_args.append(f"--postgres_password={bolt.state.args.postgres_password}")
+            bolt_args.append(f"--postgres_database={bolt.state.args.postgres_database}")
+            bolt_args.append(f"--postgres_table={bolt.state.args.postgres_table}")
+        elif bolt.state.type == "dynamodb":
+            bolt_args.append(f"--dynamodb_table_name={bolt.state.args.dynamodb_table_name}")
+            bolt_args.append(f"--dynamodb_region_name={bolt.state.args.dynamodb_region_name}")
+
+        return bolt_args

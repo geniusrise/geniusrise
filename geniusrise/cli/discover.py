@@ -16,7 +16,7 @@
 
 from abc import ABCMeta
 import os
-import pkg_resources
+import pkg_resources  # type: ignore
 import logging
 import inspect
 from typing import Dict, Any, Optional
