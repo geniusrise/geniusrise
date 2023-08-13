@@ -14,42 +14,71 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 from typing import Dict, Optional
 
 from geniusrise.core.state import StateManager
 
 
 class InMemoryStateManager(StateManager):
+    """
+    🧠 **InMemoryStateManager**: A state manager that stores state in memory.
+
+    This manager is useful for temporary storage or testing purposes. Since it's in-memory, the data will be lost once the application stops.
+
+    ## Attributes:
+    - `store` (Dict[str, Dict]): The in-memory store for states.
+
+    ## Usage:
+    ```python
+    manager = InMemoryStateManager()
+    manager.set_state("user123", {"status": "active"})
+    state = manager.get_state("user123")
+    print(state)  # Outputs: {"status": "active"}
+    ```
+
+    !!! warning
+        Remember, this is an in-memory store. Do not use it for persistent storage!
+    """
+
     store: Dict[str, Dict]
 
-    """
-    A state manager that stores state in memory.
-    """
-
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initialize a new in-memory state manager.
         """
         self.store = {}
+        self.log = logging.getLogger(self.__class__.__name__)
 
     def get_state(self, key: str) -> Optional[Dict]:
         """
-        Get the state associated with a key.
+        📖 Get the state associated with a key.
 
         Args:
             key (str): The key to get the state for.
 
         Returns:
-            str: The state associated with the key.
+            Dict: The state associated with the key, or None if not found.
         """
-        return self.store.get(key)
+        state = self.store.get(key)
+        if state:
+            self.log.debug(f"✅ Retrieved state for key: {key}")
+        else:
+            self.log.warning(f"🚫 No state found for key: {key}")
+        return state
 
     def set_state(self, key: str, value: Dict) -> None:
         """
-        Set the state associated with a key.
+        📝 Set the state associated with a key.
 
         Args:
             key (str): The key to set the state for.
-            value (str): The state to set.
+            value (Dict): The state to set.
+
+        Example:
+        ```python
+        manager.set_state("user123", {"status": "active"})
+        ```
         """
         self.store[key] = value
+        self.log.debug(f"✅ Set state for key: {key}")

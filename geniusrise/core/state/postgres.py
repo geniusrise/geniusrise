@@ -20,21 +20,39 @@ from typing import Dict, Optional
 
 import jsonpickle
 import psycopg2
-
 from geniusrise.core.state import StateManager
-
-log = logging.getLogger(__name__)
 
 
 class PostgresStateManager(StateManager):
     """
-    A state manager that stores state in a PostgreSQL database.
+    🗄️ **PostgresStateManager**: A state manager that stores state in a PostgreSQL database.
 
-    Attributes:
-        conn (psycopg2.extensions.connection): The PostgreSQL connection.
+    This manager provides a persistent storage solution using a PostgreSQL database.
+
+    ## Attributes:
+    - `conn` (psycopg2.extensions.connection): The PostgreSQL connection.
+
+    ## Usage:
+    ```python
+    manager = PostgresStateManager(host="localhost", port=5432, user="admin", password="password", database="mydb")
+    manager.set_state("user123", {"status": "active"})
+    state = manager.get_state("user123")
+    print(state)  # Outputs: {"status": "active"}
+    ```
+
+    !!! warning
+        Ensure PostgreSQL is accessible and the table exists.
     """
 
-    def __init__(self, host: str, port: int, user: str, password: str, database: str, table: str = "geniusrise_state"):
+    def __init__(
+        self,
+        host: str,
+        port: int,
+        user: str,
+        password: str,
+        database: str,
+        table: str = "geniusrise_state",
+    ) -> None:
         """
         Initialize a new PostgreSQL state manager.
 
@@ -44,48 +62,54 @@ class PostgresStateManager(StateManager):
             user (str): The user to connect as.
             password (str): The user's password.
             database (str): The database to connect to.
+            table (str, optional): The table to use. Defaults to "geniusrise_state".
         """
         super().__init__()
         self.table = table
+        self.log = logging.getLogger(self.__class__.__name__)
         try:
             self.conn = psycopg2.connect(host=host, port=port, user=user, password=password, database=database)
         except psycopg2.Error as e:
-            log.exception(f"Failed to connect to PostgreSQL: {e}")
+            self.log.exception(f"🚫 Failed to connect to PostgreSQL: {e}")
             raise
             self.conn = None
 
     def get_state(self, key: str) -> Optional[Dict]:
         """
-        Get the state associated with a key.
+        📖 Get the state associated with a key.
 
         Args:
             key (str): The key to get the state for.
 
         Returns:
-            Dict: The state associated with the key.
+            Dict: The state associated with the key, or None if not found.
+
+        Raises:
+            Exception: If there's an error accessing PostgreSQL.
         """
         if self.conn:
             try:
                 with self.conn.cursor() as cur:
-                    cur.execute(f"SELECT value FROM {self.table} WHERE key = '{key}'")
+                    cur.execute(f"SELECT value FROM {self.table} WHERE key = %s", (key,))
                     result = cur.fetchone()
                     return jsonpickle.decode(result[0]["data"]) if result else None
             except psycopg2.Error as e:
-                log.exception(f"Failed to get state from PostgreSQL: {e}")
+                self.log.exception(f"🚫 Failed to get state from PostgreSQL: {e}")
                 raise
-                return None
         else:
-            log.exception("No PostgreSQL connection.")
+            self.log.exception("🚫 No PostgreSQL connection.")
             raise
-            return None
 
     def set_state(self, key: str, value: Dict) -> None:
         """
-        Set the state associated with a key.
+        📝 Set the state associated with a key.
 
         Args:
             key (str): The key to set the state for.
             value (Dict): The state to set.
+
+        Raises:
+            Exception: If there's an error accessing PostgreSQL.
         """
         if self.conn:
             try:
@@ -102,7 +126,7 @@ class PostgresStateManager(StateManager):
                     )
                 self.conn.commit()
             except psycopg2.Error as e:
-                log.exception(f"Failed to set state in PostgreSQL: {e}")
+                self.log.exception(f"🚫 Failed to set state in PostgreSQL: {e}")
                 raise
         else:
-            log.error("No PostgreSQL connection.")
+            self.log.error("🚫 No PostgreSQL connection.")

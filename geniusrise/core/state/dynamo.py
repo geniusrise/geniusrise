@@ -19,22 +19,30 @@ from typing import Dict, Optional
 
 import boto3
 import jsonpickle
-
 from geniusrise.core.state import StateManager
-
-log = logging.getLogger(__name__)
 
 
 class DynamoDBStateManager(StateManager):
     """
-    A state manager that stores state in DynamoDB.
+    🗄️ **DynamoDBStateManager**: A state manager that stores state in DynamoDB.
 
     Attributes:
         dynamodb (boto3.resources.factory.dynamodb.ServiceResource): The DynamoDB service resource.
         table (boto3.resources.factory.dynamodb.Table): The DynamoDB table.
+
+    Usage:
+    ```python
+    manager = DynamoDBStateManager("my_table", "us-west-1")
+    manager.set_state("key123", {"status": "active"})
+    state = manager.get_state("key123")
+    print(state)  # Outputs: {"status": "active"}
+    ```
+
+    Note:
+    - Ensure DynamoDB is accessible and the table exists.
     """
 
-    def __init__(self, table_name: str, region_name: str):
+    def __init__(self, table_name: str, region_name: str) -> None:
         """
         Initialize a new DynamoDB state manager.
 
@@ -43,52 +51,57 @@ class DynamoDBStateManager(StateManager):
             region_name (str): The name of the AWS region.
         """
         super().__init__()
+        self.log = logging.getLogger(self.__class__.__name__)
         try:
             self.dynamodb = boto3.resource("dynamodb", region_name=region_name)
             self.table = self.dynamodb.Table(table_name)
         except Exception as e:
-            log.exception(f"Failed to connect to DynamoDB: {e}")
+            self.log.exception(f"🚫 Failed to connect to DynamoDB: {e}")
             raise
             self.dynamodb = None
             self.table = None
 
     def get_state(self, key: str) -> Optional[Dict]:
         """
-        Get the state associated with a key.
+        📖 Get the state associated with a key.
 
         Args:
             key (str): The key to get the state for.
 
         Returns:
-            Dict: The state associated with the key.
+            Dict: The state associated with the key, or None if not found.
+
+        Raises:
+            Exception: If there's an error accessing DynamoDB.
         """
         if self.table:
             try:
                 response = self.table.get_item(Key={"id": key})
                 return jsonpickle.decode(response["Item"]["value"]) if "Item" in response else None
             except Exception as e:
-                log.exception(f"Failed to get state from DynamoDB: {e}")
+                self.log.exception(f"🚫 Failed to get state from DynamoDB: {e}")
                 raise
-                return None
         else:
-            log.exception("No DynamoDB table.")
+            self.log.exception("🚫 No DynamoDB table.")
             raise
-            return None
 
     def set_state(self, key: str, value: Dict) -> None:
         """
-        Set the state associated with a key.
+        📝 Set the state associated with a key.
 
         Args:
             key (str): The key to set the state for.
             value (Dict): The state to set.
+
+        Raises:
+            Exception: If there's an error accessing DynamoDB.
         """
         if self.table:
             try:
                 self.table.put_item(Item={"id": key, "value": jsonpickle.encode(value)})
             except Exception as e:
-                log.exception(f"Failed to set state in DynamoDB: {e}")
+                self.log.exception(f"🚫 Failed to set state in DynamoDB: {e}")
                 raise
         else:
-            log.exception("No DynamoDB table.")
+            self.log.exception("🚫 No DynamoDB table.")
             raise
