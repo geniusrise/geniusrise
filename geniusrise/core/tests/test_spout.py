@@ -15,10 +15,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
-
 from geniusrise.core import Spout
 from geniusrise.core.data import BatchOutputConfig, StreamingOutputConfig
-from geniusrise.core.state import DynamoDBStateManager, InMemoryStateManager, PostgresStateManager, RedisStateManager
+from geniusrise.core.state import (
+    DynamoDBStateManager,
+    InMemoryStateManager,
+    PostgresStateManager,
+    RedisStateManager,
+)
 
 output_topic = "test_topic"
 kafka_servers = "localhost:9092"
@@ -43,14 +47,27 @@ class TestSpout(Spout):
 
 
 # Define a fixture for the state manager
-@pytest.fixture(params=[InMemoryStateManager, RedisStateManager, PostgresStateManager, DynamoDBStateManager])
+@pytest.fixture(
+    params=[
+        InMemoryStateManager,
+        RedisStateManager,
+        PostgresStateManager,
+        DynamoDBStateManager,
+    ]
+)
 def state_manager(request):
     if request.param == InMemoryStateManager:
         return request.param()
     elif request.param == RedisStateManager:
         return request.param(redis_host, redis_port, redis_db)
     elif request.param == PostgresStateManager:
-        return request.param(postgres_host, postgres_port, postgres_user, postgres_password, postgres_database)
+        return request.param(
+            postgres_host,
+            postgres_port,
+            postgres_user,
+            postgres_password,
+            postgres_database,
+        )
     elif request.param == DynamoDBStateManager:
         return request.param(dynamodb_table_name, dynamodb_region_name)
 

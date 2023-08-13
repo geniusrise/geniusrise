@@ -19,9 +19,8 @@ import logging
 from typing import Dict, Optional
 
 import jsonpickle
-from geniusrise.core.state import StateManager
-
 import redis  # type: ignore
+from geniusrise.core.state import StateManager
 
 
 class RedisStateManager(StateManager):

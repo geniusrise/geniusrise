@@ -18,7 +18,6 @@ import time
 
 import pytest
 import shortuuid
-
 from geniusrise.core.task import K8sManager
 
 # Define your K8sManager details as constants

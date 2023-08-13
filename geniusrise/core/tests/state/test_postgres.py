@@ -18,9 +18,8 @@ import uuid
 
 import psycopg2
 import pytest
-from psycopg2 import sql
-
 from geniusrise.core.state import PostgresStateManager
+from psycopg2 import sql
 
 # Define your PostgreSQL connection details as constants
 HOST = "localhost"

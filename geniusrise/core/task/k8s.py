@@ -208,7 +208,8 @@ class K8sManager:
         """
         # Define the service spec
         spec = client.V1ServiceSpec(
-            selector={"app": self.name}, ports=[client.V1ServicePort(port=self.port, target_port=self.port)]
+            selector={"app": self.name},
+            ports=[client.V1ServicePort(port=self.port, target_port=self.port)],
         )
 
         # Define the service
@@ -306,7 +307,9 @@ class K8sManager:
             _continue = None
             while True:
                 pod_list = self.core_api.list_namespaced_pod(
-                    self.namespace, label_selector=f"app={self.name}", _continue=_continue
+                    self.namespace,
+                    label_selector=f"app={self.name}",
+                    _continue=_continue,
                 )
                 for pod in pod_list.items:
                     logs[pod.metadata.name] = self.core_api.read_namespaced_pod_log(pod.metadata.name, self.namespace)

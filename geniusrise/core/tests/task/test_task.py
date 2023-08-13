@@ -17,7 +17,6 @@
 import uuid
 
 import pytest
-
 from geniusrise.core.data import BatchInputConfig, BatchOutputConfig
 from geniusrise.core.task import Task
 

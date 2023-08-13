@@ -15,10 +15,19 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
-
 from geniusrise.core import Bolt
-from geniusrise.core.data import BatchInputConfig, BatchOutputConfig, StreamingInputConfig, StreamingOutputConfig
-from geniusrise.core.state import DynamoDBStateManager, InMemoryStateManager, PostgresStateManager, RedisStateManager
+from geniusrise.core.data import (
+    BatchInputConfig,
+    BatchOutputConfig,
+    StreamingInputConfig,
+    StreamingOutputConfig,
+)
+from geniusrise.core.state import (
+    DynamoDBStateManager,
+    InMemoryStateManager,
+    PostgresStateManager,
+    RedisStateManager,
+)
 
 # Define the parameters for the tests
 bucket = "geniusrise-test-bucket"
@@ -65,7 +74,14 @@ def output_config(request, tmpdir):
 
 
 # Define a fixture for the state manager
-@pytest.fixture(params=[InMemoryStateManager, RedisStateManager, PostgresStateManager, DynamoDBStateManager])
+@pytest.fixture(
+    params=[
+        InMemoryStateManager,
+        RedisStateManager,
+        PostgresStateManager,
+        DynamoDBStateManager,
+    ]
+)
 def state_manager(request):
     if request.param == InMemoryStateManager:
         return request.param()
@@ -73,7 +89,12 @@ def state_manager(request):
         return request.param(redis_host, redis_port, redis_db)
     elif request.param == PostgresStateManager:
         return request.param(
-            postgres_host, postgres_port, postgres_user, postgres_password, postgres_database, postgres_table
+            postgres_host,
+            postgres_port,
+            postgres_user,
+            postgres_password,
+            postgres_database,
+            postgres_table,
         )
     elif request.param == DynamoDBStateManager:
         return request.param(dynamodb_table_name, dynamodb_region_name)

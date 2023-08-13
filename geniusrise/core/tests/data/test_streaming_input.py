@@ -15,9 +15,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
-from kafka import KafkaProducer
-
 from geniusrise.core.data import StreamingInputConfig
+from kafka import KafkaProducer
 
 # Define your Kafka connection details as constants
 KAFKA_CLUSTER_CONNECTION_STRING = "localhost:9094"

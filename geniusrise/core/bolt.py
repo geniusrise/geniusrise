@@ -45,7 +45,11 @@ class Bolt(Task):
     """
 
     def __init__(
-        self, input_config: InputConfig, output_config: OutputConfig, state_manager: StateManager, **kwargs
+        self,
+        input_config: InputConfig,
+        output_config: OutputConfig,
+        state_manager: StateManager,
+        **kwargs,
     ) -> None:
         """
         The `Bolt` class is a base class for all bolts in the given context.
@@ -255,5 +259,10 @@ class Bolt(Task):
             raise ValueError(f"Invalid state type: {state_type}")
 
         # Create the bolt
-        bolt = klass(input_config=input_config, output_config=output_config, state_manager=state_manager, **kwargs)
+        bolt = klass(
+            input_config=input_config,
+            output_config=output_config,
+            state_manager=state_manager,
+            **kwargs,
+        )
         return bolt
