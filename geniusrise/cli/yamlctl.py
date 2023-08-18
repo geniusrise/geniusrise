@@ -128,7 +128,7 @@ class YamlCtl:
             return
 
         self.log.info(emoji.emojize(f":rocket: Running spout {spout_name}..."))
-        flat_args = ["run", spout.output.type, spout.state.type, spout.method] + self._convert_spout(spout)
+        flat_args = ["rise", spout.output.type, spout.state.type, spout.method] + self._convert_spout(spout)
 
         parser = argparse.ArgumentParser()
         self.spout_ctls[spout_name].create_parser(parser)
@@ -165,7 +165,7 @@ class YamlCtl:
             return
 
         self.log.info(emoji.emojize(f":rocket: Running bolt {bolt_name}..."))
-        flat_args = ["run", bolt.input.type, bolt.output.type, bolt.state.type, bolt.method] + self._convert_bolt(bolt)
+        flat_args = ["rise", bolt.input.type, bolt.output.type, bolt.state.type, bolt.method] + self._convert_bolt(bolt)
 
         parser = argparse.ArgumentParser()
         self.bolt_ctls[bolt_name].create_parser(parser)

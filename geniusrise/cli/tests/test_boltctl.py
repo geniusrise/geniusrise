@@ -65,7 +65,7 @@ def test_boltctl_run(boltctl, input_type, output_type, state_type, tmpdir):
     parser = argparse.ArgumentParser()
     boltctl.create_parser(parser)
     args = parser.parse_args([
-        "run",
+        "rise",
         input_type,
         "--input_folder", str(tmpdir),
         "--input_s3_bucket", "geniusrise-test-bucket",

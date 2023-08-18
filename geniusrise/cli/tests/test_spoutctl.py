@@ -57,7 +57,7 @@ def test_spoutctl_run(spoutctl, output_type, state_type, tmpdir):
     parser = argparse.ArgumentParser()
     spoutctl.create_parser(parser)
     args = parser.parse_args([
-        "run",
+        "rise",
         output_type,
         state_type,
         "test_method",

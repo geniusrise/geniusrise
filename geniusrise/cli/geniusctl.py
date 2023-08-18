@@ -26,20 +26,6 @@ class GeniusCtl:
             directory (str): The directory to scan for spouts and bolts.
         """
         self.log = logging.getLogger(self.__class__.__name__)
-        self.discover = Discover()
-        discovered_components = self.discover.scan_directory(os.getenv("GENIUS_COMPONENTS_DIR", "."))
-
-        # Segregate the discovered components based on their type
-        self.spouts = {
-            name: component
-            for name, component in discovered_components.items()
-            if isinstance(component, DiscoveredSpout)
-        }
-        self.bolts = {
-            name: component
-            for name, component in discovered_components.items()
-            if isinstance(component, DiscoveredBolt)
-        }
 
         self.spout_ctls: Dict[str, SpoutCtl] = {}
         self.bolt_ctls: Dict[str, BoltCtl] = {}
@@ -75,7 +61,7 @@ class GeniusCtl:
         self.yaml_ctl.create_parser(yaml_parser)
 
         # Add a 'help' command to print help for all spouts and bolts
-        help_parser = subparsers.add_parser("help", help="Print help for all spouts and bolts.")
+        help_parser = subparsers.add_parser("plugins", help="Print help for all spouts and bolts.")
         help_parser.add_argument("spout_or_bolt", nargs="?", help="The spout or bolt to print help for.")
 
         # Add a 'list' command to list all discovered spouts and bolts
@@ -92,13 +78,28 @@ class GeniusCtl:
         """
         self.log.info(f"Running command: {args.command}")
 
+        self.discover = Discover()
+        discovered_components = self.discover.scan_directory(os.getenv("GENIUS_COMPONENTS_DIR", "."))
+
+        # Segregate the discovered components based on their type
+        self.spouts = {
+            name: component
+            for name, component in discovered_components.items()
+            if isinstance(component, DiscoveredSpout)
+        }
+        self.bolts = {
+            name: component
+            for name, component in discovered_components.items()
+            if isinstance(component, DiscoveredBolt)
+        }
+
         if args.command in self.spouts:
             self.spout_ctls[args.command].run(args)
         elif args.command in self.bolts:
             self.bolt_ctls[args.command].run(args)
         elif args.command == "yaml":
             self.yaml_ctl.run(args)
-        elif args.command == "help":
+        elif args.command == "plugins":
             if args.spout_or_bolt in self.spouts:
                 self.spout_ctls[args.spout_or_bolt].run(args)
             elif args.spout_or_bolt in self.bolts:
@@ -149,6 +150,11 @@ class GeniusCtl:
         parser = self.create_parser()
         args = parser.parse_args()
         return self.run(args)
+
+
+def main():
+    genius_ctl = GeniusCtl()
+    genius_ctl.cli()
 
 
 if __name__ == "__main__":

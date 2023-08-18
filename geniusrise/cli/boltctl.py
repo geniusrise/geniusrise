@@ -47,7 +47,7 @@ class BoltCtl:
         subparsers = parser.add_subparsers(dest="command")
 
         # Create subparser for 'run' command
-        run_parser = subparsers.add_parser("run", help="Run a bolt locally.")
+        run_parser = subparsers.add_parser("rise", help="Run a bolt locally.")
 
         run_parser.add_argument(
             "input_type",
@@ -178,7 +178,7 @@ class BoltCtl:
         """
         self.log.info(emoji.emojize(f"Running command: {args.command} :rocket:"))
         try:
-            if args.command == "run":
+            if args.command == "rise":
                 kwargs = {
                     k: v
                     for k, v in vars(args).items()

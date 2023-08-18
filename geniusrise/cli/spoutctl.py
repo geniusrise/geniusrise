@@ -49,7 +49,7 @@ class SpoutCtl:
         subparsers = parser.add_subparsers(dest="command")
 
         # Create subparser for 'create' command
-        create_parser = subparsers.add_parser("run", help="Run a spout locally.")
+        create_parser = subparsers.add_parser("rise", help="Run a spout locally.")
         create_parser.add_argument(
             "output_type",
             choices=["batch", "streaming"],
@@ -146,7 +146,7 @@ class SpoutCtl:
         """
         self.log.info(emoji.emojize(f"Running command: {args.command} :rocket:"))
         try:
-            if args.command == "run":
+            if args.command == "rise":
                 kwargs = {
                     k: v
                     for k, v in vars(args).items()
