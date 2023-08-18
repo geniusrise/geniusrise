@@ -8,15 +8,15 @@ read -p "Enter your GitHub username: " github_username
 read -p "Enter a brief description of your project: " project_description
 
 # Create project structure
-mkdir $project_name
-cd $project_name
-mkdir $project_name tests
+mkdir "$project_name"
+cd "$project_name" || exit
+mkdir "$project_name" tests
 
 # Create basic files
 touch README.md
 touch requirements.txt
 touch setup.py
-touch $project_name/__init__.py
+touch "$project_name"/__init__.py
 touch tests/__init__.py
 
 # Populate README.md
