@@ -11,7 +11,6 @@ docutils==0.20.1
 emoji==2.7.0
 env-file==2020.12.3
 exceptiongroup==1.1.2
--e git+ssh://git@github.com/geniusrise/geniusrise.git@6538227db33765a8e645cc5d5348f7cdb19d8672#egg=geniusrise
 google-auth==2.17.3
 idna==3.4
 iniconfig==2.0.0
@@ -19,7 +18,6 @@ jmespath==0.10.0
 jsonpickle==3.0.1
 kafka-python==2.0.2
 kubernetes==27.2.0
-logging==0.4.9.6
 oauthlib==3.2.2
 packaging==23.1
 pluggy==1.2.0
