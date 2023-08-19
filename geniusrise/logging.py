@@ -21,12 +21,6 @@ import colorlog
 from geniusrise.config import LOGLEVEL
 
 
-# def setup_logger() -> logging.Logger:
-#     logging.basicConfig(level=logging.DEBUG)
-#     logger = logging.getLogger("geniusrise")
-#     return logger
-
-
 def setup_logger() -> logging.Logger:
     """
     🛠️ **Setup Logger**: Configure and return a logger with a default ColoredFormatter.
