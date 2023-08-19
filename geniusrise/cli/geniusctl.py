@@ -5,6 +5,9 @@ from typing import Dict
 
 from prettytable import PrettyTable
 from termcolor import colored  # type: ignore
+from rich import print
+from rich.panel import Panel
+from rich.style import Style
 
 from geniusrise.cli.boltctl import BoltCtl
 from geniusrise.cli.discover import Discover, DiscoveredBolt, DiscoveredSpout
@@ -28,6 +31,17 @@ class GeniusCtl:
 
         self.spout_ctls: Dict[str, SpoutCtl] = {}
         self.bolt_ctls: Dict[str, BoltCtl] = {}
+
+        text = """
+        ██████  ███████ ███    ██ ██ ██    ██ ███████ ██████  ██ ███████ ███████
+        ██       ██      ████   ██ ██ ██    ██ ██      ██   ██ ██ ██      ██
+        ██   ███ █████   ██ ██  ██ ██ ██    ██ ███████ ██████  ██ ███████ █████ 
+        ██    ██ ██      ██  ██ ██ ██ ██    ██      ██ ██   ██ ██      ██ ██
+         ██████  ███████ ██   ████ ██  ██████  ███████ ██   ██ ██ ███████ ███████
+        """
+
+        # Print the text in red with a box around it
+        print(Panel(text, style=Style(color="red")))
 
     def create_parser(self):
         """
@@ -78,7 +92,7 @@ class GeniusCtl:
         self.log.info(f"Running command: {args.command}")
 
         self.discover = Discover()
-        discovered_components = self.discover.scan_directory(os.getenv("GENIUS_COMPONENTS_DIR", "."))
+        discovered_components = self.discover.scan_directory(os.getenv("GENIUS_DIR", "."))
 
         # Segregate the discovered components based on their type
         self.spouts = {
