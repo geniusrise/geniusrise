@@ -8,7 +8,6 @@ from typing import Dict
 from prettytable import PrettyTable
 from termcolor import colored  # type: ignore
 from rich import print
-from rich.panel import Panel
 from rich.style import Style
 from rich.text import Text
 
@@ -45,7 +44,7 @@ class GeniusCtl:
         """
 
         # Print the text in red with a box around it and a dark background
-        print(Panel(text, style=Style(color="deep_pink4", bgcolor="#0d0816")))
+        print(Text(text, style=Style(color="deep_pink4")))
 
         # Print the link without a panel
         link_text = Text("🧠 https://geniusrise.ai", style=Style(color="deep_pink4"))
