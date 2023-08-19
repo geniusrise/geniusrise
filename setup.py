@@ -1,5 +1,6 @@
-from setuptools import setup, find_packages
 import os
+
+from setuptools import find_packages, setup
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
@@ -8,7 +9,10 @@ with open("requirements.txt", "r", encoding="utf-8") as f:
     requirements = f.read().splitlines()
 
 entry_points = {
-    "console_scripts": ["geniusrise = geniusrise.cli.geniusctl:main", "genius = geniusrise.cli.geniusctl:main"]
+    "console_scripts": [
+        "geniusrise = geniusrise.cli.geniusctl:main",
+        "genius = geniusrise.cli.geniusctl:main",
+    ]
 }
 
 setup(

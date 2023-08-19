@@ -20,6 +20,7 @@ from typing import Dict, Optional
 
 import jsonpickle
 import psycopg2
+
 from geniusrise.core.state import StateManager
 
 

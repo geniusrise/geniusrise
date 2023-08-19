@@ -14,16 +14,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from abc import ABCMeta
-import os
-import pkg_resources  # type: ignore
-import logging
-import inspect
-from typing import Dict, Any, Optional
-from geniusrise.core import Spout, Bolt
-import pydantic
-import emoji  # type: ignore
 import importlib
+import inspect
+import logging
+import os
+from abc import ABCMeta
+from typing import Any, Dict, Optional
+
+import emoji  # type: ignore
+import pkg_resources  # type: ignore
+import pydantic
+
+from geniusrise.core import Bolt, Spout
 
 
 class DiscoveredSpout(pydantic.BaseModel):

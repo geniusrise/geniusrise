@@ -1,16 +1,15 @@
 import argparse
 import logging
-from typing import Dict
 import os
+from typing import Dict
 
 from prettytable import PrettyTable
 from termcolor import colored  # type: ignore
 
-from geniusrise.cli.discover import Discover
-from geniusrise.cli.spoutctl import SpoutCtl
 from geniusrise.cli.boltctl import BoltCtl
+from geniusrise.cli.discover import Discover, DiscoveredBolt, DiscoveredSpout
+from geniusrise.cli.spoutctl import SpoutCtl
 from geniusrise.cli.yamlctl import YamlCtl
-from geniusrise.cli.discover import DiscoveredSpout, DiscoveredBolt
 
 
 class GeniusCtl:
@@ -119,7 +118,12 @@ class GeniusCtl:
         List all discovered spouts and bolts in a table.
         """
         table = PrettyTable(
-            [colored("Name", "green"), colored("Type", "green"), colored("Methods", "green")], align="l"
+            [
+                colored("Name", "green"),
+                colored("Type", "green"),
+                colored("Methods", "green"),
+            ],
+            align="l",
         )
         for spout_name in self.spouts.keys():
             s = self.spouts[spout_name].klass

@@ -14,9 +14,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pytest
 import argparse
 import os
+
+import pytest
+
 from geniusrise.cli.boltctl import BoltCtl
 from geniusrise.cli.discover import Discover
 from geniusrise.core import Bolt

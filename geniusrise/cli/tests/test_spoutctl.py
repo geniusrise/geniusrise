@@ -14,11 +14,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pytest
 import argparse
 import os
-from geniusrise.cli.spoutctl import SpoutCtl
+
+import pytest
+
 from geniusrise.cli.discover import Discover
+from geniusrise.cli.spoutctl import SpoutCtl
 from geniusrise.core import Spout
 
 

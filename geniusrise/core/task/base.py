@@ -20,9 +20,10 @@ import uuid
 from abc import ABC
 from typing import Any, List, Optional, Tuple
 
-from geniusrise.core.data import InputConfig, OutputConfig
 from prettytable import PrettyTable
 from termcolor import colored  # type: ignore
+
+from geniusrise.core.data import InputConfig, OutputConfig
 
 
 class Task(ABC):

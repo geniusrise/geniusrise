@@ -14,16 +14,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import yaml  # type: ignore
 import argparse
 import logging
-import emoji  # type: ignore
 import typing
 from typing import Dict, List
 
-from geniusrise.cli.spoutctl import SpoutCtl
+import emoji  # type: ignore
+import yaml  # type: ignore
+
 from geniusrise.cli.boltctl import BoltCtl
-from geniusrise.cli.schema import Geniusfile, Spout, Bolt
+from geniusrise.cli.schema import Bolt, Geniusfile, Spout
+from geniusrise.cli.spoutctl import SpoutCtl
 
 
 class YamlCtl:
@@ -72,7 +73,12 @@ class YamlCtl:
         """
         parser.add_argument("--spout", type=str, help="Name of the specific spout to run.")
         parser.add_argument("--bolt", type=str, help="Name of the specific bolt to run.")
-        parser.add_argument("--file", default=".", type=str, help="Path of the genius.yml file, default to .")
+        parser.add_argument(
+            "--file",
+            default=".",
+            type=str,
+            help="Path of the genius.yml file, default to .",
+        )
         return parser
 
     def run(self, args):
@@ -128,7 +134,12 @@ class YamlCtl:
             return
 
         self.log.info(emoji.emojize(f":rocket: Running spout {spout_name}..."))
-        flat_args = ["rise", spout.output.type, spout.state.type, spout.method] + self._convert_spout(spout)
+        flat_args = [
+            "rise",
+            spout.output.type,
+            spout.state.type,
+            spout.method,
+        ] + self._convert_spout(spout)
 
         parser = argparse.ArgumentParser()
         self.spout_ctls[spout_name].create_parser(parser)
@@ -165,7 +176,13 @@ class YamlCtl:
             return
 
         self.log.info(emoji.emojize(f":rocket: Running bolt {bolt_name}..."))
-        flat_args = ["rise", bolt.input.type, bolt.output.type, bolt.state.type, bolt.method] + self._convert_bolt(bolt)
+        flat_args = [
+            "rise",
+            bolt.input.type,
+            bolt.output.type,
+            bolt.state.type,
+            bolt.method,
+        ] + self._convert_bolt(bolt)
 
         parser = argparse.ArgumentParser()
         self.bolt_ctls[bolt_name].create_parser(parser)

@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
+
 from geniusrise.core.state import RedisStateManager
 
 # Define your Redis connection details as constants

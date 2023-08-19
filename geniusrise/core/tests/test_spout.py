@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
+
 from geniusrise.core import Spout
 from geniusrise.core.data import BatchOutputConfig, StreamingOutputConfig
 from geniusrise.core.state import (

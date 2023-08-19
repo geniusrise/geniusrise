@@ -19,6 +19,7 @@ import os
 
 import boto3
 import pytest
+
 from geniusrise.core.data import BatchOutputConfig
 
 # Define your S3 bucket and folder details as constants
