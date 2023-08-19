@@ -14,6 +14,7 @@ from geniusrise.cli.boltctl import BoltCtl
 from geniusrise.cli.discover import Discover, DiscoveredBolt, DiscoveredSpout
 from geniusrise.cli.spoutctl import SpoutCtl
 from geniusrise.cli.yamlctl import YamlCtl
+from geniusrise.logging import setup_logger
 
 
 class GeniusCtl:
@@ -45,7 +46,7 @@ class GeniusCtl:
         print(Panel(text, style=Style(color="deep_pink4", bgcolor="#0d0816")))
 
         # Print the link without a panel
-        link_text = Text("https://geniusrise.ai", style=Style(color="deep_pink4"))
+        link_text = Text("🧠 https://geniusrise.ai", style=Style(color="deep_pink4"))
         link_text.stylize("link", 0, len(link_text))
         print("")
         print(link_text)
@@ -58,7 +59,7 @@ class GeniusCtl:
         Returns:
             argparse.ArgumentParser: Command-line parser.
         """
-        parser = argparse.ArgumentParser(description="Manage the geniusrise application.")
+        parser = argparse.ArgumentParser(description="Geniusrise")
         subparsers = parser.add_subparsers(dest="command")
 
         # Run module discovery
@@ -183,6 +184,7 @@ class GeniusCtl:
 
 
 def main():
+    logger = setup_logger()
     genius_ctl = GeniusCtl()
     genius_ctl.cli()
 

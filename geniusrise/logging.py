@@ -21,6 +21,12 @@ import colorlog
 from geniusrise.config import LOGLEVEL
 
 
+# def setup_logger() -> logging.Logger:
+#     logging.basicConfig(level=logging.DEBUG)
+#     logger = logging.getLogger("geniusrise")
+#     return logger
+
+
 def setup_logger() -> logging.Logger:
     """
     🛠️ **Setup Logger**: Configure and return a logger with a default ColoredFormatter.
@@ -36,6 +42,13 @@ def setup_logger() -> logging.Logger:
     Returns:
         logging.Logger: Configured logger with colorful outputs.
     """
+    # Reset all existing loggers
+    for logger in logging.root.manager.loggerDict.values():
+        if isinstance(logger, logging.Logger):
+            logger.setLevel(logging.NOTSET)
+            for handler in logger.handlers.copy():
+                logger.removeHandler(handler)
+
     # Define the custom formatter
     formatter = colorlog.ColoredFormatter(
         "%(log_color)s%(levelname)-8s%(reset)s "
@@ -54,13 +67,11 @@ def setup_logger() -> logging.Logger:
     )
 
     # Setup logger for geniusrise
+    logging.basicConfig(level=logging.DEBUG)
     logger = logging.getLogger("geniusrise")
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
     logger.addHandler(handler)
-    logger.setLevel(LOGLEVEL)
-
-    # 🎉 Logger is ready to use!
-    logger.info("🚀 Logger is set up and ready to use!")
+    logger.setLevel(logging.getLevelName(LOGLEVEL))
 
     return logger
