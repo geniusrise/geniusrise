@@ -91,7 +91,7 @@ class YamlCtl:
             args (argparse.Namespace): Parsed command-line arguments.
         """
         with open(args.file, "r") as file:
-            self.geniusfile = Geniusfile.parse_obj(yaml.safe_load(file))
+            self.geniusfile = Geniusfile.model_validate(yaml.safe_load(file), strict=True)
         if args.spout == "all":
             self.run_spouts()
         elif args.bolt == "all":

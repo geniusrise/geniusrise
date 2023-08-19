@@ -136,7 +136,6 @@ class InputArgs(BaseModel):
 
     input_topic: Optional[str]
     kafka_servers: Optional[str]
-    output_folder: Optional[str]
     bucket: Optional[str]
     folder: Optional[str]
     name: Optional[str]
@@ -184,13 +183,13 @@ class DeployArgs(BaseModel):
     namespace: Optional[str]
     image: Optional[str]
     replicas: Optional[int]
-    account_id: Optional[str]
-    cluster: Optional[str]
-    subnet_ids: Optional[List[str]]
-    security_group_ids: Optional[List[str]]
-    log_group: Optional[str]
-    cpu: Optional[int]
-    memory: Optional[int]
+    account_id: Optional[str] = None
+    cluster: Optional[str] = None
+    subnet_ids: Optional[List[str]] = None
+    security_group_ids: Optional[List[str]] = None
+    log_group: Optional[str] = None
+    cpu: Optional[int] = None
+    memory: Optional[int] = None
 
     class Config:
         extra = Extra.allow
@@ -230,7 +229,7 @@ class Deploy(BaseModel):
                 for field in required_fields:
                     if not v or field not in v or not v[field]:
                         raise ValueError(f"Missing required field '{field}' for ecs deploy type")
-            elif values["type"] == "k8s":
+            if values["type"] == "k8s":
                 required_fields = ["name", "namespace", "image", "replicas"]
                 for field in required_fields:
                     if not v or field not in v or not v[field]:
