@@ -19,32 +19,32 @@ import os
 import boto3
 import pytest
 
-from geniusrise.core.data import BatchInputConfig
+from geniusrise.core.data import BatchInput
 
 # Define your S3 bucket and folder details as constants
 BUCKET = "geniusrise-test-bucket"
 S3_FOLDER = "whatever"
 
 
-# Define a fixture for your BatchInputConfig
+# Define a fixture for your BatchInput
 @pytest.fixture
 def batch_input_config(tmpdir):
-    yield BatchInputConfig(tmpdir, BUCKET, S3_FOLDER)
+    yield BatchInput(tmpdir, BUCKET, S3_FOLDER)
 
 
-# Test that the BatchInputConfig can be initialized
+# Test that the BatchInput can be initialized
 def test_batch_input_config_init(batch_input_config):
     assert batch_input_config.input_folder is not None
     assert batch_input_config.bucket == BUCKET
     assert batch_input_config.s3_folder == S3_FOLDER
 
 
-# Test that the BatchInputConfig can get the input folder
+# Test that the BatchInput can get the input folder
 def test_batch_input_config_get(batch_input_config):
     assert batch_input_config.get() == batch_input_config.input_folder
 
 
-# Test that the BatchInputConfig can copy files from the S3 bucket
+# Test that the BatchInput can copy files from the S3 bucket
 def test_batch_input_config_copy_from_remote(batch_input_config):
     batch_input_config.copy_from_remote()
 
@@ -54,7 +54,7 @@ def test_batch_input_config_copy_from_remote(batch_input_config):
     assert list(os.listdir(batch_input_config.input_folder + "/")) == [S3_FOLDER]  # This should not be empty
 
 
-# Test that the BatchInputConfig can list files in the input folder
+# Test that the BatchInput can list files in the input folder
 def test_batch_input_config_list_files(batch_input_config):
     # Create a test file in the input folder
     with open(os.path.join(batch_input_config.input_folder, "test_file.txt"), "w") as f:
@@ -65,7 +65,7 @@ def test_batch_input_config_list_files(batch_input_config):
     assert "test_file.txt" in files[0]
 
 
-# Test that the BatchInputConfig can read a file from the input folder
+# Test that the BatchInput can read a file from the input folder
 def test_batch_input_config_read_file(batch_input_config):
     # Create a test file in the input folder
     with open(os.path.join(batch_input_config.input_folder, "test_file.txt"), "w") as f:
@@ -75,7 +75,7 @@ def test_batch_input_config_read_file(batch_input_config):
     assert contents == "test"
 
 
-# Test that the BatchInputConfig can delete a file from the input folder
+# Test that the BatchInput can delete a file from the input folder
 def test_batch_input_config_delete_file(batch_input_config):
     # Create a test file in the input folder
     with open(os.path.join(batch_input_config.input_folder, "test_file.txt"), "w") as f:
@@ -85,7 +85,7 @@ def test_batch_input_config_delete_file(batch_input_config):
     assert not os.path.exists(os.path.join(batch_input_config.input_folder, "test_file.txt"))
 
 
-# Test that the BatchInputConfig can copy a file to an S3 bucket
+# Test that the BatchInput can copy a file to an S3 bucket
 def test_batch_input_config_copy_to_remote(batch_input_config):
     # Create a test file in the input folder
     with open(os.path.join(batch_input_config.input_folder, "test_file.txt"), "w") as f:

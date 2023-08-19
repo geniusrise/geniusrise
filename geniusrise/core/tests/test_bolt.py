@@ -18,10 +18,10 @@ import pytest
 
 from geniusrise.core import Bolt
 from geniusrise.core.data import (
-    BatchInputConfig,
-    BatchOutputConfig,
-    StreamingInputConfig,
-    StreamingOutputConfig,
+    BatchInput,
+    BatchOutput,
+    StreamingInput,
+    StreamingOutput,
 )
 from geniusrise.core.state import (
     DynamoDBStateManager,
@@ -57,20 +57,20 @@ class TestBolt(Bolt):
 
 
 # Define a fixture for the input config
-@pytest.fixture(params=[BatchInputConfig, StreamingInputConfig])
+@pytest.fixture(params=[BatchInput, StreamingInput])
 def input_config(request, tmpdir):
-    if request.param == BatchInputConfig:
+    if request.param == BatchInput:
         return request.param(tmpdir, bucket, s3_folder)
-    elif request.param == StreamingInputConfig:
+    elif request.param == StreamingInput:
         return request.param(input_topic, kafka_cluster_connection_string, group_id)
 
 
 # Define a fixture for the output config
-@pytest.fixture(params=[BatchOutputConfig, StreamingOutputConfig])
+@pytest.fixture(params=[BatchOutput, StreamingOutput])
 def output_config(request, tmpdir):
-    if request.param == BatchOutputConfig:
+    if request.param == BatchOutput:
         return request.param(tmpdir, bucket, s3_folder)
-    elif request.param == StreamingOutputConfig:
+    elif request.param == StreamingOutput:
         return request.param(output_topic, kafka_servers)
 
 
@@ -163,14 +163,14 @@ def test_bolt_create(input_type, output_type, state_type, tmpdir):
     assert isinstance(bolt, Bolt)
 
     if input_type == "batch":
-        assert isinstance(bolt.input_config, BatchInputConfig)
+        assert isinstance(bolt.input_config, BatchInput)
     elif input_type == "streaming":
-        assert isinstance(bolt.input_config, StreamingInputConfig)
+        assert isinstance(bolt.input_config, StreamingInput)
 
     if output_type == "batch":
-        assert isinstance(bolt.output_config, BatchOutputConfig)
+        assert isinstance(bolt.output_config, BatchOutput)
     elif output_type == "streaming":
-        assert isinstance(bolt.output_config, StreamingOutputConfig)
+        assert isinstance(bolt.output_config, StreamingOutput)
 
     if state_type == "in_memory":
         assert isinstance(bolt.state_manager, InMemoryStateManager)

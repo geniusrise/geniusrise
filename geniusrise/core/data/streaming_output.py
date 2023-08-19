@@ -19,12 +19,12 @@ from typing import Any, List, Optional
 
 from kafka import KafkaProducer
 
-from .output import OutputConfig
+from .output import Output
 
 
-class StreamingOutputConfig(OutputConfig):
+class StreamingOutput(Output):
     """
-    📡 **StreamingOutputConfig**: Manages streaming output configurations.
+    📡 **StreamingOutput**: Manages streaming output configurations.
 
     Attributes:
         output_topic (str): Kafka topic to ingest data.
@@ -32,7 +32,7 @@ class StreamingOutputConfig(OutputConfig):
 
     Usage:
     ```python
-    config = StreamingOutputConfig("my_topic", "localhost:9092")
+    config = StreamingOutput("my_topic", "localhost:9092")
     config.save({"key": "value"}, "ignored_filename")
     config.flush()
     ```

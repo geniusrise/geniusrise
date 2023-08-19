@@ -19,7 +19,7 @@ import json
 import pytest
 from kafka import KafkaConsumer
 
-from geniusrise.core.data import StreamingOutputConfig
+from geniusrise.core.data import StreamingOutput
 
 # Define your Kafka connection details as constants
 KAFKA_SERVERS = "localhost:9094"
@@ -27,10 +27,10 @@ OUTPUT_TOPIC = "test_topic"
 GROUP_ID = "test_group"
 
 
-# Define a fixture for your StreamingOutputConfig
+# Define a fixture for your StreamingOutput
 @pytest.fixture
 def streaming_output_config():
-    return StreamingOutputConfig(OUTPUT_TOPIC, KAFKA_SERVERS)
+    return StreamingOutput(OUTPUT_TOPIC, KAFKA_SERVERS)
 
 
 # Define a fixture for your KafkaConsumer
@@ -41,7 +41,7 @@ def kafka_consumer():
     return consumer
 
 
-# Test that the StreamingOutputConfig can save data to the Kafka topic
+# Test that the StreamingOutput can save data to the Kafka topic
 def test_streaming_output_config_save(streaming_output_config, kafka_consumer):
     data = {"test": "data"}
     streaming_output_config.save(data, "ignored_filename")
@@ -52,7 +52,7 @@ def test_streaming_output_config_save(streaming_output_config, kafka_consumer):
         break  # Only consume one message for this test
 
 
-# Test that the StreamingOutputConfig can save data to a specific partition in the Kafka topic
+# Test that the StreamingOutput can save data to a specific partition in the Kafka topic
 def test_streaming_output_config_save_to_partition(streaming_output_config, kafka_consumer):
     data = {"test": "data"}
     partition = 0  # Replace with the number of a partition in your Kafka topic
@@ -65,7 +65,7 @@ def test_streaming_output_config_save_to_partition(streaming_output_config, kafk
             break  # Only consume one message for this test
 
 
-# Test that the StreamingOutputConfig can save data in bulk to the Kafka topic
+# Test that the StreamingOutput can save data in bulk to the Kafka topic
 def test_streaming_output_config_save_bulk(streaming_output_config, kafka_consumer):
     data = [{"test": "data1"}, {"test": "data2"}, {"test": "data3"}]
     streaming_output_config.save_bulk(data)

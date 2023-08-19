@@ -16,12 +16,12 @@
 
 from geniusrise.core.bolt import Bolt
 from geniusrise.core.data import (
-    BatchInputConfig,
-    BatchOutputConfig,
-    InputConfig,
-    OutputConfig,
-    StreamingInputConfig,
-    StreamingOutputConfig,
+    BatchInput,
+    BatchOutput,
+    Input,
+    Output,
+    StreamingInput,
+    StreamingOutput,
 )
 from geniusrise.core.spout import Spout
 from geniusrise.core.state import (

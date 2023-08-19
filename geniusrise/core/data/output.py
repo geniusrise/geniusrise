@@ -18,7 +18,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Optional
 
 
-class OutputConfig(ABC):
+class Output(ABC):
     """
     Abstract base class for managing output configurations.
     """

@@ -19,12 +19,12 @@ import os
 
 import boto3
 
-from .input import InputConfig
+from .input import Input
 
 
-class BatchInputConfig(InputConfig):
+class BatchInput(Input):
     """
-    📁 BatchInputConfig: Manages batch input configurations.
+    📁 BatchInput: Manages batch input configurations.
 
     Attributes:
         input_folder (str): Folder to read input files.
@@ -33,7 +33,7 @@ class BatchInputConfig(InputConfig):
 
     Usage:
     ```python
-    config = BatchInputConfig("/path/to/input", "my_bucket", "s3/folder")
+    config = BatchInput("/path/to/input", "my_bucket", "s3/folder")
     files = config.list_files()
     content = config.read_file("example.txt")
     ```

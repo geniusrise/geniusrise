@@ -15,18 +15,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from geniusrise.core import (
-    BatchInputConfig,
-    BatchOutputConfig,
+    BatchInput,
+    BatchOutput,
     Bolt,
     DynamoDBStateManager,
     InMemoryStateManager,
-    InputConfig,
-    OutputConfig,
+    Input,
+    Output,
     PostgresStateManager,
     RedisStateManager,
     Spout,
     StateManager,
-    StreamingInputConfig,
-    StreamingOutputConfig,
+    StreamingInput,
+    StreamingOutput,
     Task,
 )

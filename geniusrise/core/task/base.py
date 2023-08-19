@@ -23,7 +23,7 @@ from typing import Any, List, Optional, Tuple
 from prettytable import PrettyTable
 from termcolor import colored  # type: ignore
 
-from geniusrise.core.data import InputConfig, OutputConfig
+from geniusrise.core.data import Input, Output
 
 
 class Task(ABC):
@@ -34,8 +34,8 @@ class Task(ABC):
 
     ## Attributes:
     - `id` (uuid.UUID): Unique identifier for the task.
-    - `input_config` (InputConfig): Configuration for input data.
-    - `output_config` (OutputConfig): Configuration for output data.
+    - `input_config` (Input): Configuration for input data.
+    - `output_config` (Output): Configuration for output data.
 
     ## Usage:
     ```python
@@ -47,16 +47,16 @@ class Task(ABC):
         Extend this class to implement specific task functionalities.
     """
 
-    input_config: InputConfig
-    output_config: OutputConfig
+    input_config: Input
+    output_config: Output
 
     def __init__(self) -> None:
         """
         Initialize a new task.
 
         Args:
-            input_config (InputConfig): Configuration for input data.
-            output_config (OutputConfig): Configuration for output data.
+            input_config (Input): Configuration for input data.
+            output_config (Output): Configuration for output data.
         """
         self.id = str(uuid.uuid4())
         self.log = logging.getLogger(self.__class__.__name__)

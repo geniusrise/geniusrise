@@ -18,7 +18,7 @@ import logging
 import tempfile
 from typing import Any
 
-from geniusrise.core.data import BatchOutputConfig, OutputConfig, StreamingOutputConfig
+from geniusrise.core.data import BatchOutput, Output, StreamingOutput
 from geniusrise.core.state import (
     DynamoDBStateManager,
     InMemoryStateManager,
@@ -34,7 +34,7 @@ class Spout(Task):
     Base class for all spouts.
     """
 
-    def __init__(self, output_config: OutputConfig, state_manager: StateManager, **kwargs) -> None:
+    def __init__(self, output_config: Output, state_manager: StateManager, **kwargs) -> None:
         """
         The `Spout` class is a base class for all spouts in the given context.
         It inherits from the `Task` class and provides methods for executing tasks
@@ -42,9 +42,9 @@ class Spout(Task):
         options including in-memory, Redis, PostgreSQL, and DynamoDB,
         and output configurations for batch or streaming data.
 
-        The `Spout` class uses the `OutputConfig` and `StateManager` classes, which are abstract base
-         classes for managing output configurations and states, respectively. The `OutputConfig` class
-         has two subclasses: `StreamingOutputConfig` and `BatchOutputConfig`, which manage streaming and
+        The `Spout` class uses the `Output` and `StateManager` classes, which are abstract base
+         classes for managing output configurations and states, respectively. The `Output` class
+         has two subclasses: `StreamingOutput` and `BatchOutput`, which manage streaming and
          batch output configurations, respectively. The `StateManager` class is used to get and set state,
          and it has several subclasses for different types of state managers.
 
@@ -52,17 +52,17 @@ class Spout(Task):
         which are used to manage tasks on Amazon ECS and Kubernetes, respectively.
 
         Usage:
-            - Create an instance of the Spout class by providing an OutputConfig object and a StateManager object.
-            - The OutputConfig object specifies the output configuration for the spout.
+            - Create an instance of the Spout class by providing an Output object and a StateManager object.
+            - The Output object specifies the output configuration for the spout.
             - The StateManager object handles the management of the spout's state.
 
         Example:
-            output_config = OutputConfig(...)
+            output_config = Output(...)
             state_manager = StateManager(...)
             spout = Spout(output_config, state_manager)
 
         Args:
-            output_config (OutputConfig): The output configuration.
+            output_config (Output): The output configuration.
             state_manager (StateManager): The state manager.
         """
         super().__init__()
@@ -151,15 +151,15 @@ class Spout(Task):
             ValueError: If an invalid output type or state type is provided.
         """
         # Create the output config
-        output_config: BatchOutputConfig | StreamingOutputConfig
+        output_config: BatchOutput | StreamingOutput
         if output_type == "batch":
-            output_config = BatchOutputConfig(
+            output_config = BatchOutput(
                 output_folder=kwargs.get("output_folder", tempfile.mkdtemp()),
                 bucket=kwargs.get("output_s3_bucket", "geniusrise"),
                 s3_folder=kwargs.get("output_s3_folder", klass.__class__.__name__),
             )
         elif output_type == "streaming":
-            output_config = StreamingOutputConfig(
+            output_config = StreamingOutput(
                 output_topic=kwargs.get("output_kafka_topic", None),
                 kafka_servers=kwargs.get("output_kafka_cluster_connection_string", None),
             )

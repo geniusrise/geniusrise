@@ -20,25 +20,25 @@ import os
 import boto3
 import pytest
 
-from geniusrise.core.data import BatchOutputConfig
+from geniusrise.core.data import BatchOutput
 
 # Define your S3 bucket and folder details as constants
 BUCKET = "geniusrise-test-bucket"
 S3_FOLDER = "whatever"
 
 
-# Define a fixture for your BatchOutputConfig
+# Define a fixture for your BatchOutput
 @pytest.fixture
 def batch_output_config(tmpdir):
-    yield BatchOutputConfig(tmpdir, BUCKET, S3_FOLDER)
+    yield BatchOutput(tmpdir, BUCKET, S3_FOLDER)
 
 
-# Test that the BatchOutputConfig can be initialized
+# Test that the BatchOutput can be initialized
 def test_batch_output_config_init(batch_output_config):
     assert batch_output_config.output_folder is not None
 
 
-# Test that the BatchOutputConfig can save data to a file
+# Test that the BatchOutput can save data to a file
 def test_batch_output_config_save(batch_output_config):
     data = {"test": "data"}
     filename = "test_file.json"
@@ -48,7 +48,7 @@ def test_batch_output_config_save(batch_output_config):
     assert os.path.isfile(os.path.join(batch_output_config.output_folder, filename))
 
 
-# Test that the BatchOutputConfig can copy files to the S3 bucket
+# Test that the BatchOutput can copy files to the S3 bucket
 def test_batch_output_config_copy_to_remote(batch_output_config):
     # First, save a file to the output folder
     data = {"test": "data"}
@@ -64,7 +64,7 @@ def test_batch_output_config_copy_to_remote(batch_output_config):
     assert file_exists_in_s3(BUCKET, os.path.join(S3_FOLDER, filename))
 
 
-# Test that the BatchOutputConfig can flush the output folder to the S3 bucket
+# Test that the BatchOutput can flush the output folder to the S3 bucket
 def test_batch_output_config_flush(batch_output_config):
     # First, save a file to the output folder
     data = {"test": "data"}
@@ -99,7 +99,7 @@ def file_exists_in_s3(bucket, key):
     return True
 
 
-# Test that the BatchOutputConfig can list files in the output folder
+# Test that the BatchOutput can list files in the output folder
 def test_batch_output_config_list_files(batch_output_config):
     # First, save a file to the output folder
     data = {"test": "data"}
@@ -113,7 +113,7 @@ def test_batch_output_config_list_files(batch_output_config):
     assert os.path.join(batch_output_config.output_folder, filename) in files
 
 
-# Test that the BatchOutputConfig can read a file from the output folder
+# Test that the BatchOutput can read a file from the output folder
 def test_batch_output_config_read_file(batch_output_config):
     # First, save a file to the output folder
     data = {"test": "data"}
@@ -127,7 +127,7 @@ def test_batch_output_config_read_file(batch_output_config):
     assert json.loads(contents) == data
 
 
-# Test that the BatchOutputConfig can delete a file from the output folder
+# Test that the BatchOutput can delete a file from the output folder
 def test_batch_output_config_delete_file(batch_output_config):
     # First, save a file to the output folder
     data = {"test": "data"}
@@ -141,7 +141,7 @@ def test_batch_output_config_delete_file(batch_output_config):
     assert not os.path.isfile(os.path.join(batch_output_config.output_folder, filename))
 
 
-# Test that the BatchOutputConfig can copy a specific file to the S3 bucket
+# Test that the BatchOutput can copy a specific file to the S3 bucket
 def test_batch_output_config_copy_file_to_remote(batch_output_config):
     # First, save a file to the output folder
     data = {"test": "data"}

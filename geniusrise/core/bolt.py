@@ -19,12 +19,12 @@ import tempfile
 from typing import Any
 
 from geniusrise.core.data import (
-    BatchInputConfig,
-    BatchOutputConfig,
-    InputConfig,
-    OutputConfig,
-    StreamingInputConfig,
-    StreamingOutputConfig,
+    BatchInput,
+    BatchOutput,
+    Input,
+    Output,
+    StreamingInput,
+    StreamingOutput,
 )
 from geniusrise.core.state import (
     DynamoDBStateManager,
@@ -46,8 +46,8 @@ class Bolt(Task):
 
     def __init__(
         self,
-        input_config: InputConfig,
-        output_config: OutputConfig,
+        input_config: Input,
+        output_config: Output,
         state_manager: StateManager,
         **kwargs,
     ) -> None:
@@ -58,30 +58,30 @@ class Bolt(Task):
         options including in-memory, Redis, PostgreSQL, and DynamoDB,
         and input and output configurations for batch or streaming data.
 
-        The `Bolt` class uses the `InputConfig`, `OutputConfig` and `StateManager` classes, which are abstract base
-        classes for managing input configurations, output configurations and states, respectively. The `InputConfig` and
-        `OutputConfig` classes each have two subclasses: `StreamingInputConfig`, `BatchInputConfig`, `StreamingOutputConfig`
-        and `BatchOutputConfig`, which manage streaming and batch input and output configurations, respectively.
+        The `Bolt` class uses the `Input`, `Output` and `StateManager` classes, which are abstract base
+        classes for managing input configurations, output configurations and states, respectively. The `Input` and
+        `Output` classes each have two subclasses: `StreamingInput`, `BatchInput`, `StreamingOutput`
+        and `BatchOutput`, which manage streaming and batch input and output configurations, respectively.
         The `StateManager` class is used to get and set state, and it has several subclasses for different types of state managers.
 
         The `Bolt` class also uses the `ECSManager` and `K8sManager` classes in the `execute_remote` method,
         which are used to manage tasks on Amazon ECS and Kubernetes, respectively.
 
         Usage:
-            - Create an instance of the Bolt class by providing an InputConfig object, an OutputConfig object and a StateManager object.
-            - The InputConfig object specifies the input configuration for the bolt.
-            - The OutputConfig object specifies the output configuration for the bolt.
+            - Create an instance of the Bolt class by providing an Input object, an Output object and a StateManager object.
+            - The Input object specifies the input configuration for the bolt.
+            - The Output object specifies the output configuration for the bolt.
             - The StateManager object handles the management of the bolt's state.
 
         Example:
-            input_config = InputConfig(...)
-            output_config = OutputConfig(...)
+            input_config = Input(...)
+            output_config = Output(...)
             state_manager = StateManager(...)
             bolt = Bolt(input_config, output_config, state_manager)
 
         Args:
-            input_config (InputConfig): The input configuration.
-            output_config (OutputConfig): The output configuration.
+            input_config (Input): The input configuration.
+            output_config (Output): The output configuration.
             state_manager (StateManager): The state manager.
         """
         super().__init__()
@@ -113,11 +113,11 @@ class Bolt(Task):
             self.state_manager.set_state(self.id, {})
 
             # Copy input data to local or connect to kafka and pass on the details
-            if type(self.input_config) is BatchInputConfig:
+            if type(self.input_config) is BatchInput:
                 self.input_config.copy_from_remote()
                 input_folder = self.input_config.get()
                 kwargs["input_folder"] = input_folder
-            elif type(self.input_config) is StreamingInputConfig:
+            elif type(self.input_config) is StreamingInput:
                 kafka_consumer = self.input_config.get()
                 kwargs["kafka_consumer"] = kafka_consumer
 
@@ -195,15 +195,15 @@ class Bolt(Task):
             ValueError: If an invalid input type, output type, or state type is provided.
         """
         # Create the input config
-        input_config: BatchInputConfig | StreamingInputConfig
+        input_config: BatchInput | StreamingInput
         if input_type == "batch":
-            input_config = BatchInputConfig(
+            input_config = BatchInput(
                 input_folder=kwargs["input_folder"] if "input_folder" in kwargs else tempfile.mkdtemp(),
                 bucket=kwargs["input_s3_bucket"] if "input_s3_bucket" in kwargs else None,
                 s3_folder=kwargs["input_s3_folder"] if "input_s3_folder" in kwargs else None,
             )
         elif input_type == "streaming":
-            input_config = StreamingInputConfig(
+            input_config = StreamingInput(
                 input_topic=kwargs["input_kafka_topic"] if "input_kafka_topic" in kwargs else None,
                 kafka_cluster_connection_string=kwargs["input_kafka_cluster_connection_string"]
                 if "input_kafka_cluster_connection_string" in kwargs
@@ -214,15 +214,15 @@ class Bolt(Task):
             raise ValueError(f"Invalid input type: {input_type}")
 
         # Create the output config
-        output_config: BatchOutputConfig | StreamingOutputConfig
+        output_config: BatchOutput | StreamingOutput
         if output_type == "batch":
-            output_config = BatchOutputConfig(
+            output_config = BatchOutput(
                 output_folder=kwargs["output_folder"] if "output_folder" in kwargs else tempfile.mkdtemp(),
                 bucket=kwargs["output_s3_bucket"] if "output_s3_bucket" in kwargs else tempfile.mkdtemp(),
                 s3_folder=kwargs["output_s3_folder"] if "output_s3_folder" in kwargs else tempfile.mkdtemp(),
             )
         elif output_type == "streaming":
-            output_config = StreamingOutputConfig(
+            output_config = StreamingOutput(
                 kwargs["output_kafka_topic"] if "output_kafka_topic" in kwargs else None,
                 kwargs["output_kafka_cluster_connection_string"]
                 if "output_kafka_cluster_connection_string" in kwargs

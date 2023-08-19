@@ -21,12 +21,12 @@ import shortuuid
 
 import boto3
 
-from .output import OutputConfig
+from .output import Output
 
 
-class BatchOutputConfig(OutputConfig):
+class BatchOutput(Output):
     """
-    📁 BatchOutputConfig: Manages batch output configurations.
+    📁 BatchOutput: Manages batch output configurations.
 
     Attributes:
         output_folder (str): Folder to save output files.
@@ -35,7 +35,7 @@ class BatchOutputConfig(OutputConfig):
 
     Usage:
     ```python
-    config = BatchOutputConfig("/path/to/output", "my_bucket", "s3/folder")
+    config = BatchOutput("/path/to/output", "my_bucket", "s3/folder")
     config.save({"key": "value"}, "example.json")
     files = config.list_files()
     content = config.read_file("example.json")

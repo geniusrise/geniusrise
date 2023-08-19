@@ -18,7 +18,7 @@ import uuid
 
 import pytest
 
-from geniusrise.core.data import BatchInputConfig, BatchOutputConfig
+from geniusrise.core.data import BatchInput, BatchOutput
 from geniusrise.core.task import Task
 
 BUCKET = "geniusrise-test-bucket"
@@ -35,16 +35,16 @@ class TestTask(Task):
 @pytest.fixture
 def task(tmpdir):
     task = TestTask()
-    task.input_config = BatchInputConfig(tmpdir, BUCKET, S3_FOLDER)
-    task.output_config = BatchOutputConfig(tmpdir, BUCKET, S3_FOLDER)
+    task.input_config = BatchInput(tmpdir, BUCKET, S3_FOLDER)
+    task.output_config = BatchOutput(tmpdir, BUCKET, S3_FOLDER)
     return task
 
 
 # Test that the Task can be initialized
 def test_task_init(task):
     assert isinstance(task.id, uuid.UUID)
-    assert isinstance(task.input_config, BatchInputConfig)
-    assert isinstance(task.output_config, BatchOutputConfig)
+    assert isinstance(task.input_config, BatchInput)
+    assert isinstance(task.output_config, BatchOutput)
 
 
 # Test that the Task can execute a method

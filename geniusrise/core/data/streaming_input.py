@@ -19,12 +19,12 @@ from typing import Any, Callable, Iterator
 
 from kafka import KafkaConsumer
 
-from .input import InputConfig
+from .input import Input
 
 
-class StreamingInputConfig(InputConfig):
+class StreamingInput(Input):
     """
-    📡 **StreamingInputConfig**: Manages streaming input configurations.
+    📡 **StreamingInput**: Manages streaming input configurations.
 
     Attributes:
         input_topic (str): Kafka topic to consume data.
@@ -32,7 +32,7 @@ class StreamingInputConfig(InputConfig):
 
     Usage:
     ```python
-    config = StreamingInputConfig("my_topic", "localhost:9092")
+    config = StreamingInput("my_topic", "localhost:9092")
     for message in config.iterator():
         print(message.value)
     ```

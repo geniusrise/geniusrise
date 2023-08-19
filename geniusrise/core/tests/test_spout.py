@@ -17,7 +17,7 @@
 import pytest
 
 from geniusrise.core import Spout
-from geniusrise.core.data import BatchOutputConfig, StreamingOutputConfig
+from geniusrise.core.data import BatchOutput, StreamingOutput
 from geniusrise.core.state import (
     DynamoDBStateManager,
     InMemoryStateManager,
@@ -74,11 +74,11 @@ def state_manager(request):
 
 
 # Define a fixture for the output config
-@pytest.fixture(params=[BatchOutputConfig, StreamingOutputConfig])
+@pytest.fixture(params=[BatchOutput, StreamingOutput])
 def output_config(request, tmpdir):
-    if request.param == BatchOutputConfig:
+    if request.param == BatchOutput:
         return request.param(tmpdir, s3_bucket, s3_folder)
-    elif request.param == StreamingOutputConfig:
+    elif request.param == StreamingOutput:
         return request.param(output_topic, kafka_servers)
 
 
@@ -132,9 +132,9 @@ def test_spout_create(output_type, state_type, tmpdir):
     assert isinstance(spout, TestSpout)
 
     if output_type == "batch":
-        assert isinstance(spout.output_config, BatchOutputConfig)
+        assert isinstance(spout.output_config, BatchOutput)
     elif output_type == "streaming":
-        assert isinstance(spout.output_config, StreamingOutputConfig)
+        assert isinstance(spout.output_config, StreamingOutput)
 
     if state_type == "in_memory":
         assert isinstance(spout.state_manager, InMemoryStateManager)
