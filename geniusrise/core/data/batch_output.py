@@ -16,7 +16,8 @@
 import json
 import logging
 import os
-from typing import Any, List
+from typing import Any, List, Optional
+import shortuuid
 
 import boto3
 
@@ -55,7 +56,7 @@ class BatchOutputConfig(OutputConfig):
         self.s3_folder = s3_folder
         self.log = logging.getLogger(self.__class__.__name__)
 
-    def save(self, data: Any, filename: str) -> None:
+    def save(self, data: Any, filename: Optional[str] = None) -> None:
         """
         💾 Save data to a file in the output folder.
 
@@ -63,6 +64,7 @@ class BatchOutputConfig(OutputConfig):
             data (Any): The data to save.
             filename (str): The filename to use when saving the data to a file.
         """
+        filename = filename if filename else str(shortuuid.uuid())
         try:
             with open(os.path.join(self.output_folder, filename), "w") as f:
                 f.write(json.dumps(data))

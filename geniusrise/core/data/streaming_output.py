@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import json
 import logging
-from typing import Any, List
+from typing import Any, List, Optional
 
 from kafka import KafkaProducer
 
@@ -58,7 +58,7 @@ class StreamingOutputConfig(OutputConfig):
             raise
             self.producer = None
 
-    def save(self, data: Any, filename: str) -> None:
+    def save(self, data: Any, filename: Optional[str] = None) -> None:
         """
         📤 Ingest data into the Kafka topic.
 

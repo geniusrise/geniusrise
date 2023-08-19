@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Optional
 
 
 class OutputConfig(ABC):
@@ -24,7 +24,7 @@ class OutputConfig(ABC):
     """
 
     @abstractmethod
-    def save(self, data: Any, filename: str):
+    def save(self, data: Any, filename: Optional[str] = None) -> None:
         """
         Save data to a file or ingest it into a Kafka topic.
 
