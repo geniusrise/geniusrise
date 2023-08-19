@@ -1,6 +1,8 @@
 import argparse
+from argparse_color_formatter import ColorHelpFormatter
 import logging
 import os
+import sys
 from typing import Dict
 
 from prettytable import PrettyTable
@@ -59,7 +61,7 @@ class GeniusCtl:
         Returns:
             argparse.ArgumentParser: Command-line parser.
         """
-        parser = argparse.ArgumentParser(description="Geniusrise")
+        parser = argparse.ArgumentParser(description="Geniusrise", formatter_class=ColorHelpFormatter)
         subparsers = parser.add_subparsers(dest="command")
 
         # Run module discovery
@@ -80,7 +82,7 @@ class GeniusCtl:
             bolt_ctl.create_parser(bolt_parser)
 
         # Create subparser for YAML operations
-        yaml_parser = subparsers.add_parser("yaml", help="Control spouts and bolts with a YAML file.")
+        yaml_parser = subparsers.add_parser("yaml", help="Manage spouts and bolts with a YAML file.")
         # Initialize YamlCtl with both spout_ctls and bolt_ctls
         self.yaml_ctl = YamlCtl(self.spout_ctls, self.bolt_ctls)
         self.yaml_ctl.create_parser(yaml_parser)
@@ -91,6 +93,7 @@ class GeniusCtl:
 
         # Add a 'list' command to list all discovered spouts and bolts
         list_parser = subparsers.add_parser("list", help="List all discovered spouts and bolts.")
+        list_parser.add_argument("--verbose", action="store_true", help="Print verbose output.")
 
         return parser
 
@@ -136,31 +139,47 @@ class GeniusCtl:
                 for bolt_ctl in self.bolt_ctls.values():
                     bolt_ctl.run(args)
         elif args.command == "list":
-            if len(self.spout.keys()) == 0:
-                print("No spouts or bolts discovered.")
-            self.list_spouts_and_bolts()
+            if len(self.spouts.keys()) == 0 and len(self.bolts.keys()) == 0:
+                self.log.warn("No spouts or bolts discovered.")
+            self.list_spouts_and_bolts(args.verbose)
 
-    def list_spouts_and_bolts(self):
+    def list_spouts_and_bolts(self, verbose: bool = False):
         """
         List all discovered spouts and bolts in a table.
         """
-        table = PrettyTable(
-            [
-                colored("Name", "green"),
-                colored("Type", "green"),
-                colored("Methods", "green"),
-            ],
-            align="l",
+        table = (
+            PrettyTable(
+                [
+                    colored("Name", "green"),
+                    colored("Type", "green"),
+                    colored("Methods", "green"),
+                ],
+                align="l",
+            )
+            if verbose
+            else PrettyTable(
+                [
+                    colored("Name", "green"),
+                    colored("Type", "green"),
+                ],
+                align="l",
+            )
         )
+
         for spout_name in self.spouts.keys():
             s = self.spouts[spout_name].klass
             table.add_row(
                 [
                     colored(spout_name, "yellow"),
                     colored("Spout", "cyan"),
-                    "\n".join([x for x in dir(s) if "fetch_" in x]),
+                    "\n".join([colored(x, "cyan") for x in dir(s) if not x.startswith("_")]),
+                ]
+                if verbose
+                else [
+                    colored(spout_name, "yellow"),
+                    colored("Spout", "cyan"),
                 ],
-                divider=True,
+                divider=verbose,
             )
         for bolt_name in self.bolts.keys():
             b = self.bolts[bolt_name].klass
@@ -168,11 +187,16 @@ class GeniusCtl:
                 [
                     colored(bolt_name, "yellow"),
                     colored("Bolt", "magenta"),
-                    "\n".join([x for x in dir(b) if not x.startswith("_")]),
+                    "\n".join([colored(x, "magenta") for x in dir(b) if not x.startswith("_")]),
+                ]
+                if verbose
+                else [
+                    colored(spout_name, "yellow"),
+                    colored("Bolt", "magenta"),
                 ],
-                divider=True,
+                divider=verbose,
             )
-        print(table)
+        sys.stdout.write(table.__repr__())
 
     def cli(self):
         """

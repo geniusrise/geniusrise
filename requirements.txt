@@ -1,13 +1,18 @@
 annotated-types==0.5.0
+ansicolors==1.1.8
+argparse-color-formatter==1.2.2.post2
 async-timeout==4.0.3
 bleach==6.0.0
 boto3==1.28.25
 botocore==1.31.25
+build==0.10.0
 cachetools==5.3.1
 certifi==2023.7.22
 cffi==1.15.1
 charset-normalizer==3.2.0
+colorama==0.4.6
 colorlog==6.7.0
+coverage==7.3.0
 cryptography==41.0.3
 direnv==2020.12.3
 docutils==0.20.1
@@ -30,6 +35,8 @@ markdown-it-py==3.0.0
 mccabe==0.7.0
 mdurl==0.1.2
 more-itertools==10.1.0
+mypy==1.5.0
+mypy-extensions==1.0.0
 oauthlib==3.2.2
 packaging==23.1
 pkginfo==1.9.6
@@ -38,9 +45,11 @@ prettytable==3.8.0
 psycopg2==2.9.7
 pyasn1==0.5.0
 pyasn1-modules==0.3.0
+pycodestyle==2.11.0
 pycparser==2.21
 pydantic==2.1.1
 pydantic_core==2.4.0
+pyflakes==3.1.0
 Pygments==2.16.1
 pyproject_hooks==1.0.0
 pytest==7.4.0
@@ -60,6 +69,7 @@ shortuuid==1.0.11
 six==1.16.0
 termcolor==2.3.0
 tomli==2.0.1
+twine==4.0.2
 typing_extensions==4.7.1
 urllib3==1.26.16
 values==2020.12.3
