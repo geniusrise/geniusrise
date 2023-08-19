@@ -34,8 +34,8 @@ class Task(ABC):
 
     ## Attributes:
     - `id` (uuid.UUID): Unique identifier for the task.
-    - `input_config` (Input): Configuration for input data.
-    - `output_config` (Output): Configuration for output data.
+    - `input` (Input): Configuration for input data.
+    - `output` (Output): Configuration for output data.
 
     ## Usage:
     ```python
@@ -47,16 +47,16 @@ class Task(ABC):
         Extend this class to implement specific task functionalities.
     """
 
-    input_config: Input
-    output_config: Output
+    input: Input
+    output: Output
 
     def __init__(self) -> None:
         """
         Initialize a new task.
 
         Args:
-            input_config (Input): Configuration for input data.
-            output_config (Output): Configuration for output data.
+            input (Input): Configuration for input data.
+            output (Output): Configuration for output data.
         """
         self.id = str(uuid.uuid4())
         self.log = logging.getLogger(self.__class__.__name__)
@@ -69,7 +69,7 @@ class Task(ABC):
         Returns:
             str: A string representation of the task.
         """
-        return f"Task(id={self.id}, input_config={self.input_config}, output_config={self.output_config})"
+        return f"Task(id={self.id}, input={self.input}, output={self.output})"
 
     def execute(self, method_name: str, *args, **kwargs) -> Any:
         """

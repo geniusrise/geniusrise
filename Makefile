@@ -12,7 +12,7 @@ developer-setup: ## Install development and testing dependencies
 	@pip install -r ./requirements-dev.txt
 
 test: ## Run tests (note: requires imports)
-	@coverage run -m pytest -v ./tests
+	@coverage run -m pytest -vv --log-cli-level=ERROR ./geniusrise/
 
 install: ## Install using local system's pip
 	@~/.local/bin/pip install . --user --break-system-packages

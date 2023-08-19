@@ -56,7 +56,7 @@ class TestSpout(Spout):
         DynamoDBState,
     ]
 )
-def state_manager(request):
+def state(request):
     if request.param == InMemoryState:
         return request.param()
     elif request.param == RedisState:
@@ -75,21 +75,21 @@ def state_manager(request):
 
 # Define a fixture for the output config
 @pytest.fixture(params=[BatchOutput, StreamingOutput])
-def output_config(request, tmpdir):
+def output(request, tmpdir):
     if request.param == BatchOutput:
         return request.param(tmpdir, s3_bucket, s3_folder)
     elif request.param == StreamingOutput:
         return request.param(output_topic, kafka_servers)
 
 
-def test_spout_init(output_config, state_manager):
-    spout = TestSpout(output_config, state_manager)
-    assert spout.output_config == output_config
-    assert spout.state_manager == state_manager
+def test_spout_init(output, state):
+    spout = TestSpout(output, state)
+    assert spout.output == output
+    assert spout.state == state
 
 
-def test_spout_call(output_config, state_manager):
-    spout = TestSpout(output_config, state_manager)
+def test_spout_call(output, state):
+    spout = TestSpout(output, state)
     method_name = "test_method"
     args = (1, 2, 3)
     kwargs = {"a": 4, "b": 5, "c": 6}
@@ -132,18 +132,18 @@ def test_spout_create(output_type, state_type, tmpdir):
     assert isinstance(spout, TestSpout)
 
     if output_type == "batch":
-        assert isinstance(spout.output_config, BatchOutput)
+        assert isinstance(spout.output, BatchOutput)
     elif output_type == "streaming":
-        assert isinstance(spout.output_config, StreamingOutput)
+        assert isinstance(spout.output, StreamingOutput)
 
     if state_type == "in_memory":
-        assert isinstance(spout.state_manager, InMemoryState)
+        assert isinstance(spout.state, InMemoryState)
     elif state_type == "redis":
-        assert isinstance(spout.state_manager, RedisState)
+        assert isinstance(spout.state, RedisState)
     elif state_type == "postgres":
-        assert isinstance(spout.state_manager, PostgresState)
+        assert isinstance(spout.state, PostgresState)
     elif state_type == "dynamodb":
-        assert isinstance(spout.state_manager, DynamoDBState)
+        assert isinstance(spout.state, DynamoDBState)
 
 
 def test_spout_run(output_type, state_type, tmpdir):

@@ -35,16 +35,16 @@ class TestTask(Task):
 @pytest.fixture
 def task(tmpdir):
     task = TestTask()
-    task.input_config = BatchInput(tmpdir, BUCKET, S3_FOLDER)
-    task.output_config = BatchOutput(tmpdir, BUCKET, S3_FOLDER)
+    task.input = BatchInput(tmpdir, BUCKET, S3_FOLDER)
+    task.output = BatchOutput(tmpdir, BUCKET, S3_FOLDER)
     return task
 
 
 # Test that the Task can be initialized
 def test_task_init(task):
     assert isinstance(task.id, uuid.UUID)
-    assert isinstance(task.input_config, BatchInput)
-    assert isinstance(task.output_config, BatchOutput)
+    assert isinstance(task.input, BatchInput)
+    assert isinstance(task.output, BatchOutput)
 
 
 # Test that the Task can execute a method

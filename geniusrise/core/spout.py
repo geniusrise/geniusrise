@@ -34,7 +34,7 @@ class Spout(Task):
     Base class for all spouts.
     """
 
-    def __init__(self, output_config: Output, state_manager: State, **kwargs) -> None:
+    def __init__(self, output: Output, state: State, **kwargs) -> None:
         """
         The `Spout` class is a base class for all spouts in the given context.
         It inherits from the `Task` class and provides methods for executing tasks
@@ -57,17 +57,17 @@ class Spout(Task):
             - The State object handles the management of the spout's state.
 
         Example:
-            output_config = Output(...)
-            state_manager = State(...)
-            spout = Spout(output_config, state_manager)
+            output = Output(...)
+            state = State(...)
+            spout = Spout(output, state)
 
         Args:
-            output_config (Output): The output configuration.
-            state_manager (State): The state manager.
+            output (Output): The output configuration.
+            state (State): The state manager.
         """
         super().__init__()
-        self.output_config = output_config
-        self.state_manager = state_manager
+        self.output = output
+        self.state = state
 
         self.log = logging.getLogger(self.__class__.__name__)
 
@@ -87,27 +87,27 @@ class Spout(Task):
         """
         try:
             # Get the type of state manager
-            state_type = self.state_manager.get_state(self.id)
+            state_type = self.state.get_state(self.id)
 
             # Save the current set of class variables to the state manager
-            self.state_manager.set_state(self.id, {})
+            self.state.set_state(self.id, {})
 
             # Execute the task's method
             result = self.execute(method_name, *args, **kwargs)
 
             # Flush the output config
-            self.output_config.flush()
+            self.output.flush()
 
             # Store the state as successful in the state manager
             state = {}
             state["status"] = "success"
-            self.state_manager.set_state(self.id, state)
+            self.state.set_state(self.id, state)
 
             return result
         except Exception as e:
             state = {}
             state["status"] = "failed"
-            self.state_manager.set_state(self.id, state)
+            self.state.set_state(self.id, state)
             self.log.exception(f"Failed to execute method '{method_name}': {e}")
             raise
 
@@ -151,15 +151,15 @@ class Spout(Task):
             ValueError: If an invalid output type or state type is provided.
         """
         # Create the output config
-        output_config: BatchOutput | StreamingOutput
+        output: BatchOutput | StreamingOutput
         if output_type == "batch":
-            output_config = BatchOutput(
+            output = BatchOutput(
                 output_folder=kwargs.get("output_folder", tempfile.mkdtemp()),
                 bucket=kwargs.get("output_s3_bucket", "geniusrise"),
                 s3_folder=kwargs.get("output_s3_folder", klass.__class__.__name__),
             )
         elif output_type == "streaming":
-            output_config = StreamingOutput(
+            output = StreamingOutput(
                 output_topic=kwargs.get("output_kafka_topic", None),
                 kafka_servers=kwargs.get("output_kafka_cluster_connection_string", None),
             )
@@ -167,17 +167,17 @@ class Spout(Task):
             raise ValueError(f"Invalid output type: {output_type}")
 
         # Create the state manager
-        state_manager: State
+        state: State
         if state_type == "in_memory":
-            state_manager = InMemoryState()
+            state = InMemoryState()
         elif state_type == "redis":
-            state_manager = RedisState(
+            state = RedisState(
                 host=kwargs["redis_host"] if "redis_host" in kwargs else None,
                 port=kwargs["redis_port"] if "redis_port" in kwargs else None,
                 db=kwargs["redis_db"] if "redis_db" in kwargs else None,
             )
         elif state_type == "postgres":
-            state_manager = PostgresState(
+            state = PostgresState(
                 host=kwargs["postgres_host"] if "postgres_host" in kwargs else None,
                 port=kwargs["postgres_port"] if "postgres_port" in kwargs else None,
                 user=kwargs["postgres_user"] if "postgres_user" in kwargs else None,
@@ -186,7 +186,7 @@ class Spout(Task):
                 table=kwargs["postgres_table"] if "postgres_table" in kwargs else None,
             )
         elif state_type == "dynamodb":
-            state_manager = DynamoDBState(
+            state = DynamoDBState(
                 table_name=kwargs["dynamodb_table_name"] if "dynamodb_table_name" in kwargs else None,
                 region_name=kwargs["dynamodb_region_name"] if "dynamodb_region_name" in kwargs else None,
             )
@@ -194,5 +194,5 @@ class Spout(Task):
             raise ValueError(f"Invalid state type: {state_type}")
 
         # Create the spout
-        spout = klass(output_config=output_config, state_manager=state_manager, **kwargs)
+        spout = klass(output=output, state=state, **kwargs)
         return spout
