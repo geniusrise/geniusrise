@@ -21,12 +21,12 @@ from typing import Dict, Optional
 import jsonpickle
 import redis  # type: ignore
 
-from geniusrise.core.state import StateManager
+from geniusrise.core.state import State
 
 
-class RedisStateManager(StateManager):
+class RedisState(State):
     """
-    🗄️ **RedisStateManager**: A state manager that stores state in Redis.
+    🗄️ **RedisState**: A state manager that stores state in Redis.
 
     This manager provides a fast, in-memory storage solution using Redis.
 
@@ -35,7 +35,7 @@ class RedisStateManager(StateManager):
 
     ## Usage:
     ```python
-    manager = RedisStateManager(host="localhost", port=6379, db=0)
+    manager = RedisState(host="localhost", port=6379, db=0)
     manager.set_state("user123", {"status": "active"})
     state = manager.get_state("user123")
     print(state)  # Outputs: {"status": "active"}

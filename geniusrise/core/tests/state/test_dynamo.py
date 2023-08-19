@@ -18,14 +18,14 @@ import boto3
 import pytest
 from botocore.exceptions import ClientError
 
-from geniusrise.core.state import DynamoDBStateManager
+from geniusrise.core.state import DynamoDBState
 
 # Define your DynamoDB connection details as constants
 TABLE_NAME = "test_table"
 REGION_NAME = "ap-south-1"
 
 
-# Define a fixture for your DynamoDBStateManager
+# Define a fixture for your DynamoDBState
 @pytest.fixture
 def dynamodb_state_manager():
     # Set up the DynamoDB table
@@ -49,21 +49,21 @@ def dynamodb_state_manager():
         else:
             raise
 
-    # Yield the DynamoDBStateManager
-    yield DynamoDBStateManager(TABLE_NAME, REGION_NAME)
+    # Yield the DynamoDBState
+    yield DynamoDBState(TABLE_NAME, REGION_NAME)
 
     # # Tear down the DynamoDB table
     # table = dynamodb.Table(TABLE_NAME)
     # table.delete()
 
 
-# Test that the DynamoDBStateManager can be initialized
+# Test that the DynamoDBState can be initialized
 def test_dynamodb_state_manager_init(dynamodb_state_manager):
     assert dynamodb_state_manager.dynamodb is not None
     assert dynamodb_state_manager.table is not None
 
 
-# Test that the DynamoDBStateManager can get state
+# Test that the DynamoDBState can get state
 def test_dynamodb_state_manager_get_state(dynamodb_state_manager):
     # First, set some state
     key = "test_key"
@@ -74,7 +74,7 @@ def test_dynamodb_state_manager_get_state(dynamodb_state_manager):
     assert dynamodb_state_manager.get_state(key) == value
 
 
-# Test that the DynamoDBStateManager can set state
+# Test that the DynamoDBState can set state
 def test_dynamodb_state_manager_set_state(dynamodb_state_manager):
     key = "test_key"
     value = {"test": "data"}

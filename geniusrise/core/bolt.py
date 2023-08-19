@@ -27,11 +27,11 @@ from geniusrise.core.data import (
     StreamingOutput,
 )
 from geniusrise.core.state import (
-    DynamoDBStateManager,
-    InMemoryStateManager,
-    PostgresStateManager,
-    RedisStateManager,
-    StateManager,
+    DynamoDBState,
+    InMemoryState,
+    PostgresState,
+    RedisState,
+    State,
 )
 
 from .task import Task
@@ -48,7 +48,7 @@ class Bolt(Task):
         self,
         input_config: Input,
         output_config: Output,
-        state_manager: StateManager,
+        state_manager: State,
         **kwargs,
     ) -> None:
         """
@@ -58,31 +58,31 @@ class Bolt(Task):
         options including in-memory, Redis, PostgreSQL, and DynamoDB,
         and input and output configurations for batch or streaming data.
 
-        The `Bolt` class uses the `Input`, `Output` and `StateManager` classes, which are abstract base
+        The `Bolt` class uses the `Input`, `Output` and `State` classes, which are abstract base
         classes for managing input configurations, output configurations and states, respectively. The `Input` and
         `Output` classes each have two subclasses: `StreamingInput`, `BatchInput`, `StreamingOutput`
         and `BatchOutput`, which manage streaming and batch input and output configurations, respectively.
-        The `StateManager` class is used to get and set state, and it has several subclasses for different types of state managers.
+        The `State` class is used to get and set state, and it has several subclasses for different types of state managers.
 
         The `Bolt` class also uses the `ECSManager` and `K8sManager` classes in the `execute_remote` method,
         which are used to manage tasks on Amazon ECS and Kubernetes, respectively.
 
         Usage:
-            - Create an instance of the Bolt class by providing an Input object, an Output object and a StateManager object.
+            - Create an instance of the Bolt class by providing an Input object, an Output object and a State object.
             - The Input object specifies the input configuration for the bolt.
             - The Output object specifies the output configuration for the bolt.
-            - The StateManager object handles the management of the bolt's state.
+            - The State object handles the management of the bolt's state.
 
         Example:
             input_config = Input(...)
             output_config = Output(...)
-            state_manager = StateManager(...)
+            state_manager = State(...)
             bolt = Bolt(input_config, output_config, state_manager)
 
         Args:
             input_config (Input): The input configuration.
             output_config (Output): The output configuration.
-            state_manager (StateManager): The state manager.
+            state_manager (State): The state manager.
         """
         super().__init__()
         self.input_config = input_config
@@ -232,17 +232,17 @@ class Bolt(Task):
             raise ValueError(f"Invalid output type: {output_type}")
 
         # Create the state manager
-        state_manager: StateManager
+        state_manager: State
         if state_type == "in_memory":
-            state_manager = InMemoryStateManager()
+            state_manager = InMemoryState()
         elif state_type == "redis":
-            state_manager = RedisStateManager(
+            state_manager = RedisState(
                 host=kwargs["redis_host"] if "redis_host" in kwargs else None,
                 port=kwargs["redis_port"] if "redis_port" in kwargs else None,
                 db=kwargs["redis_db"] if "redis_db" in kwargs else None,
             )
         elif state_type == "postgres":
-            state_manager = PostgresStateManager(
+            state_manager = PostgresState(
                 host=kwargs["postgres_host"] if "postgres_host" in kwargs else None,
                 port=kwargs["postgres_port"] if "postgres_port" in kwargs else None,
                 user=kwargs["postgres_user"] if "postgres_user" in kwargs else None,
@@ -251,7 +251,7 @@ class Bolt(Task):
                 table=kwargs["postgres_table"] if "postgres_table" in kwargs else None,
             )
         elif state_type == "dynamodb":
-            state_manager = DynamoDBStateManager(
+            state_manager = DynamoDBState(
                 table_name=kwargs["dynamodb_table_name"] if "dynamodb_table_name" in kwargs else None,
                 region_name=kwargs["dynamodb_region_name"] if "dynamodb_region_name" in kwargs else None,
             )

@@ -20,12 +20,12 @@ from typing import Dict, Optional
 import boto3
 import jsonpickle
 
-from geniusrise.core.state import StateManager
+from geniusrise.core.state import State
 
 
-class DynamoDBStateManager(StateManager):
+class DynamoDBState(State):
     """
-    🗄️ **DynamoDBStateManager**: A state manager that stores state in DynamoDB.
+    🗄️ **DynamoDBState**: A state manager that stores state in DynamoDB.
 
     Attributes:
         dynamodb (boto3.resources.factory.dynamodb.ServiceResource): The DynamoDB service resource.
@@ -33,7 +33,7 @@ class DynamoDBStateManager(StateManager):
 
     Usage:
     ```python
-    manager = DynamoDBStateManager("my_table", "us-west-1")
+    manager = DynamoDBState("my_table", "us-west-1")
     manager.set_state("key123", {"status": "active"})
     state = manager.get_state("key123")
     print(state)  # Outputs: {"status": "active"}

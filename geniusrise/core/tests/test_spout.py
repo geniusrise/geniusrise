@@ -19,10 +19,10 @@ import pytest
 from geniusrise.core import Spout
 from geniusrise.core.data import BatchOutput, StreamingOutput
 from geniusrise.core.state import (
-    DynamoDBStateManager,
-    InMemoryStateManager,
-    PostgresStateManager,
-    RedisStateManager,
+    DynamoDBState,
+    InMemoryState,
+    PostgresState,
+    RedisState,
 )
 
 output_topic = "test_topic"
@@ -50,18 +50,18 @@ class TestSpout(Spout):
 # Define a fixture for the state manager
 @pytest.fixture(
     params=[
-        InMemoryStateManager,
-        RedisStateManager,
-        PostgresStateManager,
-        DynamoDBStateManager,
+        InMemoryState,
+        RedisState,
+        PostgresState,
+        DynamoDBState,
     ]
 )
 def state_manager(request):
-    if request.param == InMemoryStateManager:
+    if request.param == InMemoryState:
         return request.param()
-    elif request.param == RedisStateManager:
+    elif request.param == RedisState:
         return request.param(redis_host, redis_port, redis_db)
-    elif request.param == PostgresStateManager:
+    elif request.param == PostgresState:
         return request.param(
             postgres_host,
             postgres_port,
@@ -69,7 +69,7 @@ def state_manager(request):
             postgres_password,
             postgres_database,
         )
-    elif request.param == DynamoDBStateManager:
+    elif request.param == DynamoDBState:
         return request.param(dynamodb_table_name, dynamodb_region_name)
 
 
@@ -137,13 +137,13 @@ def test_spout_create(output_type, state_type, tmpdir):
         assert isinstance(spout.output_config, StreamingOutput)
 
     if state_type == "in_memory":
-        assert isinstance(spout.state_manager, InMemoryStateManager)
+        assert isinstance(spout.state_manager, InMemoryState)
     elif state_type == "redis":
-        assert isinstance(spout.state_manager, RedisStateManager)
+        assert isinstance(spout.state_manager, RedisState)
     elif state_type == "postgres":
-        assert isinstance(spout.state_manager, PostgresStateManager)
+        assert isinstance(spout.state_manager, PostgresState)
     elif state_type == "dynamodb":
-        assert isinstance(spout.state_manager, DynamoDBStateManager)
+        assert isinstance(spout.state_manager, DynamoDBState)
 
 
 def test_spout_run(output_type, state_type, tmpdir):

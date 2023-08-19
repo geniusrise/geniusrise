@@ -17,12 +17,12 @@
 import logging
 from typing import Dict, Optional
 
-from geniusrise.core.state import StateManager
+from geniusrise.core.state import State
 
 
-class InMemoryStateManager(StateManager):
+class InMemoryState(State):
     """
-    🧠 **InMemoryStateManager**: A state manager that stores state in memory.
+    🧠 **InMemoryState**: A state manager that stores state in memory.
 
     This manager is useful for temporary storage or testing purposes. Since it's in-memory, the data will be lost once the application stops.
 
@@ -31,7 +31,7 @@ class InMemoryStateManager(StateManager):
 
     ## Usage:
     ```python
-    manager = InMemoryStateManager()
+    manager = InMemoryState()
     manager.set_state("user123", {"status": "active"})
     state = manager.get_state("user123")
     print(state)  # Outputs: {"status": "active"}

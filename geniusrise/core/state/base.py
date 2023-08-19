@@ -18,7 +18,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, Optional
 
 
-class StateManager(ABC):
+class State(ABC):
     """
     Abstract base class for a state manager.
 

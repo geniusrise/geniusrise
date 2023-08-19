@@ -16,7 +16,7 @@
 
 import pytest
 
-from geniusrise.core.state import RedisStateManager
+from geniusrise.core.state import RedisState
 
 # Define your Redis connection details as constants
 HOST = "localhost"
@@ -24,18 +24,18 @@ PORT = 6379
 DB = 0
 
 
-# Define a fixture for your RedisStateManager
+# Define a fixture for your RedisState
 @pytest.fixture
 def redis_state_manager():
-    return RedisStateManager(HOST, PORT, DB)
+    return RedisState(HOST, PORT, DB)
 
 
-# Test that the RedisStateManager can be initialized
+# Test that the RedisState can be initialized
 def test_redis_state_manager_init(redis_state_manager):
     assert redis_state_manager.redis is not None
 
 
-# Test that the RedisStateManager can get state
+# Test that the RedisState can get state
 def test_redis_state_manager_get_state(redis_state_manager):
     # First, set some state
     key = "test_key"
@@ -46,7 +46,7 @@ def test_redis_state_manager_get_state(redis_state_manager):
     assert redis_state_manager.get_state(key) == value
 
 
-# Test that the RedisStateManager can set state
+# Test that the RedisState can set state
 def test_redis_state_manager_set_state(redis_state_manager):
     key = "test_key"
     value = {"test": "data"}

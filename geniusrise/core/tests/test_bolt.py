@@ -24,10 +24,10 @@ from geniusrise.core.data import (
     StreamingOutput,
 )
 from geniusrise.core.state import (
-    DynamoDBStateManager,
-    InMemoryStateManager,
-    PostgresStateManager,
-    RedisStateManager,
+    DynamoDBState,
+    InMemoryState,
+    PostgresState,
+    RedisState,
 )
 
 # Define the parameters for the tests
@@ -77,18 +77,18 @@ def output_config(request, tmpdir):
 # Define a fixture for the state manager
 @pytest.fixture(
     params=[
-        InMemoryStateManager,
-        RedisStateManager,
-        PostgresStateManager,
-        DynamoDBStateManager,
+        InMemoryState,
+        RedisState,
+        PostgresState,
+        DynamoDBState,
     ]
 )
 def state_manager(request):
-    if request.param == InMemoryStateManager:
+    if request.param == InMemoryState:
         return request.param()
-    elif request.param == RedisStateManager:
+    elif request.param == RedisState:
         return request.param(redis_host, redis_port, redis_db)
-    elif request.param == PostgresStateManager:
+    elif request.param == PostgresState:
         return request.param(
             postgres_host,
             postgres_port,
@@ -97,7 +97,7 @@ def state_manager(request):
             postgres_database,
             postgres_table,
         )
-    elif request.param == DynamoDBStateManager:
+    elif request.param == DynamoDBState:
         return request.param(dynamodb_table_name, dynamodb_region_name)
 
 
@@ -173,13 +173,13 @@ def test_bolt_create(input_type, output_type, state_type, tmpdir):
         assert isinstance(bolt.output_config, StreamingOutput)
 
     if state_type == "in_memory":
-        assert isinstance(bolt.state_manager, InMemoryStateManager)
+        assert isinstance(bolt.state_manager, InMemoryState)
     elif state_type == "redis":
-        assert isinstance(bolt.state_manager, RedisStateManager)
+        assert isinstance(bolt.state_manager, RedisState)
     elif state_type == "postgres":
-        assert isinstance(bolt.state_manager, PostgresStateManager)
+        assert isinstance(bolt.state_manager, PostgresState)
     elif state_type == "dynamodb":
-        assert isinstance(bolt.state_manager, DynamoDBStateManager)
+        assert isinstance(bolt.state_manager, DynamoDBState)
 
 
 def test_bolt_call_with_types(input_type, output_type, state_type, tmpdir):

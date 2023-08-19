@@ -20,11 +20,11 @@ from typing import Any
 
 from geniusrise.core.data import BatchOutput, Output, StreamingOutput
 from geniusrise.core.state import (
-    DynamoDBStateManager,
-    InMemoryStateManager,
-    PostgresStateManager,
-    RedisStateManager,
-    StateManager,
+    DynamoDBState,
+    InMemoryState,
+    PostgresState,
+    RedisState,
+    State,
 )
 from geniusrise.core.task import Task
 
@@ -34,7 +34,7 @@ class Spout(Task):
     Base class for all spouts.
     """
 
-    def __init__(self, output_config: Output, state_manager: StateManager, **kwargs) -> None:
+    def __init__(self, output_config: Output, state_manager: State, **kwargs) -> None:
         """
         The `Spout` class is a base class for all spouts in the given context.
         It inherits from the `Task` class and provides methods for executing tasks
@@ -42,28 +42,28 @@ class Spout(Task):
         options including in-memory, Redis, PostgreSQL, and DynamoDB,
         and output configurations for batch or streaming data.
 
-        The `Spout` class uses the `Output` and `StateManager` classes, which are abstract base
+        The `Spout` class uses the `Output` and `State` classes, which are abstract base
          classes for managing output configurations and states, respectively. The `Output` class
          has two subclasses: `StreamingOutput` and `BatchOutput`, which manage streaming and
-         batch output configurations, respectively. The `StateManager` class is used to get and set state,
+         batch output configurations, respectively. The `State` class is used to get and set state,
          and it has several subclasses for different types of state managers.
 
         The `Spout` class also uses the `ECSManager` and `K8sManager` classes in the `execute_remote` method,
         which are used to manage tasks on Amazon ECS and Kubernetes, respectively.
 
         Usage:
-            - Create an instance of the Spout class by providing an Output object and a StateManager object.
+            - Create an instance of the Spout class by providing an Output object and a State object.
             - The Output object specifies the output configuration for the spout.
-            - The StateManager object handles the management of the spout's state.
+            - The State object handles the management of the spout's state.
 
         Example:
             output_config = Output(...)
-            state_manager = StateManager(...)
+            state_manager = State(...)
             spout = Spout(output_config, state_manager)
 
         Args:
             output_config (Output): The output configuration.
-            state_manager (StateManager): The state manager.
+            state_manager (State): The state manager.
         """
         super().__init__()
         self.output_config = output_config
@@ -167,17 +167,17 @@ class Spout(Task):
             raise ValueError(f"Invalid output type: {output_type}")
 
         # Create the state manager
-        state_manager: StateManager
+        state_manager: State
         if state_type == "in_memory":
-            state_manager = InMemoryStateManager()
+            state_manager = InMemoryState()
         elif state_type == "redis":
-            state_manager = RedisStateManager(
+            state_manager = RedisState(
                 host=kwargs["redis_host"] if "redis_host" in kwargs else None,
                 port=kwargs["redis_port"] if "redis_port" in kwargs else None,
                 db=kwargs["redis_db"] if "redis_db" in kwargs else None,
             )
         elif state_type == "postgres":
-            state_manager = PostgresStateManager(
+            state_manager = PostgresState(
                 host=kwargs["postgres_host"] if "postgres_host" in kwargs else None,
                 port=kwargs["postgres_port"] if "postgres_port" in kwargs else None,
                 user=kwargs["postgres_user"] if "postgres_user" in kwargs else None,
@@ -186,7 +186,7 @@ class Spout(Task):
                 table=kwargs["postgres_table"] if "postgres_table" in kwargs else None,
             )
         elif state_type == "dynamodb":
-            state_manager = DynamoDBStateManager(
+            state_manager = DynamoDBState(
                 table_name=kwargs["dynamodb_table_name"] if "dynamodb_table_name" in kwargs else None,
                 region_name=kwargs["dynamodb_region_name"] if "dynamodb_region_name" in kwargs else None,
             )

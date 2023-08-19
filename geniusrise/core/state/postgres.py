@@ -21,12 +21,12 @@ from typing import Dict, Optional
 import jsonpickle
 import psycopg2
 
-from geniusrise.core.state import StateManager
+from geniusrise.core.state import State
 
 
-class PostgresStateManager(StateManager):
+class PostgresState(State):
     """
-    🗄️ **PostgresStateManager**: A state manager that stores state in a PostgreSQL database.
+    🗄️ **PostgresState**: A state manager that stores state in a PostgreSQL database.
 
     This manager provides a persistent storage solution using a PostgreSQL database.
 
@@ -35,7 +35,7 @@ class PostgresStateManager(StateManager):
 
     ## Usage:
     ```python
-    manager = PostgresStateManager(host="localhost", port=5432, user="admin", password="password", database="mydb")
+    manager = PostgresState(host="localhost", port=5432, user="admin", password="password", database="mydb")
     manager.set_state("user123", {"status": "active"})
     state = manager.get_state("user123")
     print(state)  # Outputs: {"status": "active"}
