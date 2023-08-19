@@ -8,6 +8,7 @@ from termcolor import colored  # type: ignore
 from rich import print
 from rich.panel import Panel
 from rich.style import Style
+from rich.text import Text
 
 from geniusrise.cli.boltctl import BoltCtl
 from geniusrise.cli.discover import Discover, DiscoveredBolt, DiscoveredSpout
@@ -33,15 +34,22 @@ class GeniusCtl:
         self.bolt_ctls: Dict[str, BoltCtl] = {}
 
         text = """
-        ██████  ███████ ███    ██ ██ ██    ██ ███████ ██████  ██ ███████ ███████
+        ██████   ███████ ███    ██ ██ ██    ██ ███████ ██████  ██ ███████ ███████
         ██       ██      ████   ██ ██ ██    ██ ██      ██   ██ ██ ██      ██
         ██   ███ █████   ██ ██  ██ ██ ██    ██ ███████ ██████  ██ ███████ █████ 
         ██    ██ ██      ██  ██ ██ ██ ██    ██      ██ ██   ██ ██      ██ ██
          ██████  ███████ ██   ████ ██  ██████  ███████ ██   ██ ██ ███████ ███████
         """
 
-        # Print the text in red with a box around it
-        print(Panel(text, style=Style(color="red")))
+        # Print the text in red with a box around it and a dark background
+        print(Panel(text, style=Style(color="deep_pink4", bgcolor="#0d0816")))
+
+        # Print the link without a panel
+        link_text = Text("https://geniusrise.ai", style=Style(color="deep_pink4"))
+        link_text.stylize("link", 0, len(link_text))
+        print("")
+        print(link_text)
+        print("")
 
     def create_parser(self):
         """
@@ -52,6 +60,9 @@ class GeniusCtl:
         """
         parser = argparse.ArgumentParser(description="Manage the geniusrise application.")
         subparsers = parser.add_subparsers(dest="command")
+
+        # Run module discovery
+        self.discover()
 
         # Create subparser for each discovered spout
         for spout_name, discovered_spout in self.spouts.items():
@@ -82,15 +93,7 @@ class GeniusCtl:
 
         return parser
 
-    def run(self, args):
-        """
-        Run the command-line interface.
-
-        Args:
-            args (argparse.Namespace): Parsed command-line arguments.
-        """
-        self.log.info(f"Running command: {args.command}")
-
+    def discover(self):
         self.discover = Discover()
         discovered_components = self.discover.scan_directory(os.getenv("GENIUS_DIR", "."))
 
@@ -105,6 +108,15 @@ class GeniusCtl:
             for name, component in discovered_components.items()
             if isinstance(component, DiscoveredBolt)
         }
+
+    def run(self, args):
+        """
+        Run the command-line interface.
+
+        Args:
+            args (argparse.Namespace): Parsed command-line arguments.
+        """
+        self.log.info(f"Running command: {args.command}")
 
         if args.command in self.spouts:
             self.spout_ctls[args.command].run(args)

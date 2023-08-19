@@ -28,6 +28,8 @@ help: ## Dislay this help
 	@printf "\033[31m%-30s\033[0m %s\n" "██    ██ ██      ██  ██ ██ ██ ██    ██      ██ ██   ██ ██      ██ ██"
 	@printf "\033[31m%-30s\033[0m %s\n" " ██████  ███████ ██   ████ ██  ██████  ███████ ██   ██ ██ ███████ ███████"
 	@echo ""
+	@printf "\033[31m%-30s\033[0m %s\n" "https://geniusrise.ai"
+	@echo ""
 
 	@IFS=$$'\n'; for line in `grep -h -E '^[a-zA-Z_#-]+:?.*?## .*$$' $(MAKEFILE_LIST)`; do if [ "$${line:0:2}" = "##" ]; then \
 	echo $$line | awk 'BEGIN {FS = "## "}; {printf "\n\033[33m%s\033[0m\n", $$2}'; else \
