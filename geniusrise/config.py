@@ -22,7 +22,7 @@ direnv.load()
 
 
 ENV = os.environ.get("ENV", "dev")
-LOGLEVEL = os.environ.get("LOGLEVEL", "DEBUG")
+LOGLEVEL = os.environ.get("LOGLEVEL", "INFO")
 
 # OpenAI settings
 OPENAI_ORGANIZATION = os.environ.get("OPENAI_ORGANIZATION", None)

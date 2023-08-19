@@ -44,28 +44,45 @@ def setup_logger() -> logging.Logger:
                 logger.removeHandler(handler)
 
     # Define the custom formatter
-    formatter = colorlog.ColoredFormatter(
-        "%(log_color)s%(levelname)-8s%(reset)s "
-        "%(yellow)s[%(asctime)s] "
-        "%(blue)s[%(name)s:%(lineno)d] "
-        "%(green)s%(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-        reset=True,
-        log_colors={
-            "DEBUG": "cyan",
-            "INFO": "green",
-            "WARNING": "yellow",
-            "ERROR": "red",
-            "CRITICAL": "bold_red",
-        },
+    formatter = (
+        colorlog.ColoredFormatter(
+            "%(log_color)s%(levelname)-8s%(reset)s "
+            "%(yellow)s[%(asctime)s] "
+            "%(blue)s[%(name)s:%(lineno)d] "
+            "%(log_color)s%(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+            reset=True,
+            log_colors={
+                "DEBUG": "white",
+                "INFO": "green",
+                "WARNING": "yellow",
+                "ERROR": "red",
+                "CRITICAL": "bold_red",
+            },
+        )
+        if logging.getLevelName(LOGLEVEL) < logging.INFO
+        else colorlog.ColoredFormatter(
+            "%(log_color)-8s%(reset)s %(log_color)s%(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+            reset=True,
+            log_colors={
+                "DEBUG": "white",
+                "INFO": "green",
+                "WARNING": "yellow",
+                "ERROR": "red",
+                "CRITICAL": "bold_red",
+            },
+        )
     )
 
     # Setup logger for geniusrise
-    logging.basicConfig(level=logging.DEBUG)
-    logger = logging.getLogger("geniusrise")
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
-    logger.addHandler(handler)
+
+    logging.basicConfig(encoding="utf-8", level=logging.getLevelName(LOGLEVEL), handlers=[handler])
+    logger = logging.getLogger("geniusrise")
     logger.setLevel(logging.getLevelName(LOGLEVEL))
+
+    # logger.addHandler(handler)
 
     return logger
