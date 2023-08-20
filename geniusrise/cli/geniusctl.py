@@ -61,7 +61,7 @@ class GeniusCtl:
             argparse.ArgumentParser: Command-line parser.
         """
         parser = argparse.ArgumentParser(description="Geniusrise", formatter_class=RichHelpFormatter)
-        subparsers = parser.add_subparsers(dest="command")
+        subparsers = parser.add_subparsers(dest="top_level_command")
 
         # Run module discovery
         self.discover()
@@ -129,15 +129,15 @@ class GeniusCtl:
         Args:
             args (argparse.Namespace): Parsed command-line arguments.
         """
-        self.log.info(f"Running command: {args.command}")
+        self.log.debug(f"Running command: {args.top_level_command} with args {args}")
 
-        if args.command in self.spouts:
-            self.spout_ctls[args.command].run(args)
-        elif args.command in self.bolts:
-            self.bolt_ctls[args.command].run(args)
-        elif args.command == "yaml":
+        if args.top_level_command in self.spouts:
+            self.spout_ctls[args.top_level_command].run(args)
+        elif args.top_level_command in self.bolts:
+            self.bolt_ctls[args.top_level_command].run(args)
+        elif args.top_level_command == "yaml":
             self.yaml_ctl.run(args)
-        elif args.command == "plugins":
+        elif args.top_level_command == "plugins":
             if args.spout_or_bolt in self.spouts:
                 self.spout_ctls[args.spout_or_bolt].run(args)
             elif args.spout_or_bolt in self.bolts:
@@ -147,7 +147,7 @@ class GeniusCtl:
                     spout_ctl.run(args)
                 for bolt_ctl in self.bolt_ctls.values():
                     bolt_ctl.run(args)
-        elif args.command == "list":
+        elif args.top_level_command == "list":
             if len(self.spouts.keys()) == 0 and len(self.bolts.keys()) == 0:
                 self.log.warn("No spouts or bolts discovered.")
             self.list_spouts_and_bolts(args.verbose)
