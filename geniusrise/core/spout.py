@@ -18,17 +18,13 @@ import logging
 import tempfile
 from typing import Any
 
-from geniusrise.core.data import (
-    BatchOutputConfig,
-    OutputConfig,
-    StreamingOutputConfig,
-)
+from geniusrise.core.data import BatchOutput, Output, StreamingOutput
 from geniusrise.core.state import (
-    DynamoDBStateManager,
-    InMemoryStateManager,
-    PostgresStateManager,
-    RedisStateManager,
-    StateManager,
+    DynamoDBState,
+    InMemoryState,
+    PostgresState,
+    RedisState,
+    State,
 )
 from geniusrise.core.task import Task
 
@@ -38,7 +34,7 @@ class Spout(Task):
     Base class for all spouts.
     """
 
-    def __init__(self, output_config: OutputConfig, state_manager: StateManager, **kwargs) -> None:
+    def __init__(self, output: Output, state: State, **kwargs) -> None:
         """
         The `Spout` class is a base class for all spouts in the given context.
         It inherits from the `Task` class and provides methods for executing tasks
@@ -46,32 +42,32 @@ class Spout(Task):
         options including in-memory, Redis, PostgreSQL, and DynamoDB,
         and output configurations for batch or streaming data.
 
-        The `Spout` class uses the `OutputConfig` and `StateManager` classes, which are abstract base
-         classes for managing output configurations and states, respectively. The `OutputConfig` class
-         has two subclasses: `StreamingOutputConfig` and `BatchOutputConfig`, which manage streaming and
-         batch output configurations, respectively. The `StateManager` class is used to get and set state,
+        The `Spout` class uses the `Output` and `State` classes, which are abstract base
+         classes for managing output configurations and states, respectively. The `Output` class
+         has two subclasses: `StreamingOutput` and `BatchOutput`, which manage streaming and
+         batch output configurations, respectively. The `State` class is used to get and set state,
          and it has several subclasses for different types of state managers.
 
         The `Spout` class also uses the `ECSManager` and `K8sManager` classes in the `execute_remote` method,
         which are used to manage tasks on Amazon ECS and Kubernetes, respectively.
 
         Usage:
-            - Create an instance of the Spout class by providing an OutputConfig object and a StateManager object.
-            - The OutputConfig object specifies the output configuration for the spout.
-            - The StateManager object handles the management of the spout's state.
+            - Create an instance of the Spout class by providing an Output object and a State object.
+            - The Output object specifies the output configuration for the spout.
+            - The State object handles the management of the spout's state.
 
         Example:
-            output_config = OutputConfig(...)
-            state_manager = StateManager(...)
-            spout = Spout(output_config, state_manager)
+            output = Output(...)
+            state = State(...)
+            spout = Spout(output, state)
 
         Args:
-            output_config (OutputConfig): The output configuration.
-            state_manager (StateManager): The state manager.
+            output (Output): The output configuration.
+            state (State): The state manager.
         """
         super().__init__()
-        self.output_config = output_config
-        self.state_manager = state_manager
+        self.output = output
+        self.state = state
 
         self.log = logging.getLogger(self.__class__.__name__)
 
@@ -91,27 +87,27 @@ class Spout(Task):
         """
         try:
             # Get the type of state manager
-            state_type = self.state_manager.get_state(self.id)
+            state_type = self.state.get_state(self.id)
 
             # Save the current set of class variables to the state manager
-            self.state_manager.set_state(self.id, {})
+            self.state.set_state(self.id, {})
 
             # Execute the task's method
             result = self.execute(method_name, *args, **kwargs)
 
             # Flush the output config
-            self.output_config.flush()
+            self.output.flush()
 
             # Store the state as successful in the state manager
             state = {}
             state["status"] = "success"
-            self.state_manager.set_state(self.id, state)
+            self.state.set_state(self.id, state)
 
             return result
         except Exception as e:
             state = {}
             state["status"] = "failed"
-            self.state_manager.set_state(self.id, state)
+            self.state.set_state(self.id, state)
             self.log.exception(f"Failed to execute method '{method_name}': {e}")
             raise
 
@@ -155,15 +151,15 @@ class Spout(Task):
             ValueError: If an invalid output type or state type is provided.
         """
         # Create the output config
-        output_config: BatchOutputConfig | StreamingOutputConfig
+        output: BatchOutput | StreamingOutput
         if output_type == "batch":
-            output_config = BatchOutputConfig(
+            output = BatchOutput(
                 output_folder=kwargs.get("output_folder", tempfile.mkdtemp()),
                 bucket=kwargs.get("output_s3_bucket", "geniusrise"),
                 s3_folder=kwargs.get("output_s3_folder", klass.__class__.__name__),
             )
         elif output_type == "streaming":
-            output_config = StreamingOutputConfig(
+            output = StreamingOutput(
                 output_topic=kwargs.get("output_kafka_topic", None),
                 kafka_servers=kwargs.get("output_kafka_cluster_connection_string", None),
             )
@@ -171,17 +167,17 @@ class Spout(Task):
             raise ValueError(f"Invalid output type: {output_type}")
 
         # Create the state manager
-        state_manager: StateManager
+        state: State
         if state_type == "in_memory":
-            state_manager = InMemoryStateManager()
+            state = InMemoryState()
         elif state_type == "redis":
-            state_manager = RedisStateManager(
+            state = RedisState(
                 host=kwargs["redis_host"] if "redis_host" in kwargs else None,
                 port=kwargs["redis_port"] if "redis_port" in kwargs else None,
                 db=kwargs["redis_db"] if "redis_db" in kwargs else None,
             )
         elif state_type == "postgres":
-            state_manager = PostgresStateManager(
+            state = PostgresState(
                 host=kwargs["postgres_host"] if "postgres_host" in kwargs else None,
                 port=kwargs["postgres_port"] if "postgres_port" in kwargs else None,
                 user=kwargs["postgres_user"] if "postgres_user" in kwargs else None,
@@ -190,7 +186,7 @@ class Spout(Task):
                 table=kwargs["postgres_table"] if "postgres_table" in kwargs else None,
             )
         elif state_type == "dynamodb":
-            state_manager = DynamoDBStateManager(
+            state = DynamoDBState(
                 table_name=kwargs["dynamodb_table_name"] if "dynamodb_table_name" in kwargs else None,
                 region_name=kwargs["dynamodb_region_name"] if "dynamodb_region_name" in kwargs else None,
             )
@@ -198,5 +194,5 @@ class Spout(Task):
             raise ValueError(f"Invalid state type: {state_type}")
 
         # Create the spout
-        spout = klass(output_config=output_config, state_manager=state_manager, **kwargs)
+        spout = klass(output=output, state=state, **kwargs)
         return spout

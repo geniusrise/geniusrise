@@ -20,7 +20,7 @@ import psycopg2
 import pytest
 from psycopg2 import sql
 
-from geniusrise.core.state import PostgresStateManager
+from geniusrise.core.state import PostgresState
 
 # Define your PostgreSQL connection details as constants
 HOST = "localhost"
@@ -32,7 +32,7 @@ TABLE = "state"
 KEY = str(uuid.uuid4())
 
 
-# Define a fixture for your PostgresStateManager
+# Define a fixture for your PostgresState
 @pytest.fixture
 def postgres_state_manager():
     # Set up the database and table
@@ -43,8 +43,8 @@ def postgres_state_manager():
         )
     conn.commit()
 
-    # Yield the PostgresStateManager
-    yield PostgresStateManager(HOST, PORT, USER, PASSWORD, DATABASE, TABLE)
+    # Yield the PostgresState
+    yield PostgresState(HOST, PORT, USER, PASSWORD, DATABASE, TABLE)
 
     # Tear down the database and table
     # with conn.cursor() as cur:
@@ -53,12 +53,12 @@ def postgres_state_manager():
     # conn.close()
 
 
-# Test that the PostgresStateManager can be initialized
+# Test that the PostgresState can be initialized
 def test_postgres_state_manager_init(postgres_state_manager):
     assert postgres_state_manager.conn is not None
 
 
-# Test that the PostgresStateManager can get state
+# Test that the PostgresState can get state
 def test_postgres_state_manager_get_state(postgres_state_manager):
     # First, set some state
     key = KEY
@@ -69,7 +69,7 @@ def test_postgres_state_manager_get_state(postgres_state_manager):
     assert postgres_state_manager.get_state(key) == value
 
 
-# Test that the PostgresStateManager can set state
+# Test that the PostgresState can set state
 def test_postgres_state_manager_set_state(postgres_state_manager):
     key = str(uuid.uuid4())
     value = {"test": "data"}

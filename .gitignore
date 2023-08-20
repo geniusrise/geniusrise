@@ -162,3 +162,5 @@ cython_debug/
 *.txt
 *.csv
 *.json
+
+package/

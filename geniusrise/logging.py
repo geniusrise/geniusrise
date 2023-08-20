@@ -21,28 +21,68 @@ import colorlog
 from geniusrise.config import LOGLEVEL
 
 
-def setup_logger():
-    """Return a logger with a default ColoredFormatter."""
-    formatter = colorlog.ColoredFormatter(
-        "%(log_color)s%(levelname)-8s%(reset)s "
-        "%(yellow)s[%(asctime)s] "
-        "%(blue)s[%(name)s:%(lineno)d] "
-        "%(green)s%(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-        reset=True,
-        log_colors={
-            "DEBUG": "cyan",
-            "INFO": "green",
-            "WARNING": "yellow",
-            "ERROR": "red",
-            "CRITICAL": "bold_red",
-        },
+def setup_logger() -> logging.Logger:
+    """
+    🛠️ **Setup Logger**: Configure and return a logger with a default ColoredFormatter.
+
+    This function sets up a logger for the `geniusrise-cli` with colorful logging outputs. The log level is determined by the `LOGLEVEL` from the configuration.
+
+    ## Usage:
+    ```python
+    logger = setup_logger()
+    logger.info("This is a fancy info log!")
+    ```
+
+    Returns:
+        logging.Logger: Configured logger with colorful outputs.
+    """
+    # Reset all existing loggers
+    for logger in logging.root.manager.loggerDict.values():
+        if isinstance(logger, logging.Logger):
+            logger.setLevel(logging.NOTSET)
+            for handler in logger.handlers.copy():
+                logger.removeHandler(handler)
+
+    # Define the custom formatter
+    formatter = (
+        colorlog.ColoredFormatter(
+            "%(log_color)s%(levelname)-8s%(reset)s "
+            "%(yellow)s[%(asctime)s] "
+            "%(blue)s[%(name)s:%(lineno)d] "
+            "%(log_color)s%(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+            reset=True,
+            log_colors={
+                "DEBUG": "white",
+                "INFO": "green",
+                "WARNING": "yellow",
+                "ERROR": "red",
+                "CRITICAL": "bold_red",
+            },
+        )
+        if logging.getLevelName(LOGLEVEL) < logging.INFO
+        else colorlog.ColoredFormatter(
+            "%(log_color)-8s%(reset)s %(log_color)s%(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+            reset=True,
+            log_colors={
+                "DEBUG": "white",
+                "INFO": "green",
+                "WARNING": "yellow",
+                "ERROR": "red",
+                "CRITICAL": "bold_red",
+            },
+        )
     )
 
-    logger = logging.getLogger("geniusrise-cli")
+    # Setup logger for geniusrise
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    logger.setLevel(LOGLEVEL)
+
+    logging.basicConfig(encoding="utf-8", level=logging.getLevelName(LOGLEVEL), handlers=[handler])
+    logger = logging.getLogger("geniusrise")
+    logger.setLevel(logging.getLevelName(LOGLEVEL))
+
+    # logger.addHandler(handler)
 
     return logger

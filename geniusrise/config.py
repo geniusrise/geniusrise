@@ -22,7 +22,7 @@ direnv.load()
 
 
 ENV = os.environ.get("ENV", "dev")
-LOGLEVEL = os.environ.get("LOGLEVEL", "DEBUG")
+LOGLEVEL = os.environ.get("LOGLEVEL", "INFO")
 
 # OpenAI settings
 OPENAI_ORGANIZATION = os.environ.get("OPENAI_ORGANIZATION", None)
@@ -36,25 +36,3 @@ OPENAI_API_VERSION = os.environ.get(
 
 # Google PALM settings
 PALM_KEY = os.environ.get("PALM_KEY", "")
-
-# Data sources
-
-GITHUB_ACCESS_TOKEN = os.environ.get("GITHUB_ACCESS_TOKEN", "")
-GITLAB_ACCESS_TOKEN = os.environ.get("GITLAB_ACCESS_TOKEN", "")
-
-# Atlassian
-
-BITBUCKET_ACCESS_TOKEN = os.environ.get("BITBUCKET_ACCESS_TOKEN", "")
-BITBUCKET_URL = os.environ.get("BITBUCKET_URL", "https://bitbucket.org")
-
-JIRA_ACCESS_TOKEN = os.environ.get("JIRA_ACCESS_TOKEN", "")
-JIRA_BASE_URL = os.environ.get("JIRA_BASE_URL", "https://jira.atlassian.net")
-JIRA_USERNAME = os.environ.get("JIRA_USERNAME", "admin")
-
-CLICKUP_API_TOKEN = os.environ.get("CLICKUP_API_TOKEN", "")
-
-ASANA_PERSONAL_ACCESS_TOKEN = os.environ.get("ASANA_PERSONAL_ACCESS_TOKEN", "")
-
-CONFLUENCE_URL = os.environ.get("CONFLUENCE_URL", "")
-CONFLUENCE_USERNAME = os.environ.get("CONFLUENCE_USERNAME", "")
-CONFLUENCE_ACCESS_TOKEN = os.environ.get("CONFLUENCE_ACCESS_TOKEN", "")

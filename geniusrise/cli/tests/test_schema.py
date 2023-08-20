@@ -1,5 +1,6 @@
 import pytest
 from pydantic import ValidationError
+
 from geniusrise.cli.schema import Geniusfile
 
 # Correct YAML data for testing
@@ -10,7 +11,10 @@ correct_yaml_data = {
             "name": "GithubDump",
             "method": "fetch_pull_requests",
             "args": {"repo_name": "zpqrtbnk/test-repo", "github_access_token": "test"},
-            "output": {"type": "batch", "args": {"bucket": "my-bucket", "folder": "my-s3-folder"}},
+            "output": {
+                "type": "batch",
+                "args": {"bucket": "my-bucket", "folder": "my-s3-folder"},
+            },
             "state": {"type": "in_memory"},
             "deploy": {
                 "type": "k8s",
@@ -38,7 +42,11 @@ incorrect_yaml_data = {
             "state": {"type": "in_memory"},
             "deploy": {
                 "type": "k8s",
-                "args": {"name": "github-dump", "namespace": "geniusrise", "image": "geniusrise/geniusrise"},
+                "args": {
+                    "name": "github-dump",
+                    "namespace": "geniusrise",
+                    "image": "geniusrise/geniusrise",
+                },
             },
         }
     },
@@ -52,7 +60,10 @@ missing_fields_data = {
         "github-batch": {
             "name": "GithubDump",
             "method": "fetch_pull_requests",
-            "output": {"type": "batch", "args": {"bucket": "my-bucket", "folder": "my-s3-folder"}},
+            "output": {
+                "type": "batch",
+                "args": {"bucket": "my-bucket", "folder": "my-s3-folder"},
+            },
             "state": {"type": "in_memory"},
         }
     },
@@ -67,7 +78,10 @@ invalid_values_data = {
             "name": "GithubDump",
             "method": "fetch_pull_requests",
             "args": {"repo_name": "zpqrtbnk/test-repo", "github_access_token": "test"},
-            "output": {"type": "invalid_type", "args": {"bucket": "my-bucket", "folder": "my-s3-folder"}},
+            "output": {
+                "type": "invalid_type",
+                "args": {"bucket": "my-bucket", "folder": "my-s3-folder"},
+            },
             "state": {"type": "in_memory"},
             "deploy": {
                 "type": "k8s",
@@ -90,8 +104,15 @@ extra_fields_data = {
         "github-batch": {
             "name": "GithubDump",
             "method": "fetch_pull_requests",
-            "args": {"repo_name": "zpqrtbnk/test-repo", "github_access_token": "test", "extra_field": "extra_value"},
-            "output": {"type": "batch", "args": {"bucket": "my-bucket", "folder": "my-s3-folder"}},
+            "args": {
+                "repo_name": "zpqrtbnk/test-repo",
+                "github_access_token": "test",
+                "extra_field": "extra_value",
+            },
+            "output": {
+                "type": "batch",
+                "args": {"bucket": "my-bucket", "folder": "my-s3-folder"},
+            },
             "state": {"type": "in_memory"},
             "deploy": {
                 "type": "k8s",

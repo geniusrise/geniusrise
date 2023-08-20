@@ -14,8 +14,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .base import StateManager
-from .dynamo import DynamoDBStateManager
-from .memory import InMemoryStateManager
-from .postgres import PostgresStateManager
-from .redis import RedisStateManager
+from .base import State
+from .dynamo import DynamoDBState
+from .memory import InMemoryState
+from .postgres import PostgresState
+from .redis import RedisState

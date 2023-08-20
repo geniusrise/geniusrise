@@ -17,7 +17,7 @@
 import pytest
 from kafka import KafkaProducer
 
-from geniusrise.core.data import StreamingInputConfig
+from geniusrise.core.data import StreamingInput
 
 # Define your Kafka connection details as constants
 KAFKA_CLUSTER_CONNECTION_STRING = "localhost:9094"
@@ -25,19 +25,19 @@ GROUP_ID = "test_group_1"
 INPUT_TOPIC = "test_topic"
 
 
-# Define a fixture for your StreamingInputConfig
+# Define a fixture for your StreamingInput
 @pytest.fixture
 def streaming_input_config():
-    return StreamingInputConfig(INPUT_TOPIC, KAFKA_CLUSTER_CONNECTION_STRING, GROUP_ID)
+    return StreamingInput(INPUT_TOPIC, KAFKA_CLUSTER_CONNECTION_STRING, GROUP_ID)
 
 
-# Test that the StreamingInputConfig can be initialized
+# Test that the StreamingInput can be initialized
 def test_streaming_input_config_init(streaming_input_config):
     assert streaming_input_config.input_topic == INPUT_TOPIC
     assert streaming_input_config.consumer is not None
 
 
-# Test that the StreamingInputConfig can get data from the Kafka topic
+# Test that the StreamingInput can get data from the Kafka topic
 def test_streaming_input_config_get(streaming_input_config):
     consumer = streaming_input_config.get()
     assert consumer is not None
@@ -53,7 +53,7 @@ def test_streaming_input_config_get(streaming_input_config):
         break  # Only consume one message for this test
 
 
-# Test that the StreamingInputConfig can iterate over messages
+# Test that the StreamingInput can iterate over messages
 def test_streaming_input_config_iterator(streaming_input_config):
     producer = KafkaProducer(bootstrap_servers=KAFKA_CLUSTER_CONNECTION_STRING)
     producer.send(INPUT_TOPIC, b'{"test": "lol"}')
@@ -64,7 +64,7 @@ def test_streaming_input_config_iterator(streaming_input_config):
         break  # Only consume one message for this test
 
 
-# Test that the StreamingInputConfig can filter messages
+# Test that the StreamingInput can filter messages
 def test_streaming_input_config_filter_messages(streaming_input_config):
     producer = KafkaProducer(bootstrap_servers=KAFKA_CLUSTER_CONNECTION_STRING)
     producer.send(INPUT_TOPIC, b'{"test": "filter"}')
@@ -79,13 +79,13 @@ def test_streaming_input_config_filter_messages(streaming_input_config):
         break  # Only consume one message for this test
 
 
-# Test that the StreamingInputConfig can close the Kafka consumer
+# Test that the StreamingInput can close the Kafka consumer
 def test_streaming_input_config_close(streaming_input_config):
     streaming_input_config.close()
     assert streaming_input_config.consumer is None
 
 
-# Test that the StreamingInputConfig can seek to a specific offset
+# Test that the StreamingInput can seek to a specific offset
 def test_streaming_input_config_seek(streaming_input_config):
     partition = 0
     offset = 0
@@ -94,7 +94,7 @@ def test_streaming_input_config_seek(streaming_input_config):
     assert message.offset == offset
 
 
-# Test that the StreamingInputConfig can commit offsets
+# Test that the StreamingInput can commit offsets
 def test_streaming_input_config_commit(streaming_input_config):
     streaming_input_config.commit()
     # This test is a bit tricky to implement because it depends on the state of the Kafka consumer

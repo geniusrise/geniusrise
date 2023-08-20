@@ -17,8 +17,13 @@
 import pytest
 
 from geniusrise.core import Spout
-from geniusrise.core.data import BatchOutputConfig, StreamingOutputConfig
-from geniusrise.core.state import DynamoDBStateManager, InMemoryStateManager, PostgresStateManager, RedisStateManager
+from geniusrise.core.data import BatchOutput, StreamingOutput
+from geniusrise.core.state import (
+    DynamoDBState,
+    InMemoryState,
+    PostgresState,
+    RedisState,
+)
 
 output_topic = "test_topic"
 kafka_servers = "localhost:9092"
@@ -43,35 +48,48 @@ class TestSpout(Spout):
 
 
 # Define a fixture for the state manager
-@pytest.fixture(params=[InMemoryStateManager, RedisStateManager, PostgresStateManager, DynamoDBStateManager])
-def state_manager(request):
-    if request.param == InMemoryStateManager:
+@pytest.fixture(
+    params=[
+        InMemoryState,
+        RedisState,
+        PostgresState,
+        DynamoDBState,
+    ]
+)
+def state(request):
+    if request.param == InMemoryState:
         return request.param()
-    elif request.param == RedisStateManager:
+    elif request.param == RedisState:
         return request.param(redis_host, redis_port, redis_db)
-    elif request.param == PostgresStateManager:
-        return request.param(postgres_host, postgres_port, postgres_user, postgres_password, postgres_database)
-    elif request.param == DynamoDBStateManager:
+    elif request.param == PostgresState:
+        return request.param(
+            postgres_host,
+            postgres_port,
+            postgres_user,
+            postgres_password,
+            postgres_database,
+        )
+    elif request.param == DynamoDBState:
         return request.param(dynamodb_table_name, dynamodb_region_name)
 
 
 # Define a fixture for the output config
-@pytest.fixture(params=[BatchOutputConfig, StreamingOutputConfig])
-def output_config(request, tmpdir):
-    if request.param == BatchOutputConfig:
+@pytest.fixture(params=[BatchOutput, StreamingOutput])
+def output(request, tmpdir):
+    if request.param == BatchOutput:
         return request.param(tmpdir, s3_bucket, s3_folder)
-    elif request.param == StreamingOutputConfig:
+    elif request.param == StreamingOutput:
         return request.param(output_topic, kafka_servers)
 
 
-def test_spout_init(output_config, state_manager):
-    spout = TestSpout(output_config, state_manager)
-    assert spout.output_config == output_config
-    assert spout.state_manager == state_manager
+def test_spout_init(output, state):
+    spout = TestSpout(output, state)
+    assert spout.output == output
+    assert spout.state == state
 
 
-def test_spout_call(output_config, state_manager):
-    spout = TestSpout(output_config, state_manager)
+def test_spout_call(output, state):
+    spout = TestSpout(output, state)
     method_name = "test_method"
     args = (1, 2, 3)
     kwargs = {"a": 4, "b": 5, "c": 6}
@@ -114,18 +132,18 @@ def test_spout_create(output_type, state_type, tmpdir):
     assert isinstance(spout, TestSpout)
 
     if output_type == "batch":
-        assert isinstance(spout.output_config, BatchOutputConfig)
+        assert isinstance(spout.output, BatchOutput)
     elif output_type == "streaming":
-        assert isinstance(spout.output_config, StreamingOutputConfig)
+        assert isinstance(spout.output, StreamingOutput)
 
     if state_type == "in_memory":
-        assert isinstance(spout.state_manager, InMemoryStateManager)
+        assert isinstance(spout.state, InMemoryState)
     elif state_type == "redis":
-        assert isinstance(spout.state_manager, RedisStateManager)
+        assert isinstance(spout.state, RedisState)
     elif state_type == "postgres":
-        assert isinstance(spout.state_manager, PostgresStateManager)
+        assert isinstance(spout.state, PostgresState)
     elif state_type == "dynamodb":
-        assert isinstance(spout.state_manager, DynamoDBStateManager)
+        assert isinstance(spout.state, DynamoDBState)
 
 
 def test_spout_run(output_type, state_type, tmpdir):

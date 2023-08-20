@@ -14,9 +14,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .batch_input import BatchInputConfig
-from .batch_output import BatchOutputConfig
-from .input import InputConfig
-from .output import OutputConfig
-from .streaming_input import StreamingInputConfig
-from .streaming_output import StreamingOutputConfig
+from .batch_input import BatchInput
+from .batch_output import BatchOutput
+from .input import Input
+from .output import Output
+from .streaming_input import StreamingInput
+from .streaming_output import StreamingOutput

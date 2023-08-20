@@ -16,7 +16,9 @@
 
 import argparse
 import logging
+
 import emoji  # type: ignore
+
 from geniusrise.cli.discover import DiscoveredBolt
 from geniusrise.core import Bolt
 
@@ -47,7 +49,7 @@ class BoltCtl:
         subparsers = parser.add_subparsers(dest="command")
 
         # Create subparser for 'run' command
-        run_parser = subparsers.add_parser("run", help="Run a bolt locally.")
+        run_parser = subparsers.add_parser("rise", help="Run a bolt locally.")
 
         run_parser.add_argument(
             "input_type",
@@ -92,7 +94,10 @@ class BoltCtl:
             type=str,
         )
         run_parser.add_argument(
-            "--input_s3_folder", help="Indicate the S3 folder for output storage.", default="my-s3-folder", type=str
+            "--input_s3_folder",
+            help="Indicate the S3 folder for output storage.",
+            default="my-s3-folder",
+            type=str,
         )
         run_parser.add_argument(
             "--output_folder",
@@ -119,38 +124,76 @@ class BoltCtl:
             type=str,
         )
         run_parser.add_argument(
-            "--output_s3_folder", help="Indicate the S3 folder for output storage.", default="my-s3-folder", type=str
+            "--output_s3_folder",
+            help="Indicate the S3 folder for output storage.",
+            default="my-s3-folder",
+            type=str,
         )
         run_parser.add_argument(
-            "--redis_host", help="Enter the host address for the Redis server.", default="localhost", type=str
+            "--redis_host",
+            help="Enter the host address for the Redis server.",
+            default="localhost",
+            type=str,
         )
         run_parser.add_argument(
-            "--redis_port", help="Enter the port number for the Redis server.", default=6379, type=int
-        )
-        run_parser.add_argument("--redis_db", help="Specify the Redis database to be used.", default=0, type=int)
-        run_parser.add_argument(
-            "--postgres_host", help="Enter the host address for the PostgreSQL server.", default="localhost", type=str
-        )
-        run_parser.add_argument(
-            "--postgres_port", help="Enter the port number for the PostgreSQL server.", default=5432, type=int
+            "--redis_port",
+            help="Enter the port number for the Redis server.",
+            default=6379,
+            type=int,
         )
         run_parser.add_argument(
-            "--postgres_user", help="Provide the username for the PostgreSQL server.", default="postgres", type=str
+            "--redis_db",
+            help="Specify the Redis database to be used.",
+            default=0,
+            type=int,
         )
         run_parser.add_argument(
-            "--postgres_password", help="Provide the password for the PostgreSQL server.", default="password", type=str
+            "--postgres_host",
+            help="Enter the host address for the PostgreSQL server.",
+            default="localhost",
+            type=str,
         )
         run_parser.add_argument(
-            "--postgres_database", help="Specify the PostgreSQL database to be used.", default="mydatabase", type=str
+            "--postgres_port",
+            help="Enter the port number for the PostgreSQL server.",
+            default=5432,
+            type=int,
         )
         run_parser.add_argument(
-            "--postgres_table", help="Specify the PostgreSQL table to be used.", default="mytable", type=str
+            "--postgres_user",
+            help="Provide the username for the PostgreSQL server.",
+            default="postgres",
+            type=str,
         )
         run_parser.add_argument(
-            "--dynamodb_table_name", help="Provide the name of the DynamoDB table.", default="mytable", type=str
+            "--postgres_password",
+            help="Provide the password for the PostgreSQL server.",
+            default="password",
+            type=str,
         )
         run_parser.add_argument(
-            "--dynamodb_region_name", help="Specify the AWS region for DynamoDB.", default="us-west-2", type=str
+            "--postgres_database",
+            help="Specify the PostgreSQL database to be used.",
+            default="mydatabase",
+            type=str,
+        )
+        run_parser.add_argument(
+            "--postgres_table",
+            help="Specify the PostgreSQL table to be used.",
+            default="mytable",
+            type=str,
+        )
+        run_parser.add_argument(
+            "--dynamodb_table_name",
+            help="Provide the name of the DynamoDB table.",
+            default="mytable",
+            type=str,
+        )
+        run_parser.add_argument(
+            "--dynamodb_region_name",
+            help="Specify the AWS region for DynamoDB.",
+            default="us-west-2",
+            type=str,
         )
         run_parser.add_argument(
             "method_name",
@@ -178,11 +221,19 @@ class BoltCtl:
         """
         self.log.info(emoji.emojize(f"Running command: {args.command} :rocket:"))
         try:
-            if args.command == "run":
+            if args.command == "rise":
                 kwargs = {
                     k: v
                     for k, v in vars(args).items()
-                    if v is not None and k not in ["input_type", "output_type", "state_type", "args", "method_name"]
+                    if v is not None
+                    and k
+                    not in [
+                        "input_type",
+                        "output_type",
+                        "state_type",
+                        "args",
+                        "method_name",
+                    ]
                 }
                 other = args.args or []
                 other_args, other_kwargs = self.parse_args_kwargs(other)

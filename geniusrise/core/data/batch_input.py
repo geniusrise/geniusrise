@@ -19,51 +19,62 @@ import os
 
 import boto3
 
-from .input import InputConfig
-
-log = logging.getLogger(__name__)
+from .input import Input
 
 
-class BatchInputConfig(InputConfig):
+class BatchInput(Input):
     """
-    Class for managing batch input configurations.
+    📁 BatchInput: Manages batch input configurations.
 
     Attributes:
         input_folder (str): Folder to read input files.
+        bucket (str): S3 bucket name.
+        s3_folder (str): Folder within the S3 bucket.
+
+    Usage:
+    ```python
+    config = BatchInput("/path/to/input", "my_bucket", "s3/folder")
+    files = config.list_files()
+    content = config.read_file("example.txt")
+    ```
     """
 
-    def __init__(self, input_folder: str, bucket: str, s3_folder: str):
+    def __init__(self, input_folder: str, bucket: str, s3_folder: str) -> None:
         """
         Initialize a new batch input configuration.
 
         Args:
             input_folder (str): Folder to read input files.
+            bucket (str): S3 bucket name.
+            s3_folder (str): Folder within the S3 bucket.
         """
         self.input_folder = input_folder
         self.bucket = bucket
         self.s3_folder = s3_folder
+        self.log = logging.getLogger(__name__)
 
-    def get(self):
+    def get(self) -> str:
         """
-        Get the input folder location.
+        📍 Get the input folder location.
 
         Returns:
             str: The input folder location.
+
+        Raises:
+            Exception: If no input folder is specified.
         """
         if self.input_folder:
             return self.input_folder
         else:
-            log.exception("No input folder specified.")
-            raise
-            return None
+            self.log.exception("🚫 No input folder specified.")
+            raise Exception("Input folder not specified.")
 
-    def copy_from_remote(self):
+    def copy_from_remote(self) -> None:
         """
-        Copy contents from a given S3 bucket and location to the input folder.
+        🔄 Copy contents from a given S3 bucket and location to the input folder.
 
-        Args:
-            bucket (str): The name of the S3 bucket.
-            s3_folder (str): The folder in the S3 bucket.
+        Raises:
+            Exception: If no input folder is specified.
         """
         if self.input_folder:
             s3 = boto3.resource("s3")
@@ -74,15 +85,18 @@ class BatchInputConfig(InputConfig):
                     os.makedirs(os.path.dirname(f"{self.input_folder}/{obj.key}"))
                 _bucket.download_file(obj.key, f"{self.input_folder}/{obj.key}")
         else:
-            log.exception("No input folder specified.")
-            raise
+            self.log.exception("🚫 No input folder specified.")
+            raise Exception("Input folder not specified.")
 
-    def list_files(self):
+    def list_files(self) -> list:
         """
-        List all files in the input folder.
+        📜 List all files in the input folder.
 
         Returns:
             list: A list of file paths.
+
+        Raises:
+            Exception: If no input folder is specified.
         """
         if self.input_folder:
             return [
@@ -91,55 +105,64 @@ class BatchInputConfig(InputConfig):
                 if os.path.isfile(os.path.join(self.input_folder, f))
             ]
         else:
-            log.exception("No input folder specified.")
-            raise
-            return []
+            self.log.exception("🚫 No input folder specified.")
+            raise Exception("Input folder not specified.")
 
-    def read_file(self, filename):
+    def read_file(self, filename: str) -> str:
         """
-        Read a file from the input folder.
+        📖 Read a file from the input folder.
 
         Args:
             filename (str): The name of the file.
 
         Returns:
             str: The contents of the file.
+
+        Raises:
+            Exception: If no input folder is specified.
         """
         if self.input_folder:
             with open(os.path.join(self.input_folder, filename), "r") as file:
                 return file.read()
         else:
-            log.exception("No input folder specified.")
-            raise
-            return None
+            self.log.exception("🚫 No input folder specified.")
+            raise Exception("Input folder not specified.")
 
-    def delete_file(self, filename):
+    def delete_file(self, filename: str) -> None:
         """
-        Delete a file from the input folder.
+        🗑️ Delete a file from the input folder.
 
         Args:
             filename (str): The name of the file.
+
+        Raises:
+            Exception: If no input folder is specified.
         """
         if self.input_folder:
             os.remove(os.path.join(self.input_folder, filename))
         else:
-            log.exception("No input folder specified.")
-            raise
+            self.log.exception("🚫 No input folder specified.")
+            raise Exception("Input folder not specified.")
 
-    def copy_to_remote(self, filename, bucket, s3_folder):
+    def copy_to_remote(self, filename: str, bucket: str, s3_folder: str) -> None:
         """
-        Copy a file from the input folder to an S3 bucket.
+        ☁️ Copy a file from the input folder to an S3 bucket.
 
         Args:
             filename (str): The name of the file.
             bucket (str): The name of the S3 bucket.
             s3_folder (str): The folder in the S3 bucket.
+
+        Raises:
+            Exception: If no input folder is specified.
         """
         if self.input_folder:
             s3 = boto3.resource("s3")
             s3.meta.client.upload_file(
-                os.path.join(self.input_folder, filename), bucket, os.path.join(s3_folder, filename)
+                os.path.join(self.input_folder, filename),
+                bucket,
+                os.path.join(s3_folder, filename),
             )
         else:
-            log.exception("No input folder specified.")
-            raise
+            self.log.exception("🚫 No input folder specified.")
+            raise Exception("Input folder not specified.")

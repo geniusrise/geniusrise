@@ -17,8 +17,18 @@
 import pytest
 
 from geniusrise.core import Bolt
-from geniusrise.core.data import BatchInputConfig, BatchOutputConfig, StreamingInputConfig, StreamingOutputConfig
-from geniusrise.core.state import DynamoDBStateManager, InMemoryStateManager, PostgresStateManager, RedisStateManager
+from geniusrise.core.data import (
+    BatchInput,
+    BatchOutput,
+    StreamingInput,
+    StreamingOutput,
+)
+from geniusrise.core.state import (
+    DynamoDBState,
+    InMemoryState,
+    PostgresState,
+    RedisState,
+)
 
 # Define the parameters for the tests
 bucket = "geniusrise-test-bucket"
@@ -47,47 +57,59 @@ class TestBolt(Bolt):
 
 
 # Define a fixture for the input config
-@pytest.fixture(params=[BatchInputConfig, StreamingInputConfig])
-def input_config(request, tmpdir):
-    if request.param == BatchInputConfig:
+@pytest.fixture(params=[BatchInput, StreamingInput])
+def input(request, tmpdir):
+    if request.param == BatchInput:
         return request.param(tmpdir, bucket, s3_folder)
-    elif request.param == StreamingInputConfig:
+    elif request.param == StreamingInput:
         return request.param(input_topic, kafka_cluster_connection_string, group_id)
 
 
 # Define a fixture for the output config
-@pytest.fixture(params=[BatchOutputConfig, StreamingOutputConfig])
-def output_config(request, tmpdir):
-    if request.param == BatchOutputConfig:
+@pytest.fixture(params=[BatchOutput, StreamingOutput])
+def output(request, tmpdir):
+    if request.param == BatchOutput:
         return request.param(tmpdir, bucket, s3_folder)
-    elif request.param == StreamingOutputConfig:
+    elif request.param == StreamingOutput:
         return request.param(output_topic, kafka_servers)
 
 
 # Define a fixture for the state manager
-@pytest.fixture(params=[InMemoryStateManager, RedisStateManager, PostgresStateManager, DynamoDBStateManager])
-def state_manager(request):
-    if request.param == InMemoryStateManager:
+@pytest.fixture(
+    params=[
+        InMemoryState,
+        RedisState,
+        PostgresState,
+        DynamoDBState,
+    ]
+)
+def state(request):
+    if request.param == InMemoryState:
         return request.param()
-    elif request.param == RedisStateManager:
+    elif request.param == RedisState:
         return request.param(redis_host, redis_port, redis_db)
-    elif request.param == PostgresStateManager:
+    elif request.param == PostgresState:
         return request.param(
-            postgres_host, postgres_port, postgres_user, postgres_password, postgres_database, postgres_table
+            postgres_host,
+            postgres_port,
+            postgres_user,
+            postgres_password,
+            postgres_database,
+            postgres_table,
         )
-    elif request.param == DynamoDBStateManager:
+    elif request.param == DynamoDBState:
         return request.param(dynamodb_table_name, dynamodb_region_name)
 
 
-def test_bolt_init(input_config, output_config, state_manager):
-    bolt = TestBolt(input_config, output_config, state_manager)
-    assert bolt.input_config == input_config
-    assert bolt.output_config == output_config
-    assert bolt.state_manager == state_manager
+def test_bolt_init(input, output, state):
+    bolt = TestBolt(input, output, state)
+    assert bolt.input == input
+    assert bolt.output == output
+    assert bolt.state == state
 
 
-def test_bolt_call(input_config, output_config, state_manager):
-    bolt = TestBolt(input_config, output_config, state_manager)
+def test_bolt_call(input, output, state):
+    bolt = TestBolt(input, output, state)
     method_name = "test_method"
     args = (1, 2, 3)
     kwargs = {"a": 4, "b": 5, "c": 6}
@@ -141,23 +163,23 @@ def test_bolt_create(input_type, output_type, state_type, tmpdir):
     assert isinstance(bolt, Bolt)
 
     if input_type == "batch":
-        assert isinstance(bolt.input_config, BatchInputConfig)
+        assert isinstance(bolt.input, BatchInput)
     elif input_type == "streaming":
-        assert isinstance(bolt.input_config, StreamingInputConfig)
+        assert isinstance(bolt.input, StreamingInput)
 
     if output_type == "batch":
-        assert isinstance(bolt.output_config, BatchOutputConfig)
+        assert isinstance(bolt.output, BatchOutput)
     elif output_type == "streaming":
-        assert isinstance(bolt.output_config, StreamingOutputConfig)
+        assert isinstance(bolt.output, StreamingOutput)
 
     if state_type == "in_memory":
-        assert isinstance(bolt.state_manager, InMemoryStateManager)
+        assert isinstance(bolt.state, InMemoryState)
     elif state_type == "redis":
-        assert isinstance(bolt.state_manager, RedisStateManager)
+        assert isinstance(bolt.state, RedisState)
     elif state_type == "postgres":
-        assert isinstance(bolt.state_manager, PostgresStateManager)
+        assert isinstance(bolt.state, PostgresState)
     elif state_type == "dynamodb":
-        assert isinstance(bolt.state_manager, DynamoDBStateManager)
+        assert isinstance(bolt.state, DynamoDBState)
 
 
 def test_bolt_call_with_types(input_type, output_type, state_type, tmpdir):

@@ -14,20 +14,38 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+import logging
 from typing import Dict, Optional
 
 import jsonpickle
 import redis  # type: ignore
 
-from geniusrise.core.state import StateManager
+from geniusrise.core.state import State
 
 
-class RedisStateManager(StateManager):
+class RedisState(State):
     """
-    A state manager that stores state in Redis.
+    🗄️ **RedisState**: A state manager that stores state in Redis.
+
+    This manager provides a fast, in-memory storage solution using Redis.
+
+    ## Attributes:
+    - `redis` (redis.Redis): The Redis connection.
+
+    ## Usage:
+    ```python
+    manager = RedisState(host="localhost", port=6379, db=0)
+    manager.set_state("user123", {"status": "active"})
+    state = manager.get_state("user123")
+    print(state)  # Outputs: {"status": "active"}
+    ```
+
+    !!! warning
+        Ensure Redis is accessible and running.
     """
 
-    def __init__(self, host: str, port: int, db: int):
+    def __init__(self, host: str, port: int, db: int) -> None:
         """
         Initialize a new Redis state manager.
 
@@ -38,29 +56,43 @@ class RedisStateManager(StateManager):
         """
         super().__init__()
         self.redis = redis.Redis(host=host, port=port, db=db)
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.info(f"🔌 Connected to Redis at {host}:{port}, DB: {db}")
 
     def get_state(self, key: str) -> Optional[Dict]:
         """
-        Get the state associated with a key.
+        📖 Get the state associated with a key.
 
         Args:
             key (str): The key to get the state for.
 
         Returns:
-            Dict: The state associated with the key.
+            Dict: The state associated with the key, or None if not found.
+
+        Raises:
+            Exception: If there's an error accessing Redis.
         """
         value = self.redis.get(key)
         if not value:
+            self.log.warning(f"🔍 Key '{key}' not found in Redis.")
             return None
         else:
             return jsonpickle.decode(value.decode("utf-8"))
 
-    def set_state(self, key: str, value: Dict):
+    def set_state(self, key: str, value: Dict) -> None:
         """
-        Set the state associated with a key.
+        📝 Set the state associated with a key.
 
         Args:
             key (str): The key to set the state for.
             value (Dict): The state to set.
+
+        Raises:
+            Exception: If there's an error accessing Redis.
         """
-        self.redis.set(key, jsonpickle.encode(value))
+        try:
+            self.redis.set(key, jsonpickle.encode(value))
+            self.log.info(f"✅ State for key '{key}' set in Redis.")
+        except Exception as e:
+            self.log.exception(f"🚫 Failed to set state in Redis: {e}")
+            raise

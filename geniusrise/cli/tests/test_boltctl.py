@@ -14,9 +14,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pytest
 import argparse
 import os
+
+import pytest
+
 from geniusrise.cli.boltctl import BoltCtl
 from geniusrise.cli.discover import Discover
 from geniusrise.core import Bolt
@@ -65,7 +67,7 @@ def test_boltctl_run(boltctl, input_type, output_type, state_type, tmpdir):
     parser = argparse.ArgumentParser()
     boltctl.create_parser(parser)
     args = parser.parse_args([
-        "run",
+        "rise",
         input_type,
         "--input_folder", str(tmpdir),
         "--input_s3_bucket", "geniusrise-test-bucket",

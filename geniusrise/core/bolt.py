@@ -19,19 +19,19 @@ import tempfile
 from typing import Any
 
 from geniusrise.core.data import (
-    BatchInputConfig,
-    BatchOutputConfig,
-    InputConfig,
-    OutputConfig,
-    StreamingInputConfig,
-    StreamingOutputConfig,
+    BatchInput,
+    BatchOutput,
+    Input,
+    Output,
+    StreamingInput,
+    StreamingOutput,
 )
 from geniusrise.core.state import (
-    DynamoDBStateManager,
-    InMemoryStateManager,
-    PostgresStateManager,
-    RedisStateManager,
-    StateManager,
+    DynamoDBState,
+    InMemoryState,
+    PostgresState,
+    RedisState,
+    State,
 )
 
 from .task import Task
@@ -45,7 +45,11 @@ class Bolt(Task):
     """
 
     def __init__(
-        self, input_config: InputConfig, output_config: OutputConfig, state_manager: StateManager, **kwargs
+        self,
+        input: Input,
+        output: Output,
+        state: State,
+        **kwargs,
     ) -> None:
         """
         The `Bolt` class is a base class for all bolts in the given context.
@@ -54,36 +58,36 @@ class Bolt(Task):
         options including in-memory, Redis, PostgreSQL, and DynamoDB,
         and input and output configurations for batch or streaming data.
 
-        The `Bolt` class uses the `InputConfig`, `OutputConfig` and `StateManager` classes, which are abstract base
-        classes for managing input configurations, output configurations and states, respectively. The `InputConfig` and
-        `OutputConfig` classes each have two subclasses: `StreamingInputConfig`, `BatchInputConfig`, `StreamingOutputConfig`
-        and `BatchOutputConfig`, which manage streaming and batch input and output configurations, respectively.
-        The `StateManager` class is used to get and set state, and it has several subclasses for different types of state managers.
+        The `Bolt` class uses the `Input`, `Output` and `State` classes, which are abstract base
+        classes for managing input configurations, output configurations and states, respectively. The `Input` and
+        `Output` classes each have two subclasses: `StreamingInput`, `BatchInput`, `StreamingOutput`
+        and `BatchOutput`, which manage streaming and batch input and output configurations, respectively.
+        The `State` class is used to get and set state, and it has several subclasses for different types of state managers.
 
         The `Bolt` class also uses the `ECSManager` and `K8sManager` classes in the `execute_remote` method,
         which are used to manage tasks on Amazon ECS and Kubernetes, respectively.
 
         Usage:
-            - Create an instance of the Bolt class by providing an InputConfig object, an OutputConfig object and a StateManager object.
-            - The InputConfig object specifies the input configuration for the bolt.
-            - The OutputConfig object specifies the output configuration for the bolt.
-            - The StateManager object handles the management of the bolt's state.
+            - Create an instance of the Bolt class by providing an Input object, an Output object and a State object.
+            - The Input object specifies the input configuration for the bolt.
+            - The Output object specifies the output configuration for the bolt.
+            - The State object handles the management of the bolt's state.
 
         Example:
-            input_config = InputConfig(...)
-            output_config = OutputConfig(...)
-            state_manager = StateManager(...)
-            bolt = Bolt(input_config, output_config, state_manager)
+            input = Input(...)
+            output = Output(...)
+            state = State(...)
+            bolt = Bolt(input, output, state)
 
         Args:
-            input_config (InputConfig): The input configuration.
-            output_config (OutputConfig): The output configuration.
-            state_manager (StateManager): The state manager.
+            input (Input): The input configuration.
+            output (Output): The output configuration.
+            state (State): The state manager.
         """
         super().__init__()
-        self.input_config = input_config
-        self.output_config = output_config
-        self.state_manager = state_manager
+        self.input = input
+        self.output = output
+        self.state = state
 
         self.log = logging.getLogger(self.__class__.__name__)
 
@@ -103,36 +107,36 @@ class Bolt(Task):
         """
         try:
             # Get the type of state manager
-            state_type = self.state_manager.get_state(self.id)
+            state_type = self.state.get_state(self.id)
 
             # Save the current set of class variables to the state manager
-            self.state_manager.set_state(self.id, {})
+            self.state.set_state(self.id, {})
 
             # Copy input data to local or connect to kafka and pass on the details
-            if type(self.input_config) is BatchInputConfig:
-                self.input_config.copy_from_remote()
-                input_folder = self.input_config.get()
+            if type(self.input) is BatchInput:
+                self.input.copy_from_remote()
+                input_folder = self.input.get()
                 kwargs["input_folder"] = input_folder
-            elif type(self.input_config) is StreamingInputConfig:
-                kafka_consumer = self.input_config.get()
+            elif type(self.input) is StreamingInput:
+                kafka_consumer = self.input.get()
                 kwargs["kafka_consumer"] = kafka_consumer
 
             # Execute the task's method
             result = self.execute(method_name, *args, **kwargs)
 
             # Flush the output config
-            self.output_config.flush()
+            self.output.flush()
 
             # Store the state as successful in the state manager
             state = {}
             state["status"] = "success"
-            self.state_manager.set_state(self.id, state)
+            self.state.set_state(self.id, state)
 
             return result
         except Exception as e:
             state = {}
             state["status"] = "failed"
-            self.state_manager.set_state(self.id, state)
+            self.state.set_state(self.id, state)
             self.log.exception(f"Failed to execute method '{method_name}': {e}")
             raise
 
@@ -191,15 +195,15 @@ class Bolt(Task):
             ValueError: If an invalid input type, output type, or state type is provided.
         """
         # Create the input config
-        input_config: BatchInputConfig | StreamingInputConfig
+        input: BatchInput | StreamingInput
         if input_type == "batch":
-            input_config = BatchInputConfig(
+            input = BatchInput(
                 input_folder=kwargs["input_folder"] if "input_folder" in kwargs else tempfile.mkdtemp(),
                 bucket=kwargs["input_s3_bucket"] if "input_s3_bucket" in kwargs else None,
                 s3_folder=kwargs["input_s3_folder"] if "input_s3_folder" in kwargs else None,
             )
         elif input_type == "streaming":
-            input_config = StreamingInputConfig(
+            input = StreamingInput(
                 input_topic=kwargs["input_kafka_topic"] if "input_kafka_topic" in kwargs else None,
                 kafka_cluster_connection_string=kwargs["input_kafka_cluster_connection_string"]
                 if "input_kafka_cluster_connection_string" in kwargs
@@ -210,15 +214,15 @@ class Bolt(Task):
             raise ValueError(f"Invalid input type: {input_type}")
 
         # Create the output config
-        output_config: BatchOutputConfig | StreamingOutputConfig
+        output: BatchOutput | StreamingOutput
         if output_type == "batch":
-            output_config = BatchOutputConfig(
+            output = BatchOutput(
                 output_folder=kwargs["output_folder"] if "output_folder" in kwargs else tempfile.mkdtemp(),
                 bucket=kwargs["output_s3_bucket"] if "output_s3_bucket" in kwargs else tempfile.mkdtemp(),
                 s3_folder=kwargs["output_s3_folder"] if "output_s3_folder" in kwargs else tempfile.mkdtemp(),
             )
         elif output_type == "streaming":
-            output_config = StreamingOutputConfig(
+            output = StreamingOutput(
                 kwargs["output_kafka_topic"] if "output_kafka_topic" in kwargs else None,
                 kwargs["output_kafka_cluster_connection_string"]
                 if "output_kafka_cluster_connection_string" in kwargs
@@ -228,17 +232,17 @@ class Bolt(Task):
             raise ValueError(f"Invalid output type: {output_type}")
 
         # Create the state manager
-        state_manager: StateManager
+        state: State
         if state_type == "in_memory":
-            state_manager = InMemoryStateManager()
+            state = InMemoryState()
         elif state_type == "redis":
-            state_manager = RedisStateManager(
+            state = RedisState(
                 host=kwargs["redis_host"] if "redis_host" in kwargs else None,
                 port=kwargs["redis_port"] if "redis_port" in kwargs else None,
                 db=kwargs["redis_db"] if "redis_db" in kwargs else None,
             )
         elif state_type == "postgres":
-            state_manager = PostgresStateManager(
+            state = PostgresState(
                 host=kwargs["postgres_host"] if "postgres_host" in kwargs else None,
                 port=kwargs["postgres_port"] if "postgres_port" in kwargs else None,
                 user=kwargs["postgres_user"] if "postgres_user" in kwargs else None,
@@ -247,7 +251,7 @@ class Bolt(Task):
                 table=kwargs["postgres_table"] if "postgres_table" in kwargs else None,
             )
         elif state_type == "dynamodb":
-            state_manager = DynamoDBStateManager(
+            state = DynamoDBState(
                 table_name=kwargs["dynamodb_table_name"] if "dynamodb_table_name" in kwargs else None,
                 region_name=kwargs["dynamodb_region_name"] if "dynamodb_region_name" in kwargs else None,
             )
@@ -255,5 +259,10 @@ class Bolt(Task):
             raise ValueError(f"Invalid state type: {state_type}")
 
         # Create the bolt
-        bolt = klass(input_config=input_config, output_config=output_config, state_manager=state_manager, **kwargs)
+        bolt = klass(
+            input=input,
+            output=output,
+            state=state,
+            **kwargs,
+        )
         return bolt

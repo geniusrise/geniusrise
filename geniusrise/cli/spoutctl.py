@@ -49,7 +49,7 @@ class SpoutCtl:
         subparsers = parser.add_subparsers(dest="command")
 
         # Create subparser for 'create' command
-        create_parser = subparsers.add_parser("run", help="Run a spout locally.")
+        create_parser = subparsers.add_parser("rise", help="Run a spout locally.")
         create_parser.add_argument(
             "output_type",
             choices=["batch", "streaming"],
@@ -87,38 +87,76 @@ class SpoutCtl:
             type=str,
         )
         create_parser.add_argument(
-            "--output_s3_folder", help="Indicate the S3 folder for output storage.", default="my-s3-folder", type=str
+            "--output_s3_folder",
+            help="Indicate the S3 folder for output storage.",
+            default="my-s3-folder",
+            type=str,
         )
         create_parser.add_argument(
-            "--redis_host", help="Enter the host address for the Redis server.", default="localhost", type=str
+            "--redis_host",
+            help="Enter the host address for the Redis server.",
+            default="localhost",
+            type=str,
         )
         create_parser.add_argument(
-            "--redis_port", help="Enter the port number for the Redis server.", default=6379, type=int
-        )
-        create_parser.add_argument("--redis_db", help="Specify the Redis database to be used.", default=0, type=int)
-        create_parser.add_argument(
-            "--postgres_host", help="Enter the host address for the PostgreSQL server.", default="localhost", type=str
-        )
-        create_parser.add_argument(
-            "--postgres_port", help="Enter the port number for the PostgreSQL server.", default=5432, type=int
+            "--redis_port",
+            help="Enter the port number for the Redis server.",
+            default=6379,
+            type=int,
         )
         create_parser.add_argument(
-            "--postgres_user", help="Provide the username for the PostgreSQL server.", default="postgres", type=str
+            "--redis_db",
+            help="Specify the Redis database to be used.",
+            default=0,
+            type=int,
         )
         create_parser.add_argument(
-            "--postgres_password", help="Provide the password for the PostgreSQL server.", default="password", type=str
+            "--postgres_host",
+            help="Enter the host address for the PostgreSQL server.",
+            default="localhost",
+            type=str,
         )
         create_parser.add_argument(
-            "--postgres_database", help="Specify the PostgreSQL database to be used.", default="mydatabase", type=str
+            "--postgres_port",
+            help="Enter the port number for the PostgreSQL server.",
+            default=5432,
+            type=int,
         )
         create_parser.add_argument(
-            "--postgres_table", help="Specify the PostgreSQL table to be used.", default="mytable", type=str
+            "--postgres_user",
+            help="Provide the username for the PostgreSQL server.",
+            default="postgres",
+            type=str,
         )
         create_parser.add_argument(
-            "--dynamodb_table_name", help="Provide the name of the DynamoDB table.", default="mytable", type=str
+            "--postgres_password",
+            help="Provide the password for the PostgreSQL server.",
+            default="password",
+            type=str,
         )
         create_parser.add_argument(
-            "--dynamodb_region_name", help="Specify the AWS region for DynamoDB.", default="us-west-2", type=str
+            "--postgres_database",
+            help="Specify the PostgreSQL database to be used.",
+            default="mydatabase",
+            type=str,
+        )
+        create_parser.add_argument(
+            "--postgres_table",
+            help="Specify the PostgreSQL table to be used.",
+            default="mytable",
+            type=str,
+        )
+        create_parser.add_argument(
+            "--dynamodb_table_name",
+            help="Provide the name of the DynamoDB table.",
+            default="mytable",
+            type=str,
+        )
+        create_parser.add_argument(
+            "--dynamodb_region_name",
+            help="Specify the AWS region for DynamoDB.",
+            default="us-west-2",
+            type=str,
         )
         create_parser.add_argument(
             "method_name",
@@ -146,7 +184,7 @@ class SpoutCtl:
         """
         self.log.info(emoji.emojize(f"Running command: {args.command} :rocket:"))
         try:
-            if args.command == "run":
+            if args.command == "rise":
                 kwargs = {
                     k: v
                     for k, v in vars(args).items()
@@ -228,7 +266,12 @@ class SpoutCtl:
         Returns:
             Spout: The created spout.
         """
-        return Spout.create(klass=self.discovered_spout.klass, output_type=output_type, state_type=state_type, **kwargs)
+        return Spout.create(
+            klass=self.discovered_spout.klass,
+            output_type=output_type,
+            state_type=state_type,
+            **kwargs,
+        )
 
     def execute_spout(self, spout: Spout, method_name: str, *args, **kwargs):
         """

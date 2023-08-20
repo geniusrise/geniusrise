@@ -1,11 +1,12 @@
-import pytest
-
 import argparse
 import os
-from geniusrise.cli.yamlctl import YamlCtl
-from geniusrise.cli.spoutctl import SpoutCtl
+
+import pytest
+
 from geniusrise.cli.boltctl import BoltCtl
 from geniusrise.cli.discover import Discover
+from geniusrise.cli.spoutctl import SpoutCtl
+from geniusrise.cli.yamlctl import YamlCtl
 
 # from geniusrise.core import Spout, Bolt
 
@@ -144,7 +145,16 @@ def test_yamlctl_init(yamlctl):
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "dynamodb"),
     ],
 )
-def test_yamlctl_run(yamlctl, sample_geniusfile, spout_name, bolt_name, input_type, output_type, state_type, tmpdir):
+def test_yamlctl_run(
+    yamlctl,
+    sample_geniusfile,
+    spout_name,
+    bolt_name,
+    input_type,
+    output_type,
+    state_type,
+    tmpdir,
+):
     geniusfile_content = sample_geniusfile(spout_name, bolt_name, input_type, output_type, state_type)
     with open(tmpdir + "/geniusrise.yaml", "w") as f:
         f.write(geniusfile_content)
@@ -180,7 +190,16 @@ def test_yamlctl_run(yamlctl, sample_geniusfile, spout_name, bolt_name, input_ty
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "dynamodb"),
     ],
 )
-def test_yamlctl_run_2(yamlctl, sample_geniusfile, spout_name, bolt_name, input_type, output_type, state_type, tmpdir):
+def test_yamlctl_run_2(
+    yamlctl,
+    sample_geniusfile,
+    spout_name,
+    bolt_name,
+    input_type,
+    output_type,
+    state_type,
+    tmpdir,
+):
     geniusfile_content = sample_geniusfile(spout_name, bolt_name, input_type, output_type, state_type)
     with open(tmpdir + "/geniusrise.yaml", "w") as f:
         f.write(geniusfile_content)

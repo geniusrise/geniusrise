@@ -20,7 +20,7 @@ from abc import ABC, abstractmethod
 log = logging.getLogger(__name__)
 
 
-class InputConfig(ABC):
+class Input(ABC):
     """
     Abstract class for managing input configurations.
     """

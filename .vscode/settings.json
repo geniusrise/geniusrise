@@ -47,5 +47,6 @@
       }
     ],
     "comments": ""
-  }
+  },
+  "python.analysis.typeCheckingMode": "basic"
 }
