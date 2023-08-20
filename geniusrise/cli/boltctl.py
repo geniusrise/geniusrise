@@ -18,6 +18,7 @@ import argparse
 import logging
 
 import emoji  # type: ignore
+from rich_argparse import RichHelpFormatter
 
 from geniusrise.cli.discover import DiscoveredBolt
 from geniusrise.core import Bolt
@@ -49,7 +50,7 @@ class BoltCtl:
         subparsers = parser.add_subparsers(dest="command")
 
         # Create subparser for 'run' command
-        run_parser = subparsers.add_parser("rise", help="Run a bolt locally.")
+        run_parser = subparsers.add_parser("rise", help="Run a bolt locally.", formatter_class=RichHelpFormatter)
 
         run_parser.add_argument(
             "input_type",
@@ -207,7 +208,7 @@ class BoltCtl:
         )
 
         # Create subparser for 'help' command
-        help_parser = subparsers.add_parser("help", help="Print help for the bolt.")
+        help_parser = subparsers.add_parser("help", help="Print help for the bolt.", formatter_class=RichHelpFormatter)
         help_parser.add_argument("method", help="The method to execute.")
 
         return parser

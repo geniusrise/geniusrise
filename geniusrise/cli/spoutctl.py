@@ -18,6 +18,7 @@ import argparse
 import logging
 
 import emoji  # type: ignore
+from rich_argparse import RichHelpFormatter
 
 from geniusrise.cli.discover import DiscoveredSpout
 from geniusrise.core import Spout
@@ -49,7 +50,7 @@ class SpoutCtl:
         subparsers = parser.add_subparsers(dest="command")
 
         # Create subparser for 'create' command
-        create_parser = subparsers.add_parser("rise", help="Run a spout locally.")
+        create_parser = subparsers.add_parser("rise", help="Run a spout locally.", formatter_class=RichHelpFormatter)
         create_parser.add_argument(
             "output_type",
             choices=["batch", "streaming"],
@@ -170,7 +171,9 @@ class SpoutCtl:
         )
 
         # Create subparser for 'help' command
-        execute_parser = subparsers.add_parser("help", help="Print help for the spout.")
+        execute_parser = subparsers.add_parser(
+            "help", help="Print help for the spout.", formatter_class=RichHelpFormatter
+        )
         execute_parser.add_argument("method", help="The method to execute.")
 
         return parser
