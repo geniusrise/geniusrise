@@ -58,7 +58,7 @@ class Task(ABC):
             input (Input): Configuration for input data.
             output (Output): Configuration for output data.
         """
-        self.id = str(uuid.uuid4())
+        self.id = str(self.__class__.__name__) + str(uuid.uuid4())
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.info(f"🚀 Initialized Task with ID: {self.id}")
 

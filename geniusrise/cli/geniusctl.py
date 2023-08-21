@@ -69,7 +69,7 @@ class GeniusCtl:
         # Create subparser for each discovered spout
         for spout_name, discovered_spout in self.spouts.items():
             spout_parser = subparsers.add_parser(
-                spout_name, help=f"Manage {spout_name}.", formatter_class=RichHelpFormatter
+                spout_name, help=f"Manage spout {spout_name}.", formatter_class=RichHelpFormatter
             )
             spout_ctl = SpoutCtl(discovered_spout)
             self.spout_ctls[spout_name] = spout_ctl
@@ -78,7 +78,7 @@ class GeniusCtl:
         # Create subparser for each discovered bolt
         for bolt_name, discovered_bolt in self.bolts.items():
             bolt_parser = subparsers.add_parser(
-                bolt_name, help=f"Manage {bolt_name}.", formatter_class=RichHelpFormatter
+                bolt_name, help=f"Manage bolt {bolt_name}.", formatter_class=RichHelpFormatter
             )
             bolt_ctl = BoltCtl(discovered_bolt)
             self.bolt_ctls[bolt_name] = bolt_ctl

@@ -107,10 +107,10 @@ class Bolt(Task):
         """
         try:
             # Get the type of state manager
-            state_type = self.state.get_state(self.id)
+            # state_type = self.state.get_state(self.id)
 
             # Save the current set of class variables to the state manager
-            self.state.set_state(self.id, {})
+            # self.state.set_state(self.id, {})
 
             # Copy input data to local or connect to kafka and pass on the details
             if type(self.input) is BatchInput:
@@ -130,19 +130,19 @@ class Bolt(Task):
             # Store the state as successful in the state manager
             state = {}
             state["status"] = "success"
-            self.state.set_state(self.id, state)
+            # self.state.set_state(self.id, state)
 
             return result
         except Exception as e:
             state = {}
             state["status"] = "failed"
-            self.state.set_state(self.id, state)
+            # self.state.set_state(self.id, state)
             self.log.exception(f"Failed to execute method '{method_name}': {e}")
             raise
 
     @staticmethod
     def create(klass: type, input_type: str, output_type: str, state_type: str, **kwargs) -> "Bolt":
-        """
+        r"""
         Create a bolt of a specific type.
 
         This static method is used to create a bolt of a specific type. It takes in an input type,
@@ -157,6 +157,7 @@ class Bolt(Task):
             output_type (str): The type of output config ("batch" or "streaming").
             state_type (str): The type of state manager ("in_memory", "redis", "postgres", or "dynamodb").
             **kwargs: Additional keyword arguments for initializing the bolt.
+                ```
                 Keyword Arguments:
                     Batch input config:
                     - input_folder (str): The input folder argument.
@@ -187,6 +188,7 @@ class Bolt(Task):
                     DynamoDB state manager config:
                     - dynamodb_table_name (str): The DynamoDB table name argument.
                     - dynamodb_region_name (str): The DynamoDB region name argument.
+                ```
 
         Returns:
             Bolt: The created bolt.

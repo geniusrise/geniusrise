@@ -16,6 +16,7 @@
 
 import argparse
 import logging
+import json
 
 import emoji  # type: ignore
 from rich_argparse import RichHelpFormatter
@@ -225,7 +226,10 @@ class SpoutCtl:
                 try:
                     return float(value)
                 except ValueError:
-                    return value
+                    try:
+                        return json.loads(value)
+                    except ValueError:
+                        return value
 
         for item in args_list:
             if "=" in item:
@@ -236,13 +240,14 @@ class SpoutCtl:
         return args, kwargs
 
     def create_spout(self, output_type: str, state_type: str, **kwargs) -> Spout:
-        """
+        r"""
         Create a spout of a specific type.
 
         Args:
             output_type (str): The type of output config ("batch" or "streaming").
             state_type (str): The type of state manager ("in_memory", "redis", "postgres", or "dynamodb").
             **kwargs: Additional keyword arguments for initializing the spout.
+                ```
                 Keyword Arguments:
                     Batch output config:
                     - output_folder (str): The directory where output files should be stored temporarily.
@@ -265,6 +270,7 @@ class SpoutCtl:
                     DynamoDB state manager config:
                     - dynamodb_table_name (str): The DynamoDB table name argument.
                     - dynamodb_region_name (str): The DynamoDB region name argument.
+                ```
 
         Returns:
             Spout: The created spout.

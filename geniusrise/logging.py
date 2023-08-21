@@ -75,6 +75,11 @@ def setup_logger() -> logging.Logger:
         )
     )
 
+    # Suppress kafka library info logs
+    if logging.getLevelName(LOGLEVEL) < logging.INFO:
+        logger = logging.getLogger("kafka")
+        logger.setLevel(logging.WARN)
+
     # Setup logger for geniusrise
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)

@@ -87,10 +87,10 @@ class Spout(Task):
         """
         try:
             # Get the type of state manager
-            state_type = self.state.get_state(self.id)
+            # state_type = self.state.get_state(self.id)
 
             # Save the current set of class variables to the state manager
-            self.state.set_state(self.id, {})
+            # self.state.set_state(self.id, {})
 
             # Execute the task's method
             result = self.execute(method_name, *args, **kwargs)
@@ -101,19 +101,19 @@ class Spout(Task):
             # Store the state as successful in the state manager
             state = {}
             state["status"] = "success"
-            self.state.set_state(self.id, state)
+            # self.state.set_state(self.id, state)
 
             return result
         except Exception as e:
             state = {}
             state["status"] = "failed"
-            self.state.set_state(self.id, state)
+            # self.state.set_state(self.id, state)
             self.log.exception(f"Failed to execute method '{method_name}': {e}")
             raise
 
     @staticmethod
     def create(klass: type, output_type: str, state_type: str, **kwargs) -> "Spout":
-        """
+        r"""
         Create a spout of a specific type.
 
         Args:
@@ -121,6 +121,7 @@ class Spout(Task):
             output_type (str): The type of output config ("batch" or "streaming").
             state_type (str): The type of state manager ("in_memory", "redis", "postgres", or "dynamodb").
             **kwargs: Additional keyword arguments for initializing the spout.
+                ```
                 Keyword Arguments:
                     Batch output config:
                     - output_folder (str): The directory where output files should be stored temporarily.
@@ -143,6 +144,7 @@ class Spout(Task):
                     DynamoDB state manager config:
                     - dynamodb_table_name (str): The name of the DynamoDB table.
                     - dynamodb_region_name (str): The AWS region for DynamoDB.
+                ```
 
         Returns:
             Spout: The created spout.
