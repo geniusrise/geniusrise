@@ -200,7 +200,7 @@ class GeniusCtl:
                 ]
                 if verbose
                 else [
-                    colored(spout_name, "yellow"),
+                    colored(bolt_name, "yellow"),
                     colored("Bolt", "magenta"),
                 ],
                 divider=verbose,
