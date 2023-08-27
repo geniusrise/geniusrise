@@ -20,3 +20,4 @@ from .input import Input
 from .output import Output
 from .streaming_input import StreamingInput
 from .streaming_output import StreamingOutput
+from .stream_to_batch_input import StreamToBatchInput

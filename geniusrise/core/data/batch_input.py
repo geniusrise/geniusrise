@@ -56,7 +56,7 @@ class BatchInput(Input):
             bucket (str): S3 bucket name.
             s3_folder (str): Folder within the S3 bucket.
         """
-        super().__init__()
+        super(Input, self).__init__()
         self.input_folder = input_folder
         self.bucket = bucket
         self.s3_folder = s3_folder

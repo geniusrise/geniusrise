@@ -16,7 +16,7 @@
 
 from typing import Any, Callable, Dict, Iterator, Union, AsyncIterator
 from kafka import KafkaConsumer, TopicPartition
-
+import logging
 
 from .input import Input
 
@@ -65,13 +65,16 @@ class StreamingInput(Input):
             kafka_cluster_connection_string (str): Kafka cluster connection string.
             group_id (str, optional): Kafka consumer group id. Defaults to "geniusrise".
         """
-        super().__init__()
+        super(Input, self).__init__()
+        self.log = logging.getLogger(self.__class__.__name__)
         self.input_topic = input_topic
         try:
             self.consumer = KafkaConsumer(
                 self.input_topic,
                 bootstrap_servers=kafka_cluster_connection_string,
                 group_id=group_id,
+                max_poll_interval_ms=600000,  # 10 minutes
+                session_timeout_ms=10000,  # 10 seconds
                 **kwargs,
             )
         except Exception as e:

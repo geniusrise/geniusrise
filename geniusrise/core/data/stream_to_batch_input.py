@@ -15,14 +15,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from typing import List
-from kafka import KafkaMessage, KafkaError
 import tempfile
 import os
+import logging
 import json
-from retrying import retry
 
 from .streaming_input import StreamingInput
 from .batch_input import BatchInput
+
+
+KafkaMessage = dict
 
 
 class StreamToBatchInput(StreamingInput, BatchInput):
@@ -52,6 +54,9 @@ class StreamToBatchInput(StreamingInput, BatchInput):
         self,
         input_topic: str,
         kafka_cluster_connection_string: str,
+        input_folder: str,
+        bucket: str,
+        s3_folder: str,
         buffer_size: int = 1000,
         group_id: str = "geniusrise",
     ) -> None:
@@ -64,11 +69,17 @@ class StreamToBatchInput(StreamingInput, BatchInput):
             buffer_size (int): Number of messages to buffer.
             group_id (str, optional): Kafka consumer group id. Defaults to "geniusrise".
         """
-        StreamingInput.__init__(self, input_topic, kafka_cluster_connection_string, group_id)
         self.buffer_size = buffer_size
         self.temp_folder = tempfile.mkdtemp()
+        self.log = logging.getLogger(self.__class__.__name__)
+        StreamingInput.__init__(
+            self,
+            input_topic=input_topic,
+            kafka_cluster_connection_string=kafka_cluster_connection_string,
+            group_id=group_id,
+        )
+        BatchInput.__init__(self, input_folder=input_folder, bucket=bucket, s3_folder=s3_folder)
 
-    @retry(stop_max_attempt_number=3, wait_fixed=2000)
     def buffer_messages(self) -> List[KafkaMessage]:
         """
         📥 Buffer messages from Kafka into local memory.
@@ -76,12 +87,12 @@ class StreamToBatchInput(StreamingInput, BatchInput):
         """
         try:
             buffered_messages = []
-            for i, message in enumerate(self.iterator()):
+            for i, message in enumerate(self):
                 if i >= self.buffer_size:
                     break
-                buffered_messages.append(message)
+                buffered_messages.append(json.loads(message.value.decode("utf-8")))
             return buffered_messages
-        except KafkaError as e:
+        except Exception as e:
             self.log.error(f"Kafka error occurred: {e}")
             raise
 
@@ -94,7 +105,7 @@ class StreamToBatchInput(StreamingInput, BatchInput):
         """
         for i, message in enumerate(messages):
             with open(os.path.join(self.temp_folder, f"message_{i}.json"), "w") as f:
-                json.dump(message.value, f)
+                json.dump(message, f)
 
     def get(self) -> str:
         """

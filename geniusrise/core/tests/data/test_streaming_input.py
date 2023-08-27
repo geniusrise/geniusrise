@@ -62,6 +62,7 @@ def test_streaming_input_config_iterator(streaming_input_config):
                     return
         else:
             print("Retrying...")
+    consumer.unsubscribe()
 
 
 # Test Acknowledge
@@ -115,7 +116,10 @@ def test_streaming_input_config_filter_messages(streaming_input_config):
         for message in consumer:
             if filter_func(message):
                 break
+
+        consumer.unsubscribe()
     except Exception:
+        consumer.unsubscribe()
         pytest.fail("Failed in filter_messages test")
 
 
