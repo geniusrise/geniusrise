@@ -14,40 +14,114 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 from abc import ABC, abstractmethod
+from typing import Any, Dict, Union
+import logging
+import time
+from retrying import retry
+from contextlib import contextmanager
 
 
 class Input(ABC):
     """
     Abstract class for managing input configurations.
+
+    Attributes:
+        log (logging.Logger): Logger instance.
+        start_time (float): Start time for metrics.
+        end_time (float): End time for metrics.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.log = logging.getLogger(self.__class__.__name__)
-        self.start_time = None
-        self.end_time = None
+        self.start_time: float = -1.0
+        self.end_time: float = -1.0
 
     @abstractmethod
-    def get(self):
+    def get(self) -> Any:
         """
         Abstract method to get data from the input source.
 
         Returns:
-            The data from the input source.
+            Any: The data from the input source.
         """
         pass
 
-    def collect_metrics(self):
+    def collect_metrics(self) -> Dict[str, float]:
+        """
+        Collect metrics like latency.
+
+        Returns:
+            Dict[str, float]: A dictionary containing metrics.
+        """
+        self.end_time = time.time()
         latency = self.end_time - self.start_time
         return {"latency": latency}
 
-    def validate_data(self, data):
-        # TODO: This could be the start of integration to a data catalog like openmetadata
+    def validate_data(self, data: Any) -> bool:
+        """
+        Validate the incoming data.
+
+        Args:
+            data (Any): The data to validate.
+
+        Returns:
+            bool: True if data is valid, False otherwise.
+        """
+        if not data:
+            self.log.error("Data is empty.")
+            return False
         return True
 
-    def __compose(self):
-        # TODO: can we make inputs to compose?
-        # how would that work? we cannot exactly zip msgs in kafka cause order not guaranteed
-        # we can do the "bunch everything and throw" like a batch fashion, but would that be useful?
-        return True
+    @retry(stop_max_attempt_number=3, wait_fixed=2000)
+    def retryable_get(self) -> Any:
+        """
+        Retryable get method.
+
+        Returns:
+            Any: The data from the input source.
+        """
+        return self.get()
+
+    @contextmanager
+    def timeout(self, seconds: int):
+        """
+        Timeout context manager.
+
+        Args:
+            seconds (int): Timeout in seconds.
+        """
+        start = time.time()
+        yield
+        end = time.time()
+        if end - start > seconds:
+            raise TimeoutError("Operation timed out.")
+
+    def compose(self, *inputs: "Input") -> Union[bool, str]:
+        """
+        Compose multiple inputs.
+
+        Args:
+            inputs (Input): Variable number of Input instances.
+
+        Returns:
+            Union[bool, str]: True if successful, error message otherwise.
+        """
+        try:
+            # Placeholder for composing logic
+            return True
+        except Exception as e:
+            self.log.error(f"Failed to compose inputs: {e}")
+            return str(e)
+
+    def __add__(self, *inputs: "Input") -> Union[bool, str]:
+        """
+        Compose multiple inputs.
+
+        Args:
+            inputs (Input): Variable number of Input instances.
+
+        Returns:
+            Union[bool, str]: True if successful, error message otherwise.
+        """
+        return self.compose(*inputs)

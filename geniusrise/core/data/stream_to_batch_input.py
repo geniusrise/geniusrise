@@ -1,8 +1,25 @@
+# 🧠 Geniusrise
+# Copyright (C) 2023  geniusrise.ai
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+from typing import List
+from kafka import KafkaMessage, KafkaError
 import tempfile
 import os
 import json
-from typing import List
-from kafka import KafkaMessage
+from retrying import retry
 
 from .streaming_input import StreamingInput
 from .batch_input import BatchInput
@@ -25,6 +42,10 @@ class StreamToBatchInput(StreamingInput, BatchInput):
     config = StreamToBatchInput("my_topic", "localhost:9092", buffer_size=100)
     temp_folder = config.get()
     ```
+
+    Note:
+    - Ensure the Kafka cluster is running and accessible.
+    - Adjust the `group_id` if needed.
     """
 
     def __init__(
@@ -35,7 +56,7 @@ class StreamToBatchInput(StreamingInput, BatchInput):
         group_id: str = "geniusrise",
     ) -> None:
         """
-        Initialize a new buffered streaming input configuration.
+        💥 Initialize a new buffered streaming input configuration.
 
         Args:
             input_topic (str): Kafka topic to consume data.
@@ -47,19 +68,22 @@ class StreamToBatchInput(StreamingInput, BatchInput):
         self.buffer_size = buffer_size
         self.temp_folder = tempfile.mkdtemp()
 
+    @retry(stop_max_attempt_number=3, wait_fixed=2000)
     def buffer_messages(self) -> List[KafkaMessage]:
         """
         📥 Buffer messages from Kafka into local memory.
-
-        Returns:
-            List[KafkaMessage]: List of buffered Kafka messages.
+        ...
         """
-        buffered_messages = []
-        for i, message in enumerate(self.iterator()):
-            if i >= self.buffer_size:
-                break
-            buffered_messages.append(message)
-        return buffered_messages
+        try:
+            buffered_messages = []
+            for i, message in enumerate(self.iterator()):
+                if i >= self.buffer_size:
+                    break
+                buffered_messages.append(message)
+            return buffered_messages
+        except KafkaError as e:
+            self.log.error(f"Kafka error occurred: {e}")
+            raise
 
     def store_to_temp(self, messages: List[KafkaMessage]) -> None:
         """
@@ -75,13 +99,23 @@ class StreamToBatchInput(StreamingInput, BatchInput):
     def get(self) -> str:
         """
         📥 Get data from the input topic and buffer it into a temporary folder.
-
-        Returns:
-            str: The temporary folder containing buffered messages.
-
-        Raises:
-            Exception: If no input source or consumer is specified.
+        ...
         """
-        buffered_messages = self.buffer_messages()
-        self.store_to_temp(buffered_messages)
-        return self.temp_folder
+        try:
+            buffered_messages = self.buffer_messages()
+            self.store_to_temp(buffered_messages)
+            return self.temp_folder
+        except Exception as e:
+            self.log.error(f"An error occurred: {e}")
+            raise
+
+    def close(self) -> None:
+        """
+        🚪 Close the Kafka consumer and clean up resources.
+        """
+        try:
+            self.consumer.close()
+            # Additional resource cleanup logic here
+        except Exception as e:
+            self.log.error(f"Failed to close resources: {e}")
+            raise

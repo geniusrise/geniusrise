@@ -14,12 +14,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
+from typing import Optional, Generator
 import os
-
 import boto3
-
+from retrying import retry
 from .input import Input
+
+
+class FileNotExistError(Exception):
+    """❌ Custom exception for file not existing."""
+
+    pass
 
 
 class BatchInput(Input):
@@ -34,41 +39,136 @@ class BatchInput(Input):
     Usage:
     ```python
     config = BatchInput("/path/to/input", "my_bucket", "s3/folder")
-    files = config.list_files()
+    files = list(config.list_files())
     content = config.read_file("example.txt")
     ```
+
+    Raises:
+        FileNotExistError: If the file does not exist.
     """
 
     def __init__(self, input_folder: str, bucket: str, s3_folder: str) -> None:
         """
-        Initialize a new batch input configuration.
+        🛠 Initialize a new batch input configuration.
 
         Args:
-            input_folder (str): Folder to read input files.
+            input_folder (str): Folder to read input files from.
             bucket (str): S3 bucket name.
             s3_folder (str): Folder within the S3 bucket.
         """
+        super().__init__()
         self.input_folder = input_folder
         self.bucket = bucket
         self.s3_folder = s3_folder
-        self.log = logging.getLogger(__name__)
 
     def get(self) -> str:
         """
-        📍 Get the input folder location.
+        📥 Returns the input folder path.
 
         Returns:
-            str: The input folder location.
+            str: The path to the input folder.
+        """
+        return self.input_folder
+
+    def validate_file(self, filename: str) -> bool:
+        """
+        ✅ Validates if the file exists and is a file.
+
+        Args:
+            filename (str): The name of the file to validate.
+
+        Returns:
+            bool: True if the file is valid, False otherwise.
+        """
+        file_path = os.path.join(self.input_folder, filename)
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            return True
+        self.log.error(f"❌ Invalid file: {filename}")
+        return False
+
+    def list_files(self, start: Optional[int] = None, limit: Optional[int] = None) -> Generator[str, None, None]:
+        """
+        📋 Lists all files in the input folder with optional pagination.
+
+        Args:
+            start (Optional[int]): The starting index for pagination.
+            limit (Optional[int]): The maximum number of files to return.
+
+        Yields:
+            str: The next file path in the input folder.
+        """
+        count = 0
+        for f in os.listdir(self.input_folder):
+            file_path = os.path.join(self.input_folder, f)
+            if os.path.isfile(file_path):
+                if start is not None and count < start:
+                    count += 1
+                    continue
+                if limit is not None and count >= (start or 0) + limit:
+                    break
+                yield file_path
+                count += 1
+
+    @retry(stop_max_attempt_number=3, wait_fixed=2000)
+    def read_file(self, filename: str) -> str:
+        """
+        📖 Reads the content of a file.
+
+        Args:
+            filename (str): The name of the file to read.
+
+        Returns:
+            str: The content of the file.
 
         Raises:
-            Exception: If no input folder is specified.
+            FileNotExistError: If the file does not exist.
         """
-        if self.input_folder:
-            return self.input_folder
+        if self.validate_file(filename):
+            with open(os.path.join(self.input_folder, filename), "r") as file:
+                return file.read()
         else:
-            self.log.exception("🚫 No input folder specified.")
-            raise Exception("Input folder not specified.")
+            raise FileNotExistError(f"❌ Invalid file: {filename}")
 
+    @retry(stop_max_attempt_number=3, wait_fixed=2000)
+    def delete_file(self, filename: str) -> None:
+        """
+        🗑 Deletes a file.
+
+        Args:
+            filename (str): The name of the file to delete.
+
+        Raises:
+            FileNotExistError: If the file does not exist.
+        """
+        if self.validate_file(filename):
+            os.remove(os.path.join(self.input_folder, filename))
+        else:
+            raise FileNotExistError(f"❌ Invalid file: {filename}")
+
+    @retry(stop_max_attempt_number=3, wait_fixed=2000)
+    def copy_to_remote(self, filename: str, bucket: str, s3_folder: str) -> None:
+        """
+        📤 Copies a file to a remote S3 bucket.
+
+        Args:
+            filename (str): The name of the file to copy.
+            bucket (str): The name of the S3 bucket.
+            s3_folder (str): The folder within the S3 bucket.
+
+        Raises:
+            FileNotExistError: If the file does not exist.
+        """
+        if self.validate_file(filename):
+            s3 = boto3.resource("s3")
+            s3.meta.client.upload_file(
+                os.path.join(self.input_folder, filename),
+                bucket,
+                os.path.join(s3_folder, filename),
+            )
+        else:
+            raise FileNotExistError(f"❌ Invalid file: {filename}")
+
+    @retry(stop_max_attempt_number=3, wait_fixed=2000)
     def copy_from_remote(self) -> None:
         """
         🔄 Copy contents from a given S3 bucket and location to the input folder.
@@ -85,85 +185,4 @@ class BatchInput(Input):
                     os.makedirs(os.path.dirname(f"{self.input_folder}/{obj.key}"))
                 _bucket.download_file(obj.key, f"{self.input_folder}/{obj.key}")
         else:
-            self.log.exception("🚫 No input folder specified.")
-            raise Exception("Input folder not specified.")
-
-    def list_files(self) -> list:
-        """
-        📜 List all files in the input folder.
-
-        Returns:
-            list: A list of file paths.
-
-        Raises:
-            Exception: If no input folder is specified.
-        """
-        # TODO: add optional pagination for when we connect this to a GUI?
-        if self.input_folder:
-            return [
-                os.path.join(self.input_folder, f)
-                for f in os.listdir(self.input_folder)
-                if os.path.isfile(os.path.join(self.input_folder, f))
-            ]
-        else:
-            self.log.exception("🚫 No input folder specified.")
-            raise Exception("Input folder not specified.")
-
-    def read_file(self, filename: str) -> str:
-        """
-        📖 Read a file from the input folder.
-
-        Args:
-            filename (str): The name of the file.
-
-        Returns:
-            str: The contents of the file.
-
-        Raises:
-            Exception: If no input folder is specified.
-        """
-        if self.input_folder:
-            with open(os.path.join(self.input_folder, filename), "r") as file:
-                return file.read()
-        else:
-            self.log.exception("🚫 No input folder specified.")
-            raise Exception("Input folder not specified.")
-
-    def delete_file(self, filename: str) -> None:
-        """
-        🗑️ Delete a file from the input folder.
-
-        Args:
-            filename (str): The name of the file.
-
-        Raises:
-            Exception: If no input folder is specified.
-        """
-        if self.input_folder:
-            os.remove(os.path.join(self.input_folder, filename))
-        else:
-            self.log.exception("🚫 No input folder specified.")
-            raise Exception("Input folder not specified.")
-
-    def copy_to_remote(self, filename: str, bucket: str, s3_folder: str) -> None:
-        """
-        ☁️ Copy a file from the input folder to an S3 bucket.
-
-        Args:
-            filename (str): The name of the file.
-            bucket (str): The name of the S3 bucket.
-            s3_folder (str): The folder in the S3 bucket.
-
-        Raises:
-            Exception: If no input folder is specified.
-        """
-        if self.input_folder:
-            s3 = boto3.resource("s3")
-            s3.meta.client.upload_file(
-                os.path.join(self.input_folder, filename),
-                bucket,
-                os.path.join(s3_folder, filename),
-            )
-        else:
-            self.log.exception("🚫 No input folder specified.")
-            raise Exception("Input folder not specified.")
+            raise Exception("❌ Input folder not specified.")

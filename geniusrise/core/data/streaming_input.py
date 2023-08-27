@@ -14,12 +14,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
-from typing import Any, Callable, Iterator
+from typing import Any, Callable, Dict, Iterator, Union, AsyncIterator
+from kafka import KafkaMessage, KafkaConsumer, KafkaTimeoutError
 
-from kafka import KafkaConsumer
 
 from .input import Input
+
+
+class KafkaConnectionError(Exception):
+    """❌ Custom exception for file not existing."""
+
+    pass
 
 
 class StreamingInput(Input):
@@ -49,25 +54,24 @@ class StreamingInput(Input):
         group_id: str = "geniusrise",
     ) -> None:
         """
-        Initialize a new streaming input configuration.
+        💥 Initialize a new streaming input configuration.
 
         Args:
             input_topic (str): Kafka topic to consume data.
             kafka_cluster_connection_string (str): Kafka cluster connection string.
             group_id (str, optional): Kafka consumer group id. Defaults to "geniusrise".
         """
+        super().__init__()
         self.input_topic = input_topic
-        self.log = logging.getLogger(self.__class__.__name__)
         try:
             self.consumer = KafkaConsumer(
                 self.input_topic,
                 bootstrap_servers=kafka_cluster_connection_string,
                 group_id=group_id,
             )
-        except Exception as e:
+        except KafkaTimeoutError as e:
             self.log.exception(f"🚫 Failed to create Kafka consumer: {e}")
-            raise
-            self.consumer = None
+            raise KafkaConnectionError("Failed to connect to Kafka.")
 
     def get(self) -> KafkaConsumer:
         """
@@ -86,8 +90,7 @@ class StreamingInput(Input):
                 self.log.exception(f"🚫 Failed to consume from Kafka topic {self.input_topic}: {e}")
                 raise
         else:
-            self.log.exception("🚫 No input source specified.")
-            raise
+            raise KafkaConnectionError("No Kafka consumer available.")
 
     def iterator(self) -> Iterator:
         """
@@ -107,22 +110,53 @@ class StreamingInput(Input):
                 self.log.exception(f"🚫 Failed to iterate over Kafka consumer: {e}")
                 raise
         else:
-            self.log.exception("🚫 No Kafka consumer available.")
-            raise
+            raise KafkaConnectionError("No Kafka consumer available.")
 
-    async def async_iterator(self):
-        async for message in self.consumer:
-            yield message
+    async def async_iterator(self) -> AsyncIterator[KafkaMessage]:
+        """
+        🔄 Asynchronous iterator method for yielding data from the Kafka consumer.
+
+        Yields:
+            KafkaMessage: The next message from the Kafka consumer.
+
+        Raises:
+            Exception: If no Kafka consumer is available.
+        """
+        if self.consumer:
+            try:
+                async for message in self.consumer:
+                    yield message
+            except Exception as e:
+                self.log.exception(f"🚫 Failed to iterate over Kafka consumer: {e}")
+                raise
+        else:
+            raise KafkaConnectionError("No Kafka consumer available.")
+
+    def ack(self, message: KafkaMessage) -> None:
+        """
+        ✅ Acknowledge the processing of a Kafka message.
+
+        Args:
+            message (KafkaMessage): The Kafka message to acknowledge.
+
+        Raises:
+            Exception: If an error occurs while acknowledging the message.
+        """
+        try:
+            self.consumer.commit()
+            self.log.info(f"Acknowledged message with offset {message.offset}")
+        except Exception as e:
+            raise KafkaConnectionError(f"🚫 Failed to acknowledge message: {e}")
 
     def __iter__(self) -> Iterator:
         """
-        Make the class iterable.
+        🔄 Make the class iterable.
         """
         return self
 
     def __next__(self) -> Any:
         """
-        Get the next message from the Kafka consumer.
+        🔥 Get the next message from the Kafka consumer.
 
         Raises:
             Exception: If no Kafka consumer is available or an error occurs.
@@ -136,8 +170,7 @@ class StreamingInput(Input):
                 self.log.exception(f"🚫 Failed to get next message from Kafka consumer: {e}")
                 raise
         else:
-            self.log.exception("🚫 No Kafka consumer available.")
-            raise
+            raise KafkaConnectionError("🚫 No Kafka consumer available.")
 
     def close(self) -> None:
         """
@@ -150,8 +183,7 @@ class StreamingInput(Input):
             try:
                 self.consumer.close()
             except Exception as e:
-                self.log.exception(f"🚫 Failed to close Kafka consumer: {e}")
-                raise
+                raise KafkaConnectionError(f"🚫 Failed to close Kafka consumer: {e}")
 
     def seek(self, partition: int, offset: int) -> None:
         """
@@ -168,8 +200,7 @@ class StreamingInput(Input):
             try:
                 self.consumer.seek(partition, offset)
             except Exception as e:
-                self.log.exception(f"🚫 Failed to seek Kafka consumer: {e}")
-                raise
+                raise KafkaConnectionError(f"🚫 Failed to seek Kafka consumer: {e}")
 
     def commit(self) -> None:
         """
@@ -182,8 +213,7 @@ class StreamingInput(Input):
             try:
                 self.consumer.commit()
             except Exception as e:
-                self.log.exception(f"🚫 Failed to commit offsets: {e}")
-                raise
+                raise KafkaConnectionError(f"🚫 Failed to commit offsets: {e}")
 
     def filter_messages(self, filter_func: Callable) -> Iterator:
         """
@@ -207,5 +237,24 @@ class StreamingInput(Input):
                 self.log.exception(f"🚫 Failed to filter messages from Kafka consumer: {e}")
                 raise
         else:
-            self.log.exception("🚫 No Kafka consumer available.")
-            raise
+            raise KafkaConnectionError("🚫 No Kafka consumer available.")
+
+    def collect_metrics(self) -> Dict[str, Union[int, float]]:
+        """
+        📊 Collect metrics related to the Kafka consumer.
+
+        Returns:
+            Dict[str, Union[int, float]]: A dictionary containing metrics like latency.
+        """
+        if self.consumer:
+            kafka_metrics = self.consumer.metrics()
+            # Extract relevant latency metrics
+            request_latency_avg = kafka_metrics.get("request-latency-avg", 0)
+            request_latency_max = kafka_metrics.get("request-latency-max", 0)
+
+            return {
+                "request_latency_avg": request_latency_avg,
+                "request_latency_max": request_latency_max,
+            }
+        else:
+            raise KafkaConnectionError("No Kafka consumer available.")
