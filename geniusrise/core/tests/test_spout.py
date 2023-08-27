@@ -17,7 +17,7 @@
 import pytest
 
 from geniusrise.core import Spout
-from geniusrise.core.data import BatchOutput, StreamingOutput
+from geniusrise.core.data import BatchOutput, StreamingOutput, StreamToBatchOutput
 from geniusrise.core.state import (
     DynamoDBState,
     InMemoryState,
@@ -74,12 +74,14 @@ def state(request):
 
 
 # Define a fixture for the output config
-@pytest.fixture(params=[BatchOutput, StreamingOutput])
+@pytest.fixture(params=[BatchOutput, StreamingOutput, StreamToBatchOutput])  # Add StreamToBatchOutput
 def output(request, tmpdir):
     if request.param == BatchOutput:
         return request.param(tmpdir, s3_bucket, s3_folder)
     elif request.param == StreamingOutput:
         return request.param(output_topic, kafka_servers)
+    elif request.param == StreamToBatchOutput:  # New output type
+        return request.param(output_topic, kafka_servers, tmpdir, s3_bucket, s3_folder, buffer_size=1000)
 
 
 def test_spout_init(output, state):
@@ -97,7 +99,7 @@ def test_spout_call(output, state):
     assert result == 6 * (4 + 5 + 6)
 
 
-@pytest.fixture(params=["batch", "streaming"])
+@pytest.fixture(params=["batch", "streaming", "stream_to_batch"])
 def output_type(request):
     return request.param
 
@@ -125,6 +127,7 @@ def test_spout_create(output_type, state_type, tmpdir):
         "postgres_table": postgres_table,
         "dynamodb_table_name": dynamodb_table_name,
         "dynamodb_region_name": dynamodb_region_name,
+        "buffer_size": 1,
     }
 
     spout = Spout.create(TestSpout, output_type, state_type, **kwargs)
@@ -135,6 +138,8 @@ def test_spout_create(output_type, state_type, tmpdir):
         assert isinstance(spout.output, BatchOutput)
     elif output_type == "streaming":
         assert isinstance(spout.output, StreamingOutput)
+    elif output_type == "stream_to_batch":
+        assert isinstance(spout.output, StreamToBatchOutput)
 
     if state_type == "in_memory":
         assert isinstance(spout.state, InMemoryState)

@@ -18,7 +18,7 @@ import logging
 import tempfile
 from typing import Any
 
-from geniusrise.core.data import BatchOutput, Output, StreamingOutput
+from geniusrise.core.data import BatchOutput, Output, StreamingOutput, StreamToBatchOutput
 from geniusrise.core.state import (
     DynamoDBState,
     InMemoryState,
@@ -130,6 +130,13 @@ class Spout(Task):
                     Streaming output config:
                     - output_kafka_topic (str): Kafka output topic for streaming spouts.
                     - output_kafka_cluster_connection_string (str): Kafka connection string for streaming spouts.
+                    Stream to Batch output config:
+                    - output_kafka_topic (str): Kafka output topic for stream-to-batch spouts.
+                    - output_kafka_cluster_connection_string (str): Kafka connection string for stream-to-batch spouts.
+                    - output_folder (str): The directory where output files should be stored temporarily.
+                    - output_s3_bucket (str): The name of the S3 bucket for output storage.
+                    - output_s3_folder (str): The S3 folder for output storage.
+                    - buffer_size (int): Number of messages to buffer.
                     Redis state manager config:
                     - redis_host (str): The host address for the Redis server.
                     - redis_port (int): The port number for the Redis server.
@@ -164,6 +171,15 @@ class Spout(Task):
             output = StreamingOutput(
                 output_topic=kwargs.get("output_kafka_topic", None),
                 kafka_servers=kwargs.get("output_kafka_cluster_connection_string", None),
+            )
+        elif output_type == "stream_to_batch":
+            output = StreamToBatchOutput(
+                output_topic=kwargs.get("output_kafka_topic", None),
+                kafka_servers=kwargs.get("output_kafka_cluster_connection_string", None),
+                output_folder=kwargs.get("output_folder", tempfile.mkdtemp()),
+                bucket=kwargs.get("output_s3_bucket", "geniusrise"),
+                s3_folder=kwargs.get("output_s3_folder", klass.__class__.__name__),
+                buffer_size=kwargs.get("buffer_size", 1000),
             )
         else:
             raise ValueError(f"Invalid output type: {output_type}")
