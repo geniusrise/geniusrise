@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from typing import Any, Callable, Dict, Iterator, Union, AsyncIterator
-from kafka import KafkaConsumer
+from kafka import KafkaConsumer, TopicPartition
 
 
 from .input import Input
@@ -55,6 +55,7 @@ class StreamingInput(Input):
         input_topic: str,
         kafka_cluster_connection_string: str,
         group_id: str = "geniusrise",
+        **kwargs,
     ) -> None:
         """
         💥 Initialize a new streaming input configuration.
@@ -71,6 +72,7 @@ class StreamingInput(Input):
                 self.input_topic,
                 bootstrap_servers=kafka_cluster_connection_string,
                 group_id=group_id,
+                **kwargs,
             )
         except Exception as e:
             self.log.exception(f"🚫 Failed to create Kafka consumer: {e}")
@@ -188,22 +190,41 @@ class StreamingInput(Input):
             except Exception as e:
                 raise KafkaConnectionError(f"🚫 Failed to close Kafka consumer: {e}")
 
-    def seek(self, partition: int, offset: int) -> None:
-        """
-        🔍 Change the position from which the Kafka consumer reads.
-
-        Args:
-            partition (int): The partition to seek.
-            offset (int): The offset to seek to.
-
-        Raises:
-            Exception: If an error occurs while seeking.
-        """
+    def seek(self, target_offset: int) -> None:
         if self.consumer:
             try:
-                self.consumer.seek(partition, offset)
+                # Check if consumer is subscribed to the topic
+                if not self.consumer.subscription():
+                    raise KafkaConnectionError("Consumer is not subscribed to any topic.")
+
+                # Get topic partitions
+                partitions = self.consumer.partitions_for_topic(self.input_topic)
+
+                # Check if partitions are assigned
+                if not partitions:
+                    raise KafkaConnectionError("No partitions are assigned to the consumer.")
+
+                assigned_partitions = self.consumer.assignment()
+
+                # Iterate through partitions to find the one with the target offset
+                for partition in partitions:
+                    tp = TopicPartition(self.input_topic, partition)
+
+                    # Check if the partition is assigned
+                    if tp not in assigned_partitions:
+                        continue
+
+                    beginning_offsets = self.consumer.beginning_offsets([tp])
+                    end_offsets = self.consumer.end_offsets([tp])
+
+                    if beginning_offsets[tp] <= target_offset <= end_offsets[tp]:
+                        self.consumer.seek(tp, target_offset)
+                        return
+
+                raise Exception(f"Offset {target_offset} not found in any assigned partition.")
+
             except Exception as e:
-                raise KafkaConnectionError(f"🚫 Failed to seek Kafka consumer: {e}")
+                raise KafkaConnectionError(f"Failed to seek Kafka consumer: {e}")
 
     def commit(self) -> None:
         """
