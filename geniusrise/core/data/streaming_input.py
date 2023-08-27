@@ -15,10 +15,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from typing import Any, Callable, Dict, Iterator, Union, AsyncIterator
-from kafka import KafkaMessage, KafkaConsumer, KafkaTimeoutError
+from kafka import KafkaConsumer
 
 
 from .input import Input
+
+
+KafkaMessage = dict
 
 
 class KafkaConnectionError(Exception):
@@ -69,7 +72,7 @@ class StreamingInput(Input):
                 bootstrap_servers=kafka_cluster_connection_string,
                 group_id=group_id,
             )
-        except KafkaTimeoutError as e:
+        except Exception as e:
             self.log.exception(f"🚫 Failed to create Kafka consumer: {e}")
             raise KafkaConnectionError("Failed to connect to Kafka.")
 
@@ -132,7 +135,7 @@ class StreamingInput(Input):
         else:
             raise KafkaConnectionError("No Kafka consumer available.")
 
-    def ack(self, message: KafkaMessage) -> None:
+    def ack(self) -> None:
         """
         ✅ Acknowledge the processing of a Kafka message.
 
@@ -144,7 +147,7 @@ class StreamingInput(Input):
         """
         try:
             self.consumer.commit()
-            self.log.info(f"Acknowledged message with offset {message.offset}")
+            self.log.info("Acknowledged")
         except Exception as e:
             raise KafkaConnectionError(f"🚫 Failed to acknowledge message: {e}")
 
