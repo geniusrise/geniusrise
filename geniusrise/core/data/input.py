@@ -17,13 +17,16 @@
 import logging
 from abc import ABC, abstractmethod
 
-log = logging.getLogger(__name__)
-
 
 class Input(ABC):
     """
     Abstract class for managing input configurations.
     """
+
+    def __init__(self):
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.start_time = None
+        self.end_time = None
 
     @abstractmethod
     def get(self):
@@ -34,3 +37,17 @@ class Input(ABC):
             The data from the input source.
         """
         pass
+
+    def collect_metrics(self):
+        latency = self.end_time - self.start_time
+        return {"latency": latency}
+
+    def validate_data(self, data):
+        # TODO: This could be the start of integration to a data catalog like openmetadata
+        return True
+
+    def __compose(self):
+        # TODO: can we make inputs to compose?
+        # how would that work? we cannot exactly zip msgs in kafka cause order not guaranteed
+        # we can do the "bunch everything and throw" like a batch fashion, but would that be useful?
+        return True

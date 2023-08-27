@@ -110,6 +110,10 @@ class StreamingInput(Input):
             self.log.exception("🚫 No Kafka consumer available.")
             raise
 
+    async def async_iterator(self):
+        async for message in self.consumer:
+            yield message
+
     def __iter__(self) -> Iterator:
         """
         Make the class iterable.

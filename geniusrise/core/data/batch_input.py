@@ -98,6 +98,7 @@ class BatchInput(Input):
         Raises:
             Exception: If no input folder is specified.
         """
+        # TODO: add optional pagination for when we connect this to a GUI?
         if self.input_folder:
             return [
                 os.path.join(self.input_folder, f)
