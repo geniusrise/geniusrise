@@ -17,6 +17,7 @@
 from typing import Optional, Generator
 import os
 import boto3
+import logging
 from retrying import retry
 from .input import Input
 
@@ -60,6 +61,7 @@ class BatchInput(Input):
         self.input_folder = input_folder
         self.bucket = bucket
         self.s3_folder = s3_folder
+        self.log = logging.getLogger(self.__class__.__name__)
 
     def get(self) -> str:
         """
