@@ -21,3 +21,4 @@ from .output import Output
 from .streaming_input import StreamingInput
 from .streaming_output import StreamingOutput
 from .stream_to_batch_input import StreamToBatchInput
+from .batch_to_stream_input import BatchToStreamingInput

@@ -14,11 +14,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Any, Iterator
+from queue import Queue
+from threading import Thread
+from collections import namedtuple
+from typing import Iterator, AsyncIterator, Callable, Union, Dict
+import os
 import json
+import time
 
 from .streaming_input import StreamingInput
 from .batch_input import BatchInput
+
+
+KafkaMessage = namedtuple("KafkaMessage", ["key", "value"])
 
 
 class BatchToStreamingInput(StreamingInput, BatchInput):
@@ -63,13 +71,22 @@ class BatchToStreamingInput(StreamingInput, BatchInput):
         """
         StreamingInput.__init__(self, input_topic, kafka_cluster_connection_string, group_id)
         BatchInput.__init__(self, input_folder, bucket, s3_folder)
+        self.queue = Queue()  # type: ignore
 
-    def stream_batch(self, filename: str) -> Iterator[Any]:
+    def _enqueue_batch_data(self):
+        input_folder = self.input_folder
+        for root, _, files in os.walk(input_folder):
+            for file_name in files:
+                file_path = os.path.join(root, file_name)
+                if os.path.isfile(file_path):
+                    with open(file_path) as f:
+                        item = json.loads(f.read())
+                        kafka_message = KafkaMessage(key=None, value=item)
+                        self.queue.put(kafka_message)
+
+    def get(self):
         """
         🔄 Convert batch data from a file to a streaming iterator.
-
-        Args:
-            filename (str): The filename containing batch data.
 
         Yields:
             Any: The next item from the batch data.
@@ -78,9 +95,103 @@ class BatchToStreamingInput(StreamingInput, BatchInput):
             Exception: If no Kafka consumer is available or an error occurs.
         """
         # Read the batch data from the file
-        batch_data_str = super(BatchInput, self).read_file(filename)  # type: ignore
-        batch_data = json.loads(batch_data_str)
+        thread = Thread(target=self._enqueue_batch_data)
+        thread.start()
 
-        # Yield each item in the batch data as a streaming iterator
-        for item in batch_data:
-            yield item
+        time.sleep(1)
+        while True:
+            if not self.queue.empty():
+                yield self.queue.get()
+            else:
+                break
+
+    def iterator(self) -> Iterator:
+        """
+        🔄 Iterator method for yielding data from the Kafka consumer.
+
+        Yields:
+            Kafka message: The next message from the Kafka consumer.
+
+        Raises:
+            Exception: If no Kafka consumer is available.
+        """
+        # Use the existing iterator from StreamingInput if available
+        if self.consumer:
+            return super().iterator()
+        else:
+            return self.get()
+
+    async def async_iterator(self) -> AsyncIterator[KafkaMessage]:  # type: ignore
+        """
+        🔄 Asynchronous iterator method for yielding data from the Kafka consumer.
+
+        Yields:
+            KafkaMessage: The next message from the Kafka consumer.
+
+        Raises:
+            Exception: If no Kafka consumer is available.
+        """
+        pass  # type: ignore
+
+    def ack(self) -> None:
+        """
+        ✅ Acknowledge the processing of a Kafka message.
+
+        Args:
+            message (KafkaMessage): The Kafka message to acknowledge.
+
+        Raises:
+            Exception: If an error occurs while acknowledging the message.
+        """
+        pass
+
+    def close(self) -> None:
+        """
+        🚪 Close the Kafka consumer.
+
+        Raises:
+            Exception: If an error occurs while closing the consumer.
+        """
+        pass
+
+    def seek(self, target_offset: int) -> None:
+        pass
+
+    def commit(self) -> None:
+        pass
+
+    def filter_messages(self, filter_func: Callable) -> Iterator:
+        """
+        🔍 Filter messages from the Kafka consumer based on a filter function.
+
+        Args:
+            filter_func (callable): A function that takes a Kafka message and returns a boolean.
+
+        Yields:
+            Kafka message: The next message from the Kafka consumer that passes the filter.
+
+        Raises:
+            Exception: If no Kafka consumer is available or an error occurs.
+        """
+        if self.consumer:
+            try:
+                for message in self.get():
+                    if filter_func(message):
+                        yield message
+            except Exception as e:
+                self.log.exception(f"🚫 Failed to filter messages from Kafka consumer: {e}")
+                raise
+        else:
+            raise Exception("🚫 Could not emulate kafka consumer.")
+
+    def collect_metrics(self) -> Dict[str, Union[int, float]]:
+        """
+        📊 Collect metrics related to the Kafka consumer.
+
+        Returns:
+            Dict[str, Union[int, float]]: A dictionary containing metrics like latency.
+        """
+        return {
+            "request_latency_avg": 0,
+            "request_latency_max": 0,
+        }

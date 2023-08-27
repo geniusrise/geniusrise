@@ -25,7 +25,7 @@ KafkaMessage = dict
 
 
 class KafkaConnectionError(Exception):
-    """❌ Custom exception for file not existing."""
+    """❌ Custom exception for kafka connection problems."""
 
     pass
 
