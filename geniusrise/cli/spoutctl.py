@@ -15,8 +15,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
-import logging
 import json
+import logging
 
 import emoji  # type: ignore
 from rich_argparse import RichHelpFormatter

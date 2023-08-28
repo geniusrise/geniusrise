@@ -14,12 +14,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import shortuuid
 import logging
-from typing import Any, Optional, List
+from typing import Any, List, Optional
 
-from .streaming_output import StreamingOutput
+import shortuuid
+
 from .batch_output import BatchOutput
+from .streaming_output import StreamingOutput
 
 
 class StreamToBatchOutput(StreamingOutput, BatchOutput):

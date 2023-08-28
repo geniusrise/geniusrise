@@ -18,9 +18,9 @@ import json
 import logging
 import os
 from typing import Any, List, Optional
-import shortuuid
 
 import boto3
+import shortuuid
 
 from .output import Output
 

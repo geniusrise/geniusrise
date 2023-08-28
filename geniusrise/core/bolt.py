@@ -21,13 +21,13 @@ from typing import Any
 from geniusrise.core.data import (
     BatchInput,
     BatchOutput,
+    BatchToStreamingInput,
     Input,
     Output,
     StreamingInput,
     StreamingOutput,
     StreamToBatchInput,
     StreamToBatchOutput,
-    BatchToStreamingInput,
 )
 from geniusrise.core.state import (
     DynamoDBState,

@@ -14,11 +14,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Optional, Generator
-import os
-import boto3
 import logging
+import os
+from typing import Generator, Optional
+
+import boto3
 from retrying import retry
+
 from .input import Input
 
 

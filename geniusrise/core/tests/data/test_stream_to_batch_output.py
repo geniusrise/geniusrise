@@ -15,9 +15,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+
+import boto3
 import pytest
 from kafka import KafkaConsumer
-import boto3
 
 from geniusrise.core.data import StreamToBatchOutput
 

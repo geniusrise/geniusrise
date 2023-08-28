@@ -14,17 +14,20 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
+
 import pytest
+from kafka import KafkaProducer
 
 from geniusrise.core import Bolt
 from geniusrise.core.data import (
     BatchInput,
     BatchOutput,
+    BatchToStreamingInput,
     StreamingInput,
     StreamingOutput,
     StreamToBatchInput,
     StreamToBatchOutput,
-    BatchToStreamingInput,
 )
 from geniusrise.core.state import (
     DynamoDBState,
@@ -32,8 +35,6 @@ from geniusrise.core.state import (
     PostgresState,
     RedisState,
 )
-from kafka import KafkaProducer
-import json
 
 # Define the parameters for the tests
 bucket = "geniusrise-test-bucket"
@@ -70,7 +71,12 @@ def input(request, tmpdir):
     elif request.param == StreamingInput:
         return request.param(input_topic, kafka_cluster_connection_string, group_id)
     elif request.param == StreamToBatchInput:
-        return request.param(input_topic, kafka_cluster_connection_string, group_id, buffer_size=buffer_size)
+        return request.param(
+            input_topic,
+            kafka_cluster_connection_string,
+            group_id,
+            buffer_size=buffer_size,
+        )
     elif request.param == BatchToStreamingInput:
         return request.param(tmpdir, bucket, s3_folder)
 

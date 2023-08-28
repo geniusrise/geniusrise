@@ -5,11 +5,11 @@ import sys
 from typing import Dict
 
 from prettytable import PrettyTable
-from termcolor import colored  # type: ignore
 from rich import print
 from rich.style import Style
 from rich.text import Text
 from rich_argparse import RichHelpFormatter
+from termcolor import colored  # type: ignore
 
 from geniusrise.cli.boltctl import BoltCtl
 from geniusrise.cli.discover import Discover, DiscoveredBolt, DiscoveredSpout
@@ -69,7 +69,9 @@ class GeniusCtl:
         # Create subparser for each discovered spout
         for spout_name, discovered_spout in self.spouts.items():
             spout_parser = subparsers.add_parser(
-                spout_name, help=f"Manage spout {spout_name}.", formatter_class=RichHelpFormatter
+                spout_name,
+                help=f"Manage spout {spout_name}.",
+                formatter_class=RichHelpFormatter,
             )
             spout_ctl = SpoutCtl(discovered_spout)
             self.spout_ctls[spout_name] = spout_ctl
@@ -78,7 +80,9 @@ class GeniusCtl:
         # Create subparser for each discovered bolt
         for bolt_name, discovered_bolt in self.bolts.items():
             bolt_parser = subparsers.add_parser(
-                bolt_name, help=f"Manage bolt {bolt_name}.", formatter_class=RichHelpFormatter
+                bolt_name,
+                help=f"Manage bolt {bolt_name}.",
+                formatter_class=RichHelpFormatter,
             )
             bolt_ctl = BoltCtl(discovered_bolt)
             self.bolt_ctls[bolt_name] = bolt_ctl
@@ -86,7 +90,9 @@ class GeniusCtl:
 
         # Create subparser for YAML operations
         yaml_parser = subparsers.add_parser(
-            "yaml", help="Manage spouts and bolts with a YAML file.", formatter_class=RichHelpFormatter
+            "yaml",
+            help="Manage spouts and bolts with a YAML file.",
+            formatter_class=RichHelpFormatter,
         )
         # Initialize YamlCtl with both spout_ctls and bolt_ctls
         self.yaml_ctl = YamlCtl(self.spout_ctls, self.bolt_ctls)
@@ -94,13 +100,17 @@ class GeniusCtl:
 
         # Add a 'help' command to print help for all spouts and bolts
         help_parser = subparsers.add_parser(
-            "plugins", help="Print help for all spouts and bolts.", formatter_class=RichHelpFormatter
+            "plugins",
+            help="Print help for all spouts and bolts.",
+            formatter_class=RichHelpFormatter,
         )
         help_parser.add_argument("spout_or_bolt", nargs="?", help="The spout or bolt to print help for.")
 
         # Add a 'list' command to list all discovered spouts and bolts
         list_parser = subparsers.add_parser(
-            "list", help="List all discovered spouts and bolts.", formatter_class=RichHelpFormatter
+            "list",
+            help="List all discovered spouts and bolts.",
+            formatter_class=RichHelpFormatter,
         )
         list_parser.add_argument("--verbose", action="store_true", help="Print verbose output.")
 

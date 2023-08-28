@@ -14,14 +14,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import fnmatch
 import importlib
 import inspect
 import logging
 import os
 import sys
-import fnmatch
 from abc import ABCMeta
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, List, Optional
 
 import emoji  # type: ignore
 import pkg_resources  # type: ignore

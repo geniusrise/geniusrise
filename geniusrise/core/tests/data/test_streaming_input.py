@@ -14,9 +14,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pytest
 import json
-from kafka import KafkaProducer, KafkaConsumer
+
+import pytest
+from kafka import KafkaConsumer, KafkaProducer
+
 from geniusrise.core.data import StreamingInput
 
 # Constants

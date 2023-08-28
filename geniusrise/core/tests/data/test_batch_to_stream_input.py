@@ -14,9 +14,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pytest
 import json
 import os
+
+import pytest
+
 from geniusrise.core.data import BatchToStreamingInput
 from geniusrise.core.data.batch_to_stream_input import KafkaMessage
 

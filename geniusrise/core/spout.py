@@ -18,7 +18,12 @@ import logging
 import tempfile
 from typing import Any
 
-from geniusrise.core.data import BatchOutput, Output, StreamingOutput, StreamToBatchOutput
+from geniusrise.core.data import (
+    BatchOutput,
+    Output,
+    StreamingOutput,
+    StreamToBatchOutput,
+)
 from geniusrise.core.state import (
     DynamoDBState,
     InMemoryState,

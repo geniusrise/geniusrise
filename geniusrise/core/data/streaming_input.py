@@ -14,12 +14,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Any, Callable, Dict, Iterator, Union, AsyncIterator
-from kafka import KafkaConsumer, TopicPartition
 import logging
+from typing import Any, AsyncIterator, Callable, Dict, Iterator, Union
+
+from kafka import KafkaConsumer, TopicPartition
 
 from .input import Input
-
 
 KafkaMessage = dict
 

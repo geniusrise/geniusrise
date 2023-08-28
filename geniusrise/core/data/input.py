@@ -14,12 +14,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from abc import ABC, abstractmethod
-from typing import Any, Dict, Union
 import logging
 import time
-from retrying import retry
+from abc import ABC, abstractmethod
 from contextlib import contextmanager
+from typing import Any, Dict, Union
+
+from retrying import retry
 
 
 class Input(ABC):

@@ -14,15 +14,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import List
-import tempfile
-import os
-import logging
 import json
+import logging
+import os
+import tempfile
+from typing import List
 
-from .streaming_input import StreamingInput
 from .batch_input import BatchInput
-
+from .streaming_input import StreamingInput
 
 KafkaMessage = dict
 

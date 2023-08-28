@@ -14,18 +14,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
+import logging
+import os
+import time
+from collections import namedtuple
 from queue import Queue
 from threading import Thread
-from collections import namedtuple
-from typing import Iterator, AsyncIterator, Callable, Union, Dict
-import os
-import json
-import time
-import logging
+from typing import AsyncIterator, Callable, Dict, Iterator, Union
 
-from .streaming_input import StreamingInput
 from .batch_input import BatchInput
-
+from .streaming_input import StreamingInput
 
 KafkaMessage = namedtuple("KafkaMessage", ["key", "value"])
 
