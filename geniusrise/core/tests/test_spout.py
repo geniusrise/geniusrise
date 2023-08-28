@@ -80,8 +80,8 @@ def output(request, tmpdir):
         return request.param(tmpdir, s3_bucket, s3_folder)
     elif request.param == StreamingOutput:
         return request.param(output_topic, kafka_servers)
-    elif request.param == StreamToBatchOutput:  # New output type
-        return request.param(output_topic, kafka_servers, tmpdir, s3_bucket, s3_folder, buffer_size=1000)
+    elif request.param == StreamToBatchOutput:
+        return request.param(tmpdir, s3_bucket, s3_folder, buffer_size=1000)
 
 
 def test_spout_init(output, state):

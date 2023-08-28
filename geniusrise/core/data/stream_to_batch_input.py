@@ -54,9 +54,9 @@ class StreamToBatchInput(StreamingInput, BatchInput):
         self,
         input_topic: str,
         kafka_cluster_connection_string: str,
-        input_folder: str,
-        bucket: str,
-        s3_folder: str,
+        input_folder: str = "",
+        bucket: str = "",
+        s3_folder: str = "",
         buffer_size: int = 1000,
         group_id: str = "geniusrise",
     ) -> None:
@@ -78,7 +78,10 @@ class StreamToBatchInput(StreamingInput, BatchInput):
             kafka_cluster_connection_string=kafka_cluster_connection_string,
             group_id=group_id,
         )
-        BatchInput.__init__(self, input_folder=input_folder, bucket=bucket, s3_folder=s3_folder)
+        # BatchInput.__init__(self, input_folder=input_folder, bucket=bucket, s3_folder=s3_folder)
+
+    def __del__(self):
+        self.close()
 
     def buffer_messages(self) -> List[KafkaMessage]:
         """
@@ -129,4 +132,3 @@ class StreamToBatchInput(StreamingInput, BatchInput):
             # Additional resource cleanup logic here
         except Exception as e:
             self.log.error(f"Failed to close resources: {e}")
-            raise

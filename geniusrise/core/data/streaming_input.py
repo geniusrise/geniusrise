@@ -68,11 +68,14 @@ class StreamingInput(Input):
         super(Input, self).__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         self.input_topic = input_topic
+        self.kafka_cluster_connection_string = kafka_cluster_connection_string
+        self.group_id = group_id
+
         try:
             self.consumer = KafkaConsumer(
                 self.input_topic,
-                bootstrap_servers=kafka_cluster_connection_string,
-                group_id=group_id,
+                bootstrap_servers=self.kafka_cluster_connection_string,
+                group_id=self.group_id,
                 max_poll_interval_ms=600000,  # 10 minutes
                 session_timeout_ms=10000,  # 10 seconds
                 **kwargs,
@@ -80,6 +83,9 @@ class StreamingInput(Input):
         except Exception as e:
             self.log.exception(f"🚫 Failed to create Kafka consumer: {e}")
             raise KafkaConnectionError("Failed to connect to Kafka.")
+
+    def __del__(self):
+        self.close()
 
     def get(self) -> KafkaConsumer:
         """
@@ -191,7 +197,7 @@ class StreamingInput(Input):
             try:
                 self.consumer.close()
             except Exception as e:
-                raise KafkaConnectionError(f"🚫 Failed to close Kafka consumer: {e}")
+                self.log.debug(f"🚫 Failed to close Kafka consumer: {e}")
 
     def seek(self, target_offset: int) -> None:
         if self.consumer:

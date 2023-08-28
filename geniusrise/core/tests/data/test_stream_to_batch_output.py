@@ -33,7 +33,14 @@ BUFFER_SIZE = 10
 # Fixtures
 @pytest.fixture
 def stream_to_batch_output_config(tmpdir):
-    return StreamToBatchOutput(OUTPUT_TOPIC, KAFKA_SERVERS, tmpdir, BUCKET, S3_FOLDER, BUFFER_SIZE)
+    return StreamToBatchOutput(
+        output_topic=OUTPUT_TOPIC,
+        kafka_servers=KAFKA_SERVERS,
+        output_folder=tmpdir,
+        bucket=BUCKET,
+        s3_folder=S3_FOLDER,
+        buffer_size=BUFFER_SIZE,
+    )
 
 
 @pytest.fixture

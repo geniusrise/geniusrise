@@ -21,6 +21,7 @@ from typing import Iterator, AsyncIterator, Callable, Union, Dict
 import os
 import json
 import time
+import logging
 
 from .streaming_input import StreamingInput
 from .batch_input import BatchInput
@@ -51,11 +52,11 @@ class BatchToStreamingInput(StreamingInput, BatchInput):
 
     def __init__(
         self,
-        input_topic: str,
-        kafka_cluster_connection_string: str,
         input_folder: str,
         bucket: str,
         s3_folder: str,
+        input_topic: str = "",
+        kafka_cluster_connection_string: str = "",
         group_id: str = "geniusrise",
     ) -> None:
         """
@@ -69,7 +70,7 @@ class BatchToStreamingInput(StreamingInput, BatchInput):
             s3_folder (str): Folder within the S3 bucket.
             group_id (str, optional): Kafka consumer group id. Defaults to "geniusrise".
         """
-        StreamingInput.__init__(self, input_topic, kafka_cluster_connection_string, group_id)
+        self.log = logging.getLogger(self.__class__.__name__)
         BatchInput.__init__(self, input_folder, bucket, s3_folder)
         self.queue = Queue()  # type: ignore
 
@@ -116,10 +117,7 @@ class BatchToStreamingInput(StreamingInput, BatchInput):
             Exception: If no Kafka consumer is available.
         """
         # Use the existing iterator from StreamingInput if available
-        if self.consumer:
-            return super().iterator()
-        else:
-            return self.get()
+        return self.get()
 
     async def async_iterator(self) -> AsyncIterator[KafkaMessage]:  # type: ignore
         """
@@ -173,16 +171,13 @@ class BatchToStreamingInput(StreamingInput, BatchInput):
         Raises:
             Exception: If no Kafka consumer is available or an error occurs.
         """
-        if self.consumer:
-            try:
-                for message in self.get():
-                    if filter_func(message):
-                        yield message
-            except Exception as e:
-                self.log.exception(f"🚫 Failed to filter messages from Kafka consumer: {e}")
-                raise
-        else:
-            raise Exception("🚫 Could not emulate kafka consumer.")
+        try:
+            for message in self.get():
+                if filter_func(message):
+                    yield message
+        except Exception as e:
+            self.log.exception(f"🚫 Failed to filter messages from Kafka consumer: {e}")
+            raise
 
     def collect_metrics(self) -> Dict[str, Union[int, float]]:
         """

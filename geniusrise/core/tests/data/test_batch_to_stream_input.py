@@ -43,7 +43,6 @@ def batch_to_streaming_input_config(tmpdir):
 
 # Test Initialization
 def test_batch_to_streaming_input_config_init(batch_to_streaming_input_config, tmpdir):
-    assert batch_to_streaming_input_config.input_topic == INPUT_TOPIC
     assert batch_to_streaming_input_config.input_folder == str(tmpdir)
 
 

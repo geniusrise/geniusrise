@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import shortuuid
+import logging
 from typing import Any, Optional, List
 
 from .streaming_output import StreamingOutput
@@ -42,7 +43,13 @@ class StreamToBatchOutput(StreamingOutput, BatchOutput):
     """
 
     def __init__(
-        self, output_topic: str, kafka_servers: str, output_folder: str, bucket: str, s3_folder: str, buffer_size: int
+        self,
+        output_folder: str,
+        bucket: str,
+        s3_folder: str,
+        buffer_size: int,
+        output_topic: str = "",
+        kafka_servers: str = "",
     ) -> None:
         """
         💥 Initialize a new buffered streaming output configuration.
@@ -55,7 +62,7 @@ class StreamToBatchOutput(StreamingOutput, BatchOutput):
             s3_folder (str): Folder within the S3 bucket.
             buffer_size (int): Number of messages to buffer.
         """
-        StreamingOutput.__init__(self, output_topic=output_topic, kafka_servers=kafka_servers)
+        self.log = logging.getLogger(self.__class__.__name__)
         BatchOutput.__init__(self, output_folder=output_folder, bucket=bucket, s3_folder=s3_folder)
         self.buffer_size = buffer_size
         self.buffered_messages: List[Any] = []

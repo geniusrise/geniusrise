@@ -22,6 +22,9 @@ from geniusrise.core.data import (
     BatchOutput,
     StreamingInput,
     StreamingOutput,
+    StreamToBatchInput,
+    StreamToBatchOutput,
+    BatchToStreamingInput,
 )
 from geniusrise.core.state import (
     DynamoDBState,
@@ -29,15 +32,17 @@ from geniusrise.core.state import (
     PostgresState,
     RedisState,
 )
+from kafka import KafkaProducer
+import json
 
 # Define the parameters for the tests
 bucket = "geniusrise-test-bucket"
 s3_folder = "bolt-test"
 input_topic = "input_topic"
-kafka_cluster_connection_string = "localhost:9092"
+kafka_cluster_connection_string = "localhost:9094"
 group_id = "geniusrise-test-group"
 output_topic = "output_topic"
-kafka_servers = "localhost:9092"
+kafka_servers = "localhost:9094"
 redis_host = "localhost"
 redis_port = 6379
 redis_db = 0
@@ -49,6 +54,7 @@ postgres_database = "geniusrise"
 postgres_table = "geniusrise_state"
 dynamodb_table_name = "test_table"
 dynamodb_region_name = "ap-south-1"
+buffer_size = 1
 
 
 class TestBolt(Bolt):
@@ -57,21 +63,27 @@ class TestBolt(Bolt):
 
 
 # Define a fixture for the input config
-@pytest.fixture(params=[BatchInput, StreamingInput])
+@pytest.fixture(params=[BatchInput, StreamingInput, StreamToBatchInput, BatchToStreamingInput])
 def input(request, tmpdir):
     if request.param == BatchInput:
         return request.param(tmpdir, bucket, s3_folder)
     elif request.param == StreamingInput:
         return request.param(input_topic, kafka_cluster_connection_string, group_id)
+    elif request.param == StreamToBatchInput:
+        return request.param(input_topic, kafka_cluster_connection_string, group_id, buffer_size=buffer_size)
+    elif request.param == BatchToStreamingInput:
+        return request.param(tmpdir, bucket, s3_folder)
 
 
 # Define a fixture for the output config
-@pytest.fixture(params=[BatchOutput, StreamingOutput])
+@pytest.fixture(params=[BatchOutput, StreamingOutput, StreamToBatchOutput])
 def output(request, tmpdir):
     if request.param == BatchOutput:
         return request.param(tmpdir, bucket, s3_folder)
     elif request.param == StreamingOutput:
         return request.param(output_topic, kafka_servers)
+    elif request.param == StreamToBatchOutput:
+        return request.param(tmpdir, bucket, s3_folder, buffer_size)
 
 
 # Define a fixture for the state manager
@@ -109,6 +121,11 @@ def test_bolt_init(input, output, state):
 
 
 def test_bolt_call(input, output, state):
+    producer = KafkaProducer(bootstrap_servers=kafka_cluster_connection_string)
+    for _ in range(2):
+        producer.send(input_topic, value=json.dumps({"test": "buffer"}).encode("utf-8"))
+        producer.flush()
+
     bolt = TestBolt(input, output, state)
     method_name = "test_method"
     args = (1, 2, 3)
@@ -207,6 +224,11 @@ def test_bolt_call_with_types(input_type, output_type, state_type, tmpdir):
         "dynamodb_table_name": dynamodb_table_name,
         "dynamodb_region_name": dynamodb_region_name,
     }
+
+    producer = KafkaProducer(bootstrap_servers=kafka_cluster_connection_string)
+    for _ in range(2):
+        producer.send(input_topic, value=json.dumps({"test": "buffer"}).encode("utf-8"))
+        producer.flush()
 
     bolt = Bolt.create(klass=TestBolt, input_type=input_type, output_type=output_type, state_type=state_type, **kwargs)
 

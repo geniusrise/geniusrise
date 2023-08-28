@@ -59,6 +59,9 @@ class StreamingOutput(Output):
             raise
             self.producer = None
 
+    def __del__(self):
+        self.close()
+
     def save(self, data: Any, filename: Optional[str] = None) -> None:
         """
         📤 Ingest data into the Kafka topic.
@@ -127,12 +130,12 @@ class StreamingOutput(Output):
         Raises:
             Exception: If no Kafka producer is available.
         """
-        if self.producer:
-            self.producer.close()
-            self.producer = None
-        else:
-            self.log.exception("🚫 No Kafka producer available.")
-            raise
+        try:
+            if self.producer:
+                self.producer.close()
+                self.producer = None
+        except Exception as e:
+            self.log.debug(f"🚫 Could not close kafka connection {e}.")
 
     def partition_available(self, partition: int) -> bool:
         """
