@@ -20,7 +20,7 @@ from typing import Any, Optional
 
 class Output(ABC):
     """
-    Abstract base class for managing output configurations.
+    Abstract base class for managing output data.
     """
 
     @abstractmethod

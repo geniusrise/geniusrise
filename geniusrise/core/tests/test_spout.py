@@ -73,7 +73,7 @@ def state(request):
         return request.param(dynamodb_table_name, dynamodb_region_name)
 
 
-# Define a fixture for the output config
+# Define a fixture for the output
 @pytest.fixture(params=[BatchOutput, StreamingOutput, StreamToBatchOutput])  # Add StreamToBatchOutput
 def output(request, tmpdir):
     if request.param == BatchOutput:

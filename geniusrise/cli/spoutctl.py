@@ -55,7 +55,7 @@ class SpoutCtl:
         create_parser.add_argument(
             "output_type",
             choices=["batch", "streaming"],
-            help="Choose the type of output configuration: batch or streaming.",
+            help="Choose the type of output data: batch or streaming.",
             default="batch",
         )
         create_parser.add_argument(
@@ -244,16 +244,16 @@ class SpoutCtl:
         Create a spout of a specific type.
 
         Args:
-            output_type (str): The type of output config ("batch" or "streaming").
+            output_type (str): The type of output ("batch" or "streaming").
             state_type (str): The type of state manager ("in_memory", "redis", "postgres", or "dynamodb").
             **kwargs: Additional keyword arguments for initializing the spout.
                 ```
                 Keyword Arguments:
-                    Batch output config:
+                    Batch output:
                     - output_folder (str): The directory where output files should be stored temporarily.
                     - output_s3_bucket (str): The name of the S3 bucket for output storage.
                     - output_s3_folder (str): The S3 folder for output storage.
-                    Streaming output config:
+                    Streaming output:
                     - output_kafka_topic (str): Kafka output topic for streaming spouts.
                     - output_kafka_cluster_connection_string (str): Kafka connection string for streaming spouts.
                     Redis state manager config:

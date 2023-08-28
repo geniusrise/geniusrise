@@ -59,12 +59,12 @@ class Bolt(Task):
         It inherits from the `Task` class and provides methods for executing tasks
         both locally and remotely, as well as managing their state, with state management
         options including in-memory, Redis, PostgreSQL, and DynamoDB,
-        and input and output configurations for  batch, streaming, stream-to-batch, and batch-to-streaming.
+        and input and output data for  batch, streaming, stream-to-batch, and batch-to-streaming.
 
         The `Bolt` class uses the `Input`, `Output` and `State` classes, which are abstract base
-        classes for managing input configurations, output configurations and states, respectively. The `Input` and
+        classes for managing input data, output data and states, respectively. The `Input` and
         `Output` classes each have two subclasses: `StreamingInput`, `BatchInput`, `StreamingOutput`
-        and `BatchOutput`, which manage streaming and batch input and output configurations, respectively.
+        and `BatchOutput`, which manage streaming and batch input and output data, respectively.
         The `State` class is used to get and set state, and it has several subclasses for different types of state managers.
 
         The `Bolt` class also uses the `ECSManager` and `K8sManager` classes in the `execute_remote` method,
@@ -72,8 +72,8 @@ class Bolt(Task):
 
         Usage:
             - Create an instance of the Bolt class by providing an Input object, an Output object and a State object.
-            - The Input object specifies the input configuration for the bolt.
-            - The Output object specifies the output configuration for the bolt.
+            - The Input object specifies the input data for the bolt.
+            - The Output object specifies the output data for the bolt.
             - The State object handles the management of the bolt's state.
 
         Example:
@@ -83,8 +83,8 @@ class Bolt(Task):
             bolt = Bolt(input, output, state)
 
         Args:
-            input (Input): The input configuration.
-            output (Output): The output configuration.
+            input (Input): The input data.
+            output (Output): The output data.
             state (State): The state manager.
         """
         super().__init__()
@@ -158,18 +158,18 @@ class Bolt(Task):
         This static method is used to create a bolt of a specific type. It takes in an input type,
         an output type, a state type, and additional keyword arguments for initializing the bolt.
 
-        The method creates the input config, output config, and state manager based on the provided types,
+        The method creates the input, output, and state manager based on the provided types,
         and then creates and returns a bolt using these configurations.
 
         Args:
             klass (type): The Bolt class to create.
-            input_type (str): The type of input config ("batch" or "streaming").
-            output_type (str): The type of output config ("batch" or "streaming").
+            input_type (str): The type of input ("batch" or "streaming").
+            output_type (str): The type of output ("batch" or "streaming").
             state_type (str): The type of state manager ("in_memory", "redis", "postgres", or "dynamodb").
             **kwargs: Additional keyword arguments for initializing the bolt.
                 ```
                 Keyword Arguments:
-                    Batch input config:
+                    Batch input:
                     - input_folder (str): The input folder argument.
                     - input_s3_bucket (str): The input bucket argument.
                     - input_s3_folder (str): The input S3 folder argument.
@@ -177,24 +177,24 @@ class Bolt(Task):
                     - output_folder (str): The output folder argument.
                     - output_s3_bucket (str): The output bucket argument.
                     - output_s3_folder (str): The output S3 folder argument.
-                    Streaming input config:
+                    Streaming input:
                     - input_kafka_cluster_connection_string (str): The input Kafka servers argument.
                     - input_kafka_topic (str): The input kafka topic argument.
                     - input_kafka_consumer_group_id (str): The Kafka consumer group id.
-                    Streaming output config:
+                    Streaming output:
                     - output_kafka_cluster_connection_string (str): The output Kafka servers argument.
                     - output_kafka_topic (str): The output kafka topic argument.
-                    Stream-to-Batch input config:
+                    Stream-to-Batch input:
                     - buffer_size (int): Number of messages to buffer.
                     - input_kafka_cluster_connection_string (str): The input Kafka servers argument.
                     - input_kafka_topic (str): The input kafka topic argument.
                     - input_kafka_consumer_group_id (str): The Kafka consumer group id.
-                    Batch-to-Streaming input config:
+                    Batch-to-Streaming input:
                     - buffer_size (int): Number of messages to buffer.
                     - input_folder (str): The input folder argument.
                     - input_s3_bucket (str): The input bucket argument.
                     - input_s3_folder (str): The input S3 folder argument.
-                    Stream-to-Batch output config:
+                    Stream-to-Batch output:
                     - buffer_size (int): Number of messages to buffer.
                     - output_folder (str): The output folder argument.
                     - output_s3_bucket (str): The output bucket argument.
@@ -221,7 +221,7 @@ class Bolt(Task):
         Raises:
             ValueError: If an invalid input type, output type, or state type is provided.
         """
-        # Create the input config
+        # Create the input
         input: BatchInput | StreamingInput | StreamToBatchInput | BatchToStreamingInput
         if input_type == "batch":
             input = BatchInput(
@@ -255,7 +255,7 @@ class Bolt(Task):
         else:
             raise ValueError(f"Invalid input type: {input_type}")
 
-        # Create the output config
+        # Create the output
         output: BatchOutput | StreamingOutput | StreamToBatchOutput
         if output_type == "batch":
             output = BatchOutput(

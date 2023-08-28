@@ -63,7 +63,7 @@ class TestBolt(Bolt):
         return sum(args) * sum(kwargs.values())
 
 
-# Define a fixture for the input config
+# Define a fixture for the input
 @pytest.fixture(params=[BatchInput, StreamingInput, StreamToBatchInput, BatchToStreamingInput])
 def input(request, tmpdir):
     if request.param == BatchInput:
@@ -81,7 +81,7 @@ def input(request, tmpdir):
         return request.param(tmpdir, bucket, s3_folder)
 
 
-# Define a fixture for the output config
+# Define a fixture for the output
 @pytest.fixture(params=[BatchOutput, StreamingOutput, StreamToBatchOutput])
 def output(request, tmpdir):
     if request.param == BatchOutput:

@@ -28,7 +28,7 @@ KafkaMessage = dict
 
 class StreamToBatchInput(StreamingInput, BatchInput):
     """
-    📦 StreamToBatchInput: Manages buffered streaming input configurations.
+    📦 StreamToBatchInput: Manages buffered streaming input data.
 
     Inherits:
         StreamingInput: For Kafka streaming capabilities.
@@ -60,7 +60,7 @@ class StreamToBatchInput(StreamingInput, BatchInput):
         group_id: str = "geniusrise",
     ) -> None:
         """
-        💥 Initialize a new buffered streaming input configuration.
+        💥 Initialize a new buffered streaming input data.
 
         Args:
             input_topic (str): Kafka topic to consume data.

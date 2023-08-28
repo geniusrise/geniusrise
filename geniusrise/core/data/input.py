@@ -25,7 +25,7 @@ from retrying import retry
 
 class Input(ABC):
     """
-    Abstract class for managing input configurations.
+    Abstract class for managing input data.
 
     Attributes:
         log (logging.Logger): Logger instance.

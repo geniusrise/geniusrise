@@ -27,7 +27,7 @@ from .output import Output
 
 class BatchOutput(Output):
     """
-    📁 BatchOutput: Manages batch output configurations.
+    📁 BatchOutput: Manages batch output data.
 
     Attributes:
         output_folder (str): Folder to save output files.
@@ -45,7 +45,7 @@ class BatchOutput(Output):
 
     def __init__(self, output_folder: str, bucket: str, s3_folder: str) -> None:
         """
-        Initialize a new batch output configuration.
+        Initialize a new batch output data.
 
         Args:
             output_folder (str): Folder to save output files.

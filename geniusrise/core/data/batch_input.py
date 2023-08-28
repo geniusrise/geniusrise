@@ -32,7 +32,7 @@ class FileNotExistError(Exception):
 
 class BatchInput(Input):
     """
-    📁 BatchInput: Manages batch input configurations.
+    📁 BatchInput: Manages batch input data.
 
     Attributes:
         input_folder (str): Folder to read input files.
@@ -52,7 +52,7 @@ class BatchInput(Input):
 
     def __init__(self, input_folder: str, bucket: str, s3_folder: str) -> None:
         """
-        🛠 Initialize a new batch input configuration.
+        🛠 Initialize a new batch input data.
 
         Args:
             input_folder (str): Folder to read input files from.

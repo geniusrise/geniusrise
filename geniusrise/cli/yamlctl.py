@@ -198,7 +198,7 @@ class YamlCtl:
             ref_name (str): Name of the spout or bolt to refer to.
 
         Returns:
-            Output: The output configuration of the referred spout or bolt.
+            Output: The output data of the referred spout or bolt.
         """
         if input_type == "spout":
             referred_spout = self.geniusfile.spouts.get(ref_name)

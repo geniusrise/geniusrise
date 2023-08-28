@@ -25,7 +25,7 @@ from .streaming_output import StreamingOutput
 
 class StreamToBatchOutput(StreamingOutput, BatchOutput):
     """
-    📦 StreamToBatchOutput: Manages buffered streaming output configurations.
+    📦 StreamToBatchOutput: Manages buffered streaming output data.
 
     Inherits:
         StreamingOutput: For Kafka streaming capabilities.
@@ -53,7 +53,7 @@ class StreamToBatchOutput(StreamingOutput, BatchOutput):
         kafka_servers: str = "",
     ) -> None:
         """
-        💥 Initialize a new buffered streaming output configuration.
+        💥 Initialize a new buffered streaming output data.
 
         Args:
             output_topic (str): Kafka topic to ingest data.

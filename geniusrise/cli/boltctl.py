@@ -56,13 +56,13 @@ class BoltCtl:
         run_parser.add_argument(
             "input_type",
             choices=["batch", "streaming"],
-            help="Choose the type of input configuration: batch or streaming.",
+            help="Choose the type of input data: batch or streaming.",
             default="batch",
         )
         run_parser.add_argument(
             "output_type",
             choices=["batch", "streaming"],
-            help="Choose the type of output configuration: batch or streaming.",
+            help="Choose the type of output data: batch or streaming.",
             default="batch",
         )
         run_parser.add_argument(
@@ -291,13 +291,13 @@ class BoltCtl:
         Create a bolt of a specific type.
 
         Args:
-            input_type (str): The type of input config ("batch" or "streaming").
-            output_type (str): The type of output config ("batch" or "streaming").
+            input_type (str): The type of input ("batch" or "streaming").
+            output_type (str): The type of output ("batch" or "streaming").
             state_type (str): The type of state manager ("in_memory", "redis", "postgres", or "dynamodb").
             **kwargs: Additional keyword arguments for initializing the bolt.
                 ```
                 Keyword Arguments:
-                    Batch input config:
+                    Batch input:
                     - input_folder (str): The input folder argument.
                     - input_s3_bucket (str): The input bucket argument.
                     - input_s3_folder (str): The input S3 folder argument.
@@ -305,11 +305,11 @@ class BoltCtl:
                     - output_folder (str): The output folder argument.
                     - output_s3_bucket (str): The output bucket argument.
                     - output_s3_folder (str): The output S3 folder argument.
-                    Streaming input config:
+                    Streaming input:
                     - input_kafka_cluster_connection_string (str): The input Kafka servers argument.
                     - input_kafka_topic (str): The input kafka topic argument.
                     - input_kafka_consumer_group_id (str): The Kafka consumer group id.
-                    Streaming output config:
+                    Streaming output:
                     - output_kafka_cluster_connection_string (str): The output Kafka servers argument.
                     - output_kafka_topic (str): The output kafka topic argument.
                     Redis state manager config:

@@ -59,7 +59,7 @@ class BatchToStreamingInput(StreamingInput, BatchInput):
         group_id: str = "geniusrise",
     ) -> None:
         """
-        Initialize a new batch to streaming input configuration.
+        Initialize a new batch to streaming input data.
 
         Args:
             input_topic (str): Kafka topic to consume data.

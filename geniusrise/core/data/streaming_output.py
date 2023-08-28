@@ -25,7 +25,7 @@ from .output import Output
 
 class StreamingOutput(Output):
     """
-    📡 **StreamingOutput**: Manages streaming output configurations.
+    📡 **StreamingOutput**: Manages streaming output data.
 
     Attributes:
         output_topic (str): Kafka topic to ingest data.
@@ -44,7 +44,7 @@ class StreamingOutput(Output):
 
     def __init__(self, output_topic: str, kafka_servers: str) -> None:
         """
-        Initialize a new streaming output configuration.
+        Initialize a new streaming output data.
 
         Args:
             output_topic (str): Kafka topic to ingest data.

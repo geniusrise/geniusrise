@@ -32,7 +32,7 @@ class KafkaConnectionError(Exception):
 
 class StreamingInput(Input):
     """
-    📡 **StreamingInput**: Manages streaming input configurations.
+    📡 **StreamingInput**: Manages streaming input data.
 
     Attributes:
         input_topic (str): Kafka topic to consume data.
@@ -58,7 +58,7 @@ class StreamingInput(Input):
         **kwargs,
     ) -> None:
         """
-        💥 Initialize a new streaming input configuration.
+        💥 Initialize a new streaming input data.
 
         Args:
             input_topic (str): Kafka topic to consume data.

@@ -25,7 +25,7 @@
 
 #     def __init__(self, output_topic: str, kafka_servers: str, output_folder: str, bucket: str, s3_folder: str) -> None:
 #         """
-#         Initialize a new batch to streaming output configuration.
+#         Initialize a new batch to streaming output data.
 
 #         Args:
 #             output_topic (str): Kafka topic to ingest data.

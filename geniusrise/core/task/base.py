@@ -30,7 +30,7 @@ class Task(ABC):
     """
     🛠️ **Task**: Class for managing tasks.
 
-    This class provides a foundation for creating and managing tasks. Each task has a unique identifier and can be associated with specific input and output configurations.
+    This class provides a foundation for creating and managing tasks. Each task has a unique identifier and can be associated with specific input and output data.
 
     ## Attributes:
     - `id` (uuid.UUID): Unique identifier for the task.
