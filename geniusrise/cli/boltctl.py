@@ -96,6 +96,12 @@ class BoltCtl:
             type=str,
         )
         run_parser.add_argument(
+            "--input_kafka_consumer_group_id",
+            help="Kafka consumer group id to use.",
+            default="geniusrise",
+            type=str,
+        )
+        run_parser.add_argument(
             "--input_s3_bucket",
             help="Provide the name of the S3 bucket for output storage.",
             default="my-bucket",

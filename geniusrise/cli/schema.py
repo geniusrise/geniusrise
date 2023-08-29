@@ -150,6 +150,7 @@ class InputArgs(BaseModel):
 
     input_topic: Optional[str] = None
     kafka_servers: Optional[str] = None
+    group_id: Optional[str] = None
     bucket: Optional[str] = None
     folder: Optional[str] = None
     name: Optional[str] = None
