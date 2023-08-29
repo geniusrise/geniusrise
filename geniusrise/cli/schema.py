@@ -170,7 +170,14 @@ class Input(BaseModel):
 
     @validator("type")
     def validate_type(cls, v, values, **kwargs):
-        if v not in ["batch", "streaming", "batch_to_stream", "stream_to_batch", "spout", "bolt"]:
+        if v not in [
+            "batch",
+            "streaming",
+            "batch_to_stream",
+            "stream_to_batch",
+            "spout",
+            "bolt",
+        ]:
             raise ValueError("Invalid input type")
         return v
 

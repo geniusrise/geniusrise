@@ -15,14 +15,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
+import json
 
 import pytest
-import json
 from kafka import KafkaProducer
+
 from geniusrise.cli.boltctl import BoltCtl
 from geniusrise.cli.discover import Discover
 from geniusrise.core import Bolt
-
 
 test_topic = "test_topic"
 kafka_cluster_connection_string = "localhost:9094"

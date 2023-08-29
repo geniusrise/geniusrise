@@ -1,6 +1,7 @@
+import copy
+
 import pytest
 from pydantic import ValidationError
-import copy
 
 from geniusrise.cli.schema import Geniusfile
 
