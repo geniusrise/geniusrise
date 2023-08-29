@@ -136,8 +136,6 @@ class Spout(Task):
                     - output_kafka_topic (str): Kafka output topic for streaming spouts.
                     - output_kafka_cluster_connection_string (str): Kafka connection string for streaming spouts.
                     Stream to Batch output:
-                    - output_kafka_topic (str): Kafka output topic for stream-to-batch spouts.
-                    - output_kafka_cluster_connection_string (str): Kafka connection string for stream-to-batch spouts.
                     - output_folder (str): The directory where output files should be stored temporarily.
                     - output_s3_bucket (str): The name of the S3 bucket for output storage.
                     - output_s3_folder (str): The S3 folder for output storage.
@@ -179,8 +177,6 @@ class Spout(Task):
             )
         elif output_type == "stream_to_batch":
             output = StreamToBatchOutput(
-                output_topic=kwargs.get("output_kafka_topic", None),
-                kafka_servers=kwargs.get("output_kafka_cluster_connection_string", None),
                 output_folder=kwargs.get("output_folder", tempfile.mkdtemp()),
                 bucket=kwargs.get("output_s3_bucket", "geniusrise"),
                 s3_folder=kwargs.get("output_s3_folder", klass.__class__.__name__),

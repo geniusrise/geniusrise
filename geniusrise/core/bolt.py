@@ -246,7 +246,7 @@ class Bolt(Task):
                 buffer_size=int(kwargs.get("buffer_size", 1000)) if "buffer_size" in kwargs else 1,
                 group_id=kwargs["input_kafka_consumer_group_id"] if "input_kafka_consumer_group_id" in kwargs else None,
             )
-        elif input_type == "batch_to_streaming":
+        elif input_type == "batch_to_stream":
             input = BatchToStreamingInput(
                 input_folder=kwargs["input_folder"] if "input_folder" in kwargs else tempfile.mkdtemp(),
                 bucket=kwargs["input_s3_bucket"] if "input_s3_bucket" in kwargs else None,

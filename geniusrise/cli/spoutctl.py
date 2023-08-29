@@ -54,7 +54,7 @@ class SpoutCtl:
         create_parser = subparsers.add_parser("rise", help="Run a spout locally.", formatter_class=RichHelpFormatter)
         create_parser.add_argument(
             "output_type",
-            choices=["batch", "streaming"],
+            choices=["batch", "streaming", "stream_to_batch"],
             help="Choose the type of output data: batch or streaming.",
             default="batch",
         )
@@ -63,6 +63,12 @@ class SpoutCtl:
             choices=["in_memory", "redis", "postgres", "dynamodb"],
             help="Select the type of state manager: in_memory, redis, postgres, or dynamodb.",
             default="in_memory",
+        )
+        create_parser.add_argument(
+            "--buffer_size",
+            help="Specify the size of the buffer.",
+            default=100,
+            type=int,
         )
         create_parser.add_argument(
             "--output_folder",
@@ -256,20 +262,25 @@ class SpoutCtl:
                     Streaming output:
                     - output_kafka_topic (str): Kafka output topic for streaming spouts.
                     - output_kafka_cluster_connection_string (str): Kafka connection string for streaming spouts.
+                    Stream to Batch output:
+                    - output_folder (str): The directory where output files should be stored temporarily.
+                    - output_s3_bucket (str): The name of the S3 bucket for output storage.
+                    - output_s3_folder (str): The S3 folder for output storage.
+                    - buffer_size (int): Number of messages to buffer.
                     Redis state manager config:
-                    - redis_host (str): The Redis host argument.
-                    - redis_port (str): The Redis port argument.
-                    - redis_db (str): The Redis database argument.
+                    - redis_host (str): The host address for the Redis server.
+                    - redis_port (int): The port number for the Redis server.
+                    - redis_db (int): The Redis database to be used.
                     Postgres state manager config:
-                    - postgres_host (str): The PostgreSQL host argument.
-                    - postgres_port (str): The PostgreSQL port argument.
-                    - postgres_user (str): The PostgreSQL user argument.
-                    - postgres_password (str): The PostgreSQL password argument.
-                    - postgres_database (str): The PostgreSQL database argument.
-                    - postgres_table (str): The PostgreSQL table argument.
+                    - postgres_host (str): The host address for the PostgreSQL server.
+                    - postgres_port (int): The port number for the PostgreSQL server.
+                    - postgres_user (str): The username for the PostgreSQL server.
+                    - postgres_password (str): The password for the PostgreSQL server.
+                    - postgres_database (str): The PostgreSQL database to be used.
+                    - postgres_table (str): The PostgreSQL table to be used.
                     DynamoDB state manager config:
-                    - dynamodb_table_name (str): The DynamoDB table name argument.
-                    - dynamodb_region_name (str): The DynamoDB region name argument.
+                    - dynamodb_table_name (str): The name of the DynamoDB table.
+                    - dynamodb_region_name (str): The AWS region for DynamoDB.
                 ```
 
         Returns:

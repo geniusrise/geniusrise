@@ -143,8 +143,12 @@ class YamlCtl:
 
         parser = argparse.ArgumentParser()
         self.spout_ctls[spout_name].create_parser(parser)
-        namespace_args = parser.parse_args(flat_args)
-        spout_ctl.run(namespace_args)
+        try:
+            namespace_args = parser.parse_args(flat_args)
+            spout_ctl.run(namespace_args)
+        except Exception as e:
+            self.log.exception(f"Could not execute: {e}")
+            parser.print_help()
 
     def run_bolt(self, bolt_name: str):
         """
@@ -184,6 +188,8 @@ class YamlCtl:
             bolt.method,
         ] + self._convert_bolt(bolt)
 
+        # TODO: choosing this weird approach helps us build validations at argparser
+        # and print argparser's help in case of problems in yaml?
         parser = argparse.ArgumentParser()
         self.bolt_ctls[bolt_name].create_parser(parser)
         namespace_args = parser.parse_args(flat_args)
@@ -228,6 +234,11 @@ class YamlCtl:
         elif spout.output.type == "streaming":
             spout_args.append(f"--output_kafka_topic={spout.output.args.output_topic}")
             spout_args.append(f"--output_kafka_cluster_connection_string={spout.output.args.kafka_servers}")
+        elif spout.output.type == "stream_to_batch":
+            spout_args.append(f"--output_folder={spout.output.args.folder}")
+            spout_args.append(f"--output_s3_bucket={spout.output.args.bucket}")
+            spout_args.append(f"--output_s3_folder={spout.output.args.folder}")
+            spout_args.append(f"--buffer_size={spout.output.args.buffer_size}")
 
         # Convert state
         if spout.state.type == "redis":
@@ -259,6 +270,16 @@ class YamlCtl:
         elif bolt.input.type == "streaming":
             bolt_args.append(f"--input_kafka_topic={bolt.input.args.input_topic}")
             bolt_args.append(f"--input_kafka_cluster_connection_string={bolt.input.args.kafka_servers}")
+            bolt_args.append(f"--input_kafka_consumer_group_id={bolt.input.args.group_id}")
+        elif bolt.input.type == "batch_to_stream":
+            bolt_args.append(f"--input_folder={bolt.input.args.folder}")
+            bolt_args.append(f"--input_s3_bucket={bolt.input.args.bucket}")
+            bolt_args.append(f"--input_s3_folder={bolt.input.args.folder}")
+        elif bolt.input.type == "stream_to_batch":
+            bolt_args.append(f"--input_kafka_topic={bolt.input.args.input_topic}")
+            bolt_args.append(f"--input_kafka_cluster_connection_string={bolt.input.args.kafka_servers}")
+            bolt_args.append(f"--input_kafka_consumer_group_id={bolt.input.args.group_id}")
+            bolt_args.append(f"--buffer_size={bolt.output.args.buffer_size}")
 
         # Convert output
         if bolt.output.type == "batch":
@@ -268,6 +289,11 @@ class YamlCtl:
         elif bolt.output.type == "streaming":
             bolt_args.append(f"--output_kafka_topic={bolt.output.args.output_topic}")
             bolt_args.append(f"--output_kafka_cluster_connection_string={bolt.output.args.kafka_servers}")
+        elif bolt.output.type == "stream_to_batch":
+            bolt_args.append(f"--output_folder={bolt.output.args.folder}")
+            bolt_args.append(f"--output_s3_bucket={bolt.output.args.bucket}")
+            bolt_args.append(f"--output_s3_folder={bolt.output.args.folder}")
+            bolt_args.append(f"--buffer_size={bolt.output.args.buffer_size}")
 
         # Convert state
         if bolt.state.type == "redis":
