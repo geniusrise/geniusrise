@@ -26,7 +26,8 @@ from geniusrise.core import Spout
 
 @pytest.fixture
 def discovered_spout():
-    discover = Discover(directory=os.path.dirname(os.path.abspath(__file__)) + "/test_spout")
+    discover = Discover(directory=".")
+    print(os.path.dirname(os.path.abspath(__file__)) + "/test_spout")
     classes = discover.scan_directory()
     return classes.get("TestSpoutCtlSpout")
 
@@ -39,6 +40,7 @@ def spoutctl(discovered_spout):
 def test_spoutctl_init(discovered_spout):
     spoutctl = SpoutCtl(discovered_spout)
     assert spoutctl.discovered_spout == discovered_spout
+    assert discovered_spout
 
 
 # fmt: off
@@ -53,6 +55,10 @@ def test_spoutctl_init(discovered_spout):
         ("streaming", "redis"),
         ("streaming", "postgres"),
         ("streaming", "dynamodb"),
+        ("stream_to_batch", "in_memory"),
+        ("stream_to_batch", "redis"),
+        ("stream_to_batch", "postgres"),
+        ("stream_to_batch", "dynamodb"),
     ],
 )
 def test_spoutctl_run(spoutctl, output_type, state_type, tmpdir):
@@ -79,6 +85,7 @@ def test_spoutctl_run(spoutctl, output_type, state_type, tmpdir):
         "--output_folder", str(tmpdir),
         "--output_s3_bucket", "geniusrise-test-bucket",
         "--output_s3_folder", "whatever",
+        "--buffer_size", "1",
         "--args", "1", "2", "3", "a=4", "b=5", "c=6"
     ])
     result = spoutctl.run(args)
@@ -98,6 +105,10 @@ def test_spoutctl_run(spoutctl, output_type, state_type, tmpdir):
         ("streaming", "redis"),
         ("streaming", "postgres"),
         ("streaming", "dynamodb"),
+        ("stream_to_batch", "in_memory"),
+        ("stream_to_batch", "redis"),
+        ("stream_to_batch", "postgres"),
+        ("stream_to_batch", "dynamodb"),
     ],
 )
 def test_spoutctl_create_spout(spoutctl, output_type, state_type, tmpdir):
@@ -118,6 +129,7 @@ def test_spoutctl_create_spout(spoutctl, output_type, state_type, tmpdir):
         "dynamodb_region_name": "ap-south-1",
         "output_s3_bucket": "geniusrise-test-bucket",
         "output_s3_folder": "whatever",
+        "buffer_size": 1,
     }
 
     spout = spoutctl.create_spout(output_type, state_type, **kwargs)
