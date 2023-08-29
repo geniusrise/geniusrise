@@ -13,20 +13,21 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 import json
 import logging
 import os
 from typing import Any, List, Optional
-import shortuuid
 
 import boto3
+import shortuuid
 
 from .output import Output
 
 
 class BatchOutput(Output):
     """
-    📁 BatchOutput: Manages batch output configurations.
+    📁 BatchOutput: Manages batch output data.
 
     Attributes:
         output_folder (str): Folder to save output files.
@@ -44,7 +45,7 @@ class BatchOutput(Output):
 
     def __init__(self, output_folder: str, bucket: str, s3_folder: str) -> None:
         """
-        Initialize a new batch output configuration.
+        Initialize a new batch output data.
 
         Args:
             output_folder (str): Folder to save output files.

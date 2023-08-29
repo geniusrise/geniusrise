@@ -14,14 +14,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import fnmatch
 import importlib
 import inspect
 import logging
 import os
 import sys
-import fnmatch
 from abc import ABCMeta
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, List, Optional
 
 import emoji  # type: ignore
 import pkg_resources  # type: ignore
@@ -104,12 +104,11 @@ class Discover:
                         has_discovered = self.find_classes(module)
                         if not has_discovered:
                             del sys.modules[module.__name__]
-                    except TypeError:
-                        pass
+                    except TypeError as e:
+                        self.log.debug(f"Failed to import module at {root}: TypeError: {e}")
                     except Exception as e:
-                        # self.log.debug(f"Failed to import module at {root}: {e}")
-                        # pass
-                        raise e
+                        self.log.debug(f"Failed to import module at {root}: {e}")
+                        pass
                 else:
                     self.log.debug(f"Ignoring directory {root}, no __init__.py found")
 

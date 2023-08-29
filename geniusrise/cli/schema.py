@@ -34,17 +34,17 @@ class StateArgs(BaseModel):
     different arguments are required.
     """
 
-    redis_host: Optional[str]
-    redis_port: Optional[int]
-    redis_db: Optional[int]
-    postgres_host: Optional[str]
-    postgres_port: Optional[int]
-    postgres_user: Optional[str]
-    postgres_password: Optional[str]
-    postgres_database: Optional[str]
-    postgres_table: Optional[str]
-    dynamodb_table_name: Optional[str]
-    dynamodb_region_name: Optional[str]
+    redis_host: Optional[str] = None
+    redis_port: Optional[int] = None
+    redis_db: Optional[int] = None
+    postgres_host: Optional[str] = None
+    postgres_port: Optional[int] = None
+    postgres_user: Optional[str] = None
+    postgres_password: Optional[str] = None
+    postgres_database: Optional[str] = None
+    postgres_table: Optional[str] = None
+    dynamodb_table_name: Optional[str] = None
+    dynamodb_region_name: Optional[str] = None
 
     class Config:
         extra = Extra.allow
@@ -56,7 +56,7 @@ class State(BaseModel):
     """
 
     type: str
-    args: Optional[StateArgs]
+    args: Optional[StateArgs] = None
 
     @validator("type")
     def validate_type(cls, v, values, **kwargs):
@@ -84,6 +84,12 @@ class State(BaseModel):
             elif values["type"] == "dynamodb":
                 if not v or "dynamodb_table_name" not in v or "dynamodb_region_name" not in v:
                     raise ValueError("Missing required fields for dynamodb state type")
+            elif values["type"] == "in_memory":
+                pass
+            else:
+                raise ValueError(f"Unknown type of state {values['type']}")
+        else:
+            raise ValueError("Missing the type of state")
         return v
 
 
@@ -93,10 +99,11 @@ class OutputArgs(BaseModel):
     different arguments are required.
     """
 
-    bucket: Optional[str]
-    folder: Optional[str]
-    output_topic: Optional[str]
-    kafka_servers: Optional[str]
+    bucket: Optional[str] = None
+    folder: Optional[str] = None
+    output_topic: Optional[str] = None
+    kafka_servers: Optional[str] = None
+    buffer_size: Optional[int] = 1
 
     class Config:
         extra = Extra.allow
@@ -112,7 +119,7 @@ class Output(BaseModel):
 
     @validator("type")
     def validate_type(cls, v, values, **kwargs):
-        if v not in ["batch", "streaming"]:
+        if v not in ["batch", "streaming", "batch_to_stream"]:
             raise ValueError("Invalid output type")
         return v
 
@@ -125,6 +132,13 @@ class Output(BaseModel):
             elif values["type"] == "streaming":
                 if not v or "output_topic" not in v or "kafka_servers" not in v:
                     raise ValueError("Missing required fields for streaming output type")
+            elif values["type"] == "stream_to_batch":
+                if not v or "bucket" not in v or "folder" not in v or "buffer_size" not in v:
+                    raise ValueError("Missing required fields for stream_to_batch output type")
+            else:
+                raise ValueError(f"Unknown type of output {values['type']}")
+        else:
+            raise ValueError("Missing the type of output")
         return v
 
 
@@ -134,11 +148,13 @@ class InputArgs(BaseModel):
     different arguments are required.
     """
 
-    input_topic: Optional[str]
-    kafka_servers: Optional[str]
-    bucket: Optional[str]
-    folder: Optional[str]
-    name: Optional[str]
+    input_topic: Optional[str] = None
+    kafka_servers: Optional[str] = None
+    group_id: Optional[str] = None
+    bucket: Optional[str] = None
+    folder: Optional[str] = None
+    name: Optional[str] = None
+    buffer_size: Optional[int] = 1
 
     class Config:
         extra = Extra.allow
@@ -154,7 +170,14 @@ class Input(BaseModel):
 
     @validator("type")
     def validate_type(cls, v, values, **kwargs):
-        if v not in ["batch", "streaming", "spout", "bolt"]:
+        if v not in [
+            "batch",
+            "streaming",
+            "batch_to_stream",
+            "stream_to_batch",
+            "spout",
+            "bolt",
+        ]:
             raise ValueError("Invalid input type")
         return v
 
@@ -167,9 +190,19 @@ class Input(BaseModel):
             elif values["type"] == "streaming":
                 if not v or "input_topic" not in v or "kafka_servers" not in v:
                     raise ValueError("Missing required fields for streaming input type")
+            elif values["type"] == "batch_to_stream":
+                if not v or "bucket" not in v or "folder" not in v:
+                    raise ValueError("Missing required fields for batch_to_stream input type")
+            elif values["type"] == "stream_to_batch":
+                if not v or "input_topic" not in v or "kafka_servers" not in v or "buffer_size" not in v:
+                    raise ValueError("Missing required fields for stream_to_batch input type")
             elif values["type"] in ["spout", "bolt"]:
                 if not v or "name" not in v:
                     raise ValueError(f"Missing required fields for {values['type']} input type")
+            else:
+                raise ValueError(f"Unknown type of input {values['type']}")
+        else:
+            raise ValueError("Missing the type of input")
         return v
 
 
@@ -179,10 +212,10 @@ class DeployArgs(BaseModel):
     different arguments are required.
     """
 
-    name: Optional[str]
-    namespace: Optional[str]
-    image: Optional[str]
-    replicas: Optional[int]
+    name: Optional[str] = None
+    namespace: Optional[str] = None
+    image: Optional[str] = None
+    replicas: Optional[int] = None
     account_id: Optional[str] = None
     cluster: Optional[str] = None
     subnet_ids: Optional[List[str]] = None
@@ -234,6 +267,10 @@ class Deploy(BaseModel):
                 for field in required_fields:
                     if not v or field not in v or not v[field]:
                         raise ValueError(f"Missing required field '{field}' for k8s deploy type")
+            else:
+                raise ValueError(f"Unknown type of deployment {values['type']}")
+        else:
+            raise ValueError("Missing the type of deployment")
         return v
 
 

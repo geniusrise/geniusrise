@@ -13,6 +13,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 import json
 import logging
 from typing import Any, List, Optional
@@ -24,7 +25,7 @@ from .output import Output
 
 class StreamingOutput(Output):
     """
-    📡 **StreamingOutput**: Manages streaming output configurations.
+    📡 **StreamingOutput**: Manages streaming output data.
 
     Attributes:
         output_topic (str): Kafka topic to ingest data.
@@ -43,7 +44,7 @@ class StreamingOutput(Output):
 
     def __init__(self, output_topic: str, kafka_servers: str) -> None:
         """
-        Initialize a new streaming output configuration.
+        Initialize a new streaming output data.
 
         Args:
             output_topic (str): Kafka topic to ingest data.
@@ -57,6 +58,9 @@ class StreamingOutput(Output):
             self.log.exception(f"🚫 Failed to create Kafka producer: {e}")
             raise
             self.producer = None
+
+    def __del__(self):
+        self.close()
 
     def save(self, data: Any, filename: Optional[str] = None) -> None:
         """
@@ -126,12 +130,12 @@ class StreamingOutput(Output):
         Raises:
             Exception: If no Kafka producer is available.
         """
-        if self.producer:
-            self.producer.close()
-            self.producer = None
-        else:
-            self.log.exception("🚫 No Kafka producer available.")
-            raise
+        try:
+            if self.producer:
+                self.producer.close()
+                self.producer = None
+        except Exception as e:
+            self.log.debug(f"🚫 Could not close kafka connection {e}.")
 
     def partition_available(self, partition: int) -> bool:
         """

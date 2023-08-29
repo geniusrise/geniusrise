@@ -18,7 +18,12 @@ import logging
 import tempfile
 from typing import Any
 
-from geniusrise.core.data import BatchOutput, Output, StreamingOutput
+from geniusrise.core.data import (
+    BatchOutput,
+    Output,
+    StreamingOutput,
+    StreamToBatchOutput,
+)
 from geniusrise.core.state import (
     DynamoDBState,
     InMemoryState,
@@ -40,12 +45,12 @@ class Spout(Task):
         It inherits from the `Task` class and provides methods for executing tasks
         both locally and remotely, as well as managing their state, with state management
         options including in-memory, Redis, PostgreSQL, and DynamoDB,
-        and output configurations for batch or streaming data.
+        and output data for batch or streaming data.
 
         The `Spout` class uses the `Output` and `State` classes, which are abstract base
-         classes for managing output configurations and states, respectively. The `Output` class
+         classes for managing output data and states, respectively. The `Output` class
          has two subclasses: `StreamingOutput` and `BatchOutput`, which manage streaming and
-         batch output configurations, respectively. The `State` class is used to get and set state,
+         batch output data, respectively. The `State` class is used to get and set state,
          and it has several subclasses for different types of state managers.
 
         The `Spout` class also uses the `ECSManager` and `K8sManager` classes in the `execute_remote` method,
@@ -53,7 +58,7 @@ class Spout(Task):
 
         Usage:
             - Create an instance of the Spout class by providing an Output object and a State object.
-            - The Output object specifies the output configuration for the spout.
+            - The Output object specifies the output data for the spout.
             - The State object handles the management of the spout's state.
 
         Example:
@@ -62,7 +67,7 @@ class Spout(Task):
             spout = Spout(output, state)
 
         Args:
-            output (Output): The output configuration.
+            output (Output): The output data.
             state (State): The state manager.
         """
         super().__init__()
@@ -87,48 +92,54 @@ class Spout(Task):
         """
         try:
             # Get the type of state manager
-            state_type = self.state.get_state(self.id)
+            # state_type = self.state.get_state(self.id)
 
             # Save the current set of class variables to the state manager
-            self.state.set_state(self.id, {})
+            # self.state.set_state(self.id, {})
 
             # Execute the task's method
             result = self.execute(method_name, *args, **kwargs)
 
-            # Flush the output config
+            # Flush the output
             self.output.flush()
 
             # Store the state as successful in the state manager
             state = {}
             state["status"] = "success"
-            self.state.set_state(self.id, state)
+            # self.state.set_state(self.id, state)
 
             return result
         except Exception as e:
             state = {}
             state["status"] = "failed"
-            self.state.set_state(self.id, state)
+            # self.state.set_state(self.id, state)
             self.log.exception(f"Failed to execute method '{method_name}': {e}")
             raise
 
     @staticmethod
     def create(klass: type, output_type: str, state_type: str, **kwargs) -> "Spout":
-        """
+        r"""
         Create a spout of a specific type.
 
         Args:
             klass (type): The Spout class to create.
-            output_type (str): The type of output config ("batch" or "streaming").
+            output_type (str): The type of output ("batch" or "streaming").
             state_type (str): The type of state manager ("in_memory", "redis", "postgres", or "dynamodb").
             **kwargs: Additional keyword arguments for initializing the spout.
+                ```
                 Keyword Arguments:
-                    Batch output config:
+                    Batch output:
                     - output_folder (str): The directory where output files should be stored temporarily.
                     - output_s3_bucket (str): The name of the S3 bucket for output storage.
                     - output_s3_folder (str): The S3 folder for output storage.
-                    Streaming output config:
+                    Streaming output:
                     - output_kafka_topic (str): Kafka output topic for streaming spouts.
                     - output_kafka_cluster_connection_string (str): Kafka connection string for streaming spouts.
+                    Stream to Batch output:
+                    - output_folder (str): The directory where output files should be stored temporarily.
+                    - output_s3_bucket (str): The name of the S3 bucket for output storage.
+                    - output_s3_folder (str): The S3 folder for output storage.
+                    - buffer_size (int): Number of messages to buffer.
                     Redis state manager config:
                     - redis_host (str): The host address for the Redis server.
                     - redis_port (int): The port number for the Redis server.
@@ -143,6 +154,7 @@ class Spout(Task):
                     DynamoDB state manager config:
                     - dynamodb_table_name (str): The name of the DynamoDB table.
                     - dynamodb_region_name (str): The AWS region for DynamoDB.
+                ```
 
         Returns:
             Spout: The created spout.
@@ -150,7 +162,7 @@ class Spout(Task):
         Raises:
             ValueError: If an invalid output type or state type is provided.
         """
-        # Create the output config
+        # Create the output
         output: BatchOutput | StreamingOutput
         if output_type == "batch":
             output = BatchOutput(
@@ -162,6 +174,13 @@ class Spout(Task):
             output = StreamingOutput(
                 output_topic=kwargs.get("output_kafka_topic", None),
                 kafka_servers=kwargs.get("output_kafka_cluster_connection_string", None),
+            )
+        elif output_type == "stream_to_batch":
+            output = StreamToBatchOutput(
+                output_folder=kwargs.get("output_folder", tempfile.mkdtemp()),
+                bucket=kwargs.get("output_s3_bucket", "geniusrise"),
+                s3_folder=kwargs.get("output_s3_folder", klass.__class__.__name__),
+                buffer_size=kwargs.get("buffer_size", 1000),
             )
         else:
             raise ValueError(f"Invalid output type: {output_type}")

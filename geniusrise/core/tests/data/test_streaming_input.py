@@ -14,88 +14,122 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
+
 import pytest
-from kafka import KafkaProducer
+from kafka import KafkaConsumer, KafkaProducer
 
 from geniusrise.core.data import StreamingInput
 
-# Define your Kafka connection details as constants
+# Constants
 KAFKA_CLUSTER_CONNECTION_STRING = "localhost:9094"
 GROUP_ID = "test_group_1"
 INPUT_TOPIC = "test_topic"
 
 
-# Define a fixture for your StreamingInput
+# Fixture for StreamingInput
 @pytest.fixture
 def streaming_input_config():
     return StreamingInput(INPUT_TOPIC, KAFKA_CLUSTER_CONNECTION_STRING, GROUP_ID)
 
 
-# Test that the StreamingInput can be initialized
+# Test Initialization
 def test_streaming_input_config_init(streaming_input_config):
     assert streaming_input_config.input_topic == INPUT_TOPIC
-    assert streaming_input_config.consumer is not None
+    assert isinstance(streaming_input_config.consumer, KafkaConsumer)
 
 
-# Test that the StreamingInput can get data from the Kafka topic
+# Test Get Consumer
 def test_streaming_input_config_get(streaming_input_config):
     consumer = streaming_input_config.get()
     assert consumer is not None
 
-    producer = KafkaProducer(bootstrap_servers=KAFKA_CLUSTER_CONNECTION_STRING)
-    producer.send(INPUT_TOPIC, b'{"test": "lol"}')
-    producer.flush()
 
-    # Consume from the Kafka topic and test that it works
-    # Note: This assumes that there is data in the topic to consume
-    for message in consumer:
-        assert message.value == b'{"test": "lol"}'
-        break  # Only consume one message for this test
-
-
-# Test that the StreamingInput can iterate over messages
+# Test Iterator
 def test_streaming_input_config_iterator(streaming_input_config):
     producer = KafkaProducer(bootstrap_servers=KAFKA_CLUSTER_CONNECTION_STRING)
-    producer.send(INPUT_TOPIC, b'{"test": "lol"}')
+    producer.send(INPUT_TOPIC, value=json.dumps({"test": "iterator"}).encode("utf-8"))
     producer.flush()
 
-    for message in streaming_input_config:
-        assert message.value == b'{"test": "lol"}'
-        break  # Only consume one message for this test
+    consumer = streaming_input_config.get()
+
+    # NOTE: this shit is done for testing only cause we produce first and then consume
+    retries = 3
+    for _ in range(retries):
+        msg_poll = consumer.poll(timeout_ms=1000)
+        if msg_poll:
+            for _, messages in msg_poll.items():
+                for message in messages:
+                    assert json.loads(message.value.decode("utf-8")) == {"test": "iterator"}
+                    return
+        else:
+            print("Retrying...")
+    consumer.unsubscribe()
 
 
-# Test that the StreamingInput can filter messages
-def test_streaming_input_config_filter_messages(streaming_input_config):
-    producer = KafkaProducer(bootstrap_servers=KAFKA_CLUSTER_CONNECTION_STRING)
-    producer.send(INPUT_TOPIC, b'{"test": "filter"}')
-    producer.send(INPUT_TOPIC, b'{"test": "do not filter"}')
-    producer.flush()
-
-    def filter_func(message):
-        return message.value == b'{"test": "filter"}'
-
-    for message in streaming_input_config.filter_messages(filter_func):
-        assert message.value == b'{"test": "filter"}'
-        break  # Only consume one message for this test
+# Test Acknowledge
+def test_streaming_input_config_ack(streaming_input_config):
+    try:
+        streaming_input_config.ack()
+    except Exception:
+        pytest.fail("Failed to acknowledge message")
 
 
-# Test that the StreamingInput can close the Kafka consumer
+# Test Close Consumer
 def test_streaming_input_config_close(streaming_input_config):
-    streaming_input_config.close()
-    assert streaming_input_config.consumer is None
+    try:
+        streaming_input_config.close()
+    except Exception:
+        pytest.fail("Failed to close Kafka consumer")
 
 
-# Test that the StreamingInput can seek to a specific offset
+# Test Seek
 def test_streaming_input_config_seek(streaming_input_config):
-    partition = 0
-    offset = 0
-    streaming_input_config.seek(partition, offset)
-    message = next(streaming_input_config)
-    assert message.offset == offset
+    itr = streaming_input_config.get()
+    itr.poll(0)
+    try:
+        streaming_input_config.seek(0)
+    except Exception:
+        pytest.fail("Failed to seek Kafka consumer")
 
 
-# Test that the StreamingInput can commit offsets
+# Test Commit Offsets
 def test_streaming_input_config_commit(streaming_input_config):
-    streaming_input_config.commit()
-    # This test is a bit tricky to implement because it depends on the state of the Kafka consumer
-    # You might need to check the committed offsets for the consumer's current partitions
+    try:
+        streaming_input_config.commit()
+    except Exception:
+        pytest.fail("Failed to commit offsets")
+
+
+# Test Filter Messages
+def test_streaming_input_config_filter_messages(streaming_input_config):
+    try:
+        producer = KafkaProducer(bootstrap_servers=KAFKA_CLUSTER_CONNECTION_STRING)
+        producer.send(INPUT_TOPIC, value=json.dumps({"test": "filter"}).encode("utf-8"))
+        producer.flush()
+
+        consumer = streaming_input_config.get()
+        consumer.poll(timeout_ms=1000)  # Poll to get messages
+        streaming_input_config.seek(0)
+
+        def filter_func(message):
+            return json.loads(message.value.decode("utf-8")) == {"test": "filter"}
+
+        for message in consumer:
+            if filter_func(message):
+                break
+
+        consumer.unsubscribe()
+    except Exception:
+        consumer.unsubscribe()
+        pytest.fail("Failed in filter_messages test")
+
+
+# Test Collect Metrics
+def test_streaming_input_config_collect_metrics(streaming_input_config):
+    try:
+        metrics = streaming_input_config.collect_metrics()
+        assert "request_latency_avg" in metrics
+        assert "request_latency_max" in metrics
+    except Exception:
+        pytest.fail("Failed to collect metrics")

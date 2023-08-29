@@ -26,10 +26,10 @@ BUCKET = "geniusrise-test-bucket"
 S3_FOLDER = "whatever"
 
 
-# Define a fixture for your BatchInput
+# Define a fixture for BatchInput
 @pytest.fixture
 def batch_input_config(tmpdir):
-    yield BatchInput(tmpdir, BUCKET, S3_FOLDER)
+    yield BatchInput(str(tmpdir), BUCKET, S3_FOLDER)
 
 
 # Test that the BatchInput can be initialized
@@ -44,54 +44,49 @@ def test_batch_input_config_get(batch_input_config):
     assert batch_input_config.get() == batch_input_config.input_folder
 
 
-# Test that the BatchInput can copy files from the S3 bucket
-def test_batch_input_config_copy_from_remote(batch_input_config):
-    batch_input_config.copy_from_remote()
-
-    # Check that the files were copied to the input folder
-    # Note: This assumes that there are files in the S3_FOLDER of the BUCKET
-    print(batch_input_config.input_folder)
-    assert list(os.listdir(batch_input_config.input_folder + "/")) == [S3_FOLDER]  # This should not be empty
+# Test that the BatchInput can validate files
+def test_batch_input_config_validate_file(batch_input_config):
+    test_file = "test_file.txt"
+    with open(os.path.join(batch_input_config.input_folder, test_file), "w") as f:
+        f.write("test")
+    assert batch_input_config.validate_file(test_file)
+    assert not batch_input_config.validate_file("nonexistent.txt")
 
 
 # Test that the BatchInput can list files in the input folder
 def test_batch_input_config_list_files(batch_input_config):
-    # Create a test file in the input folder
-    with open(os.path.join(batch_input_config.input_folder, "test_file.txt"), "w") as f:
+    test_file = "test_file.txt"
+    with open(os.path.join(batch_input_config.input_folder, test_file), "w") as f:
         f.write("test")
-
-    files = batch_input_config.list_files()
+    files = list(batch_input_config.list_files())
     assert len(files) == 1
-    assert "test_file.txt" in files[0]
+    assert test_file in files[0]
 
 
 # Test that the BatchInput can read a file from the input folder
 def test_batch_input_config_read_file(batch_input_config):
-    # Create a test file in the input folder
-    with open(os.path.join(batch_input_config.input_folder, "test_file.txt"), "w") as f:
+    test_file = "test_file.txt"
+    with open(os.path.join(batch_input_config.input_folder, test_file), "w") as f:
         f.write("test")
-
-    contents = batch_input_config.read_file("test_file.txt")
+    contents = batch_input_config.read_file(test_file)
     assert contents == "test"
 
 
 # Test that the BatchInput can delete a file from the input folder
 def test_batch_input_config_delete_file(batch_input_config):
-    # Create a test file in the input folder
-    with open(os.path.join(batch_input_config.input_folder, "test_file.txt"), "w") as f:
+    test_file = "test_file.txt"
+    with open(os.path.join(batch_input_config.input_folder, test_file), "w") as f:
         f.write("test")
-
-    batch_input_config.delete_file("test_file.txt")
-    assert not os.path.exists(os.path.join(batch_input_config.input_folder, "test_file.txt"))
+    batch_input_config.delete_file(test_file)
+    assert not os.path.exists(os.path.join(batch_input_config.input_folder, test_file))
 
 
 # Test that the BatchInput can copy a file to an S3 bucket
 def test_batch_input_config_copy_to_remote(batch_input_config):
-    # Create a test file in the input folder
-    with open(os.path.join(batch_input_config.input_folder, "test_file.txt"), "w") as f:
+    test_file = "test_file.txt"
+    with open(os.path.join(batch_input_config.input_folder, test_file), "w") as f:
         f.write("test")
-
-    batch_input_config.copy_to_remote("test_file.txt", BUCKET, S3_FOLDER)
+    batch_input_config.copy_to_remote(test_file, BUCKET, S3_FOLDER)
 
     # Check that the file was copied to the S3 bucket
     s3 = boto3.resource("s3")
@@ -100,3 +95,20 @@ def test_batch_input_config_copy_to_remote(batch_input_config):
 
     # Clean up the file in the S3 bucket
     obj.delete()
+
+
+# Test that the BatchInput can copy files from the S3 bucket
+def test_batch_input_config_copy_from_remote(batch_input_config):
+    # Upload a test file to the S3 bucket
+    s3 = boto3.client("s3")
+    s3.put_object(Body="test content", Bucket=BUCKET, Key=f"{S3_FOLDER}/test_file_from_s3.txt")
+
+    # Run the copy_from_remote method
+    batch_input_config.copy_from_remote()
+
+    # Check that the files were copied to the input folder
+    copied_files = os.listdir(os.path.join(batch_input_config.input_folder, S3_FOLDER))
+    assert "test_file_from_s3.txt" in copied_files
+
+    # Clean up the test file from the S3 bucket
+    s3.delete_object(Bucket=BUCKET, Key=f"{S3_FOLDER}/test_file_from_s3.txt")

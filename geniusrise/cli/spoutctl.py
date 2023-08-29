@@ -15,9 +15,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
+import json
 import logging
 
 import emoji  # type: ignore
+from rich_argparse import RichHelpFormatter
 
 from geniusrise.cli.discover import DiscoveredSpout
 from geniusrise.core import Spout
@@ -49,11 +51,11 @@ class SpoutCtl:
         subparsers = parser.add_subparsers(dest="command")
 
         # Create subparser for 'create' command
-        create_parser = subparsers.add_parser("rise", help="Run a spout locally.")
+        create_parser = subparsers.add_parser("rise", help="Run a spout locally.", formatter_class=RichHelpFormatter)
         create_parser.add_argument(
             "output_type",
-            choices=["batch", "streaming"],
-            help="Choose the type of output configuration: batch or streaming.",
+            choices=["batch", "streaming", "stream_to_batch"],
+            help="Choose the type of output data: batch or streaming.",
             default="batch",
         )
         create_parser.add_argument(
@@ -61,6 +63,12 @@ class SpoutCtl:
             choices=["in_memory", "redis", "postgres", "dynamodb"],
             help="Select the type of state manager: in_memory, redis, postgres, or dynamodb.",
             default="in_memory",
+        )
+        create_parser.add_argument(
+            "--buffer_size",
+            help="Specify the size of the buffer.",
+            default=100,
+            type=int,
         )
         create_parser.add_argument(
             "--output_folder",
@@ -170,7 +178,9 @@ class SpoutCtl:
         )
 
         # Create subparser for 'help' command
-        execute_parser = subparsers.add_parser("help", help="Print help for the spout.")
+        execute_parser = subparsers.add_parser(
+            "help", help="Print help for the spout.", formatter_class=RichHelpFormatter
+        )
         execute_parser.add_argument("method", help="The method to execute.")
 
         return parser
@@ -222,7 +232,10 @@ class SpoutCtl:
                 try:
                     return float(value)
                 except ValueError:
-                    return value
+                    try:
+                        return json.loads(value)
+                    except ValueError:
+                        return value
 
         for item in args_list:
             if "=" in item:
@@ -233,35 +246,42 @@ class SpoutCtl:
         return args, kwargs
 
     def create_spout(self, output_type: str, state_type: str, **kwargs) -> Spout:
-        """
+        r"""
         Create a spout of a specific type.
 
         Args:
-            output_type (str): The type of output config ("batch" or "streaming").
+            output_type (str): The type of output ("batch" or "streaming").
             state_type (str): The type of state manager ("in_memory", "redis", "postgres", or "dynamodb").
             **kwargs: Additional keyword arguments for initializing the spout.
+                ```
                 Keyword Arguments:
-                    Batch output config:
+                    Batch output:
                     - output_folder (str): The directory where output files should be stored temporarily.
                     - output_s3_bucket (str): The name of the S3 bucket for output storage.
                     - output_s3_folder (str): The S3 folder for output storage.
-                    Streaming output config:
+                    Streaming output:
                     - output_kafka_topic (str): Kafka output topic for streaming spouts.
                     - output_kafka_cluster_connection_string (str): Kafka connection string for streaming spouts.
+                    Stream to Batch output:
+                    - output_folder (str): The directory where output files should be stored temporarily.
+                    - output_s3_bucket (str): The name of the S3 bucket for output storage.
+                    - output_s3_folder (str): The S3 folder for output storage.
+                    - buffer_size (int): Number of messages to buffer.
                     Redis state manager config:
-                    - redis_host (str): The Redis host argument.
-                    - redis_port (str): The Redis port argument.
-                    - redis_db (str): The Redis database argument.
+                    - redis_host (str): The host address for the Redis server.
+                    - redis_port (int): The port number for the Redis server.
+                    - redis_db (int): The Redis database to be used.
                     Postgres state manager config:
-                    - postgres_host (str): The PostgreSQL host argument.
-                    - postgres_port (str): The PostgreSQL port argument.
-                    - postgres_user (str): The PostgreSQL user argument.
-                    - postgres_password (str): The PostgreSQL password argument.
-                    - postgres_database (str): The PostgreSQL database argument.
-                    - postgres_table (str): The PostgreSQL table argument.
+                    - postgres_host (str): The host address for the PostgreSQL server.
+                    - postgres_port (int): The port number for the PostgreSQL server.
+                    - postgres_user (str): The username for the PostgreSQL server.
+                    - postgres_password (str): The password for the PostgreSQL server.
+                    - postgres_database (str): The PostgreSQL database to be used.
+                    - postgres_table (str): The PostgreSQL table to be used.
                     DynamoDB state manager config:
-                    - dynamodb_table_name (str): The DynamoDB table name argument.
-                    - dynamodb_region_name (str): The DynamoDB region name argument.
+                    - dynamodb_table_name (str): The name of the DynamoDB table.
+                    - dynamodb_region_name (str): The AWS region for DynamoDB.
+                ```
 
         Returns:
             Spout: The created spout.

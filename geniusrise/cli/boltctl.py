@@ -15,9 +15,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
+import json
 import logging
 
 import emoji  # type: ignore
+from rich_argparse import RichHelpFormatter
 
 from geniusrise.cli.discover import DiscoveredBolt
 from geniusrise.core import Bolt
@@ -49,18 +51,18 @@ class BoltCtl:
         subparsers = parser.add_subparsers(dest="command")
 
         # Create subparser for 'run' command
-        run_parser = subparsers.add_parser("rise", help="Run a bolt locally.")
+        run_parser = subparsers.add_parser("rise", help="Run a bolt locally.", formatter_class=RichHelpFormatter)
 
         run_parser.add_argument(
             "input_type",
-            choices=["batch", "streaming"],
-            help="Choose the type of input configuration: batch or streaming.",
+            choices=["batch", "streaming", "batch_to_stream", "stream_to_batch"],
+            help="Choose the type of input data: batch or streaming.",
             default="batch",
         )
         run_parser.add_argument(
             "output_type",
-            choices=["batch", "streaming"],
-            help="Choose the type of output configuration: batch or streaming.",
+            choices=["batch", "streaming", "stream_to_batch"],
+            help="Choose the type of output data: batch or streaming.",
             default="batch",
         )
         run_parser.add_argument(
@@ -68,6 +70,12 @@ class BoltCtl:
             choices=["in_memory", "redis", "postgres", "dynamodb"],
             help="Select the type of state manager: in_memory, redis, postgres, or dynamodb.",
             default="in_memory",
+        )
+        run_parser.add_argument(
+            "--buffer_size",
+            help="Specify the size of the buffer.",
+            default=100,
+            type=int,
         )
         run_parser.add_argument(
             "--input_folder",
@@ -85,6 +93,12 @@ class BoltCtl:
             "--input_kafka_cluster_connection_string",
             help="Kafka connection string for streaming spouts.",
             default="localhost:9092",
+            type=str,
+        )
+        run_parser.add_argument(
+            "--input_kafka_consumer_group_id",
+            help="Kafka consumer group id to use.",
+            default="geniusrise",
             type=str,
         )
         run_parser.add_argument(
@@ -207,7 +221,7 @@ class BoltCtl:
         )
 
         # Create subparser for 'help' command
-        help_parser = subparsers.add_parser("help", help="Print help for the bolt.")
+        help_parser = subparsers.add_parser("help", help="Print help for the bolt.", formatter_class=RichHelpFormatter)
         help_parser.add_argument("method", help="The method to execute.")
 
         return parser
@@ -271,7 +285,10 @@ class BoltCtl:
                 try:
                     return float(value)
                 except ValueError:
-                    return value
+                    try:
+                        return json.loads(value)
+                    except ValueError:
+                        return value
 
         for item in args_list:
             if "=" in item:
@@ -282,16 +299,17 @@ class BoltCtl:
         return args, kwargs
 
     def create_bolt(self, input_type: str, output_type: str, state_type: str, **kwargs) -> Bolt:
-        """
+        r"""
         Create a bolt of a specific type.
 
         Args:
-            input_type (str): The type of input config ("batch" or "streaming").
-            output_type (str): The type of output config ("batch" or "streaming").
+            input_type (str): The type of input ("batch" or "streaming").
+            output_type (str): The type of output ("batch" or "streaming").
             state_type (str): The type of state manager ("in_memory", "redis", "postgres", or "dynamodb").
             **kwargs: Additional keyword arguments for initializing the bolt.
+                ```
                 Keyword Arguments:
-                    Batch input config:
+                    Batch input:
                     - input_folder (str): The input folder argument.
                     - input_s3_bucket (str): The input bucket argument.
                     - input_s3_folder (str): The input S3 folder argument.
@@ -299,13 +317,28 @@ class BoltCtl:
                     - output_folder (str): The output folder argument.
                     - output_s3_bucket (str): The output bucket argument.
                     - output_s3_folder (str): The output S3 folder argument.
-                    Streaming input config:
+                    Streaming input:
                     - input_kafka_cluster_connection_string (str): The input Kafka servers argument.
                     - input_kafka_topic (str): The input kafka topic argument.
                     - input_kafka_consumer_group_id (str): The Kafka consumer group id.
-                    Streaming output config:
+                    Streaming output:
                     - output_kafka_cluster_connection_string (str): The output Kafka servers argument.
                     - output_kafka_topic (str): The output kafka topic argument.
+                    Stream-to-Batch input:
+                    - buffer_size (int): Number of messages to buffer.
+                    - input_kafka_cluster_connection_string (str): The input Kafka servers argument.
+                    - input_kafka_topic (str): The input kafka topic argument.
+                    - input_kafka_consumer_group_id (str): The Kafka consumer group id.
+                    Batch-to-Streaming input:
+                    - buffer_size (int): Number of messages to buffer.
+                    - input_folder (str): The input folder argument.
+                    - input_s3_bucket (str): The input bucket argument.
+                    - input_s3_folder (str): The input S3 folder argument.
+                    Stream-to-Batch output:
+                    - buffer_size (int): Number of messages to buffer.
+                    - output_folder (str): The output folder argument.
+                    - output_s3_bucket (str): The output bucket argument.
+                    - output_s3_folder (str): The output S3 folder argument.
                     Redis state manager config:
                     - redis_host (str): The Redis host argument.
                     - redis_port (str): The Redis port argument.
@@ -320,6 +353,7 @@ class BoltCtl:
                     DynamoDB state manager config:
                     - dynamodb_table_name (str): The DynamoDB table name argument.
                     - dynamodb_region_name (str): The DynamoDB region name argument.
+                ```
 
         Returns:
             Bolt: The created bolt.

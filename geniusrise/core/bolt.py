@@ -21,10 +21,13 @@ from typing import Any
 from geniusrise.core.data import (
     BatchInput,
     BatchOutput,
+    BatchToStreamingInput,
     Input,
     Output,
     StreamingInput,
     StreamingOutput,
+    StreamToBatchInput,
+    StreamToBatchOutput,
 )
 from geniusrise.core.state import (
     DynamoDBState,
@@ -56,12 +59,12 @@ class Bolt(Task):
         It inherits from the `Task` class and provides methods for executing tasks
         both locally and remotely, as well as managing their state, with state management
         options including in-memory, Redis, PostgreSQL, and DynamoDB,
-        and input and output configurations for batch or streaming data.
+        and input and output data for  batch, streaming, stream-to-batch, and batch-to-streaming.
 
         The `Bolt` class uses the `Input`, `Output` and `State` classes, which are abstract base
-        classes for managing input configurations, output configurations and states, respectively. The `Input` and
+        classes for managing input data, output data and states, respectively. The `Input` and
         `Output` classes each have two subclasses: `StreamingInput`, `BatchInput`, `StreamingOutput`
-        and `BatchOutput`, which manage streaming and batch input and output configurations, respectively.
+        and `BatchOutput`, which manage streaming and batch input and output data, respectively.
         The `State` class is used to get and set state, and it has several subclasses for different types of state managers.
 
         The `Bolt` class also uses the `ECSManager` and `K8sManager` classes in the `execute_remote` method,
@@ -69,8 +72,8 @@ class Bolt(Task):
 
         Usage:
             - Create an instance of the Bolt class by providing an Input object, an Output object and a State object.
-            - The Input object specifies the input configuration for the bolt.
-            - The Output object specifies the output configuration for the bolt.
+            - The Input object specifies the input data for the bolt.
+            - The Output object specifies the output data for the bolt.
             - The State object handles the management of the bolt's state.
 
         Example:
@@ -80,8 +83,8 @@ class Bolt(Task):
             bolt = Bolt(input, output, state)
 
         Args:
-            input (Input): The input configuration.
-            output (Output): The output configuration.
+            input (Input): The input data.
+            output (Output): The output data.
             state (State): The state manager.
         """
         super().__init__()
@@ -107,10 +110,10 @@ class Bolt(Task):
         """
         try:
             # Get the type of state manager
-            state_type = self.state.get_state(self.id)
+            # state_type = self.state.get_state(self.id)
 
             # Save the current set of class variables to the state manager
-            self.state.set_state(self.id, {})
+            # self.state.set_state(self.id, {})
 
             # Copy input data to local or connect to kafka and pass on the details
             if type(self.input) is BatchInput:
@@ -120,45 +123,53 @@ class Bolt(Task):
             elif type(self.input) is StreamingInput:
                 kafka_consumer = self.input.get()
                 kwargs["kafka_consumer"] = kafka_consumer
+            elif isinstance(self.input, StreamToBatchInput):
+                temp_folder = self.input.get()
+                kwargs["input_folder"] = temp_folder
+            elif isinstance(self.input, BatchToStreamingInput):
+                self.input.copy_from_remote()
+                iterator = self.input.iterator()
+                kwargs["kafka_consumer"] = iterator
 
             # Execute the task's method
             result = self.execute(method_name, *args, **kwargs)
 
-            # Flush the output config
+            # Flush the output data
             self.output.flush()
 
             # Store the state as successful in the state manager
             state = {}
             state["status"] = "success"
-            self.state.set_state(self.id, state)
+            # self.state.set_state(self.id, state)
 
             return result
         except Exception as e:
             state = {}
             state["status"] = "failed"
-            self.state.set_state(self.id, state)
+            # self.state.set_state(self.id, state)
             self.log.exception(f"Failed to execute method '{method_name}': {e}")
             raise
 
     @staticmethod
     def create(klass: type, input_type: str, output_type: str, state_type: str, **kwargs) -> "Bolt":
-        """
+        r"""
         Create a bolt of a specific type.
 
         This static method is used to create a bolt of a specific type. It takes in an input type,
         an output type, a state type, and additional keyword arguments for initializing the bolt.
 
-        The method creates the input config, output config, and state manager based on the provided types,
+        The method creates the input, output, and state manager based on the provided types,
         and then creates and returns a bolt using these configurations.
 
         Args:
             klass (type): The Bolt class to create.
-            input_type (str): The type of input config ("batch" or "streaming").
-            output_type (str): The type of output config ("batch" or "streaming").
+            input_type (str): The type of input ("batch" or "streaming").
+            output_type (str): The type of output ("batch" or "streaming").
             state_type (str): The type of state manager ("in_memory", "redis", "postgres", or "dynamodb").
             **kwargs: Additional keyword arguments for initializing the bolt.
+                ```
                 Keyword Arguments:
-                    Batch input config:
+                    Batch input:
                     - input_folder (str): The input folder argument.
                     - input_s3_bucket (str): The input bucket argument.
                     - input_s3_folder (str): The input S3 folder argument.
@@ -166,13 +177,28 @@ class Bolt(Task):
                     - output_folder (str): The output folder argument.
                     - output_s3_bucket (str): The output bucket argument.
                     - output_s3_folder (str): The output S3 folder argument.
-                    Streaming input config:
+                    Streaming input:
                     - input_kafka_cluster_connection_string (str): The input Kafka servers argument.
                     - input_kafka_topic (str): The input kafka topic argument.
                     - input_kafka_consumer_group_id (str): The Kafka consumer group id.
-                    Streaming output config:
+                    Streaming output:
                     - output_kafka_cluster_connection_string (str): The output Kafka servers argument.
                     - output_kafka_topic (str): The output kafka topic argument.
+                    Stream-to-Batch input:
+                    - buffer_size (int): Number of messages to buffer.
+                    - input_kafka_cluster_connection_string (str): The input Kafka servers argument.
+                    - input_kafka_topic (str): The input kafka topic argument.
+                    - input_kafka_consumer_group_id (str): The Kafka consumer group id.
+                    Batch-to-Streaming input:
+                    - buffer_size (int): Number of messages to buffer.
+                    - input_folder (str): The input folder argument.
+                    - input_s3_bucket (str): The input bucket argument.
+                    - input_s3_folder (str): The input S3 folder argument.
+                    Stream-to-Batch output:
+                    - buffer_size (int): Number of messages to buffer.
+                    - output_folder (str): The output folder argument.
+                    - output_s3_bucket (str): The output bucket argument.
+                    - output_s3_folder (str): The output S3 folder argument.
                     Redis state manager config:
                     - redis_host (str): The Redis host argument.
                     - redis_port (str): The Redis port argument.
@@ -187,6 +213,7 @@ class Bolt(Task):
                     DynamoDB state manager config:
                     - dynamodb_table_name (str): The DynamoDB table name argument.
                     - dynamodb_region_name (str): The DynamoDB region name argument.
+                ```
 
         Returns:
             Bolt: The created bolt.
@@ -194,8 +221,8 @@ class Bolt(Task):
         Raises:
             ValueError: If an invalid input type, output type, or state type is provided.
         """
-        # Create the input config
-        input: BatchInput | StreamingInput
+        # Create the input
+        input: BatchInput | StreamingInput | StreamToBatchInput | BatchToStreamingInput
         if input_type == "batch":
             input = BatchInput(
                 input_folder=kwargs["input_folder"] if "input_folder" in kwargs else tempfile.mkdtemp(),
@@ -210,16 +237,31 @@ class Bolt(Task):
                 else None,
                 group_id=kwargs["input_kafka_consumer_group_id"] if "input_kafka_consumer_group_id" in kwargs else None,
             )
+        elif input_type == "stream_to_batch":
+            input = StreamToBatchInput(
+                input_topic=kwargs["input_kafka_topic"] if "input_kafka_topic" in kwargs else None,
+                kafka_cluster_connection_string=kwargs["input_kafka_cluster_connection_string"]
+                if "input_kafka_cluster_connection_string" in kwargs
+                else None,
+                buffer_size=int(kwargs.get("buffer_size", 1000)) if "buffer_size" in kwargs else 1,
+                group_id=kwargs["input_kafka_consumer_group_id"] if "input_kafka_consumer_group_id" in kwargs else None,
+            )
+        elif input_type == "batch_to_stream":
+            input = BatchToStreamingInput(
+                input_folder=kwargs["input_folder"] if "input_folder" in kwargs else tempfile.mkdtemp(),
+                bucket=kwargs["input_s3_bucket"] if "input_s3_bucket" in kwargs else None,
+                s3_folder=kwargs["input_s3_folder"] if "input_s3_folder" in kwargs else None,
+            )
         else:
             raise ValueError(f"Invalid input type: {input_type}")
 
-        # Create the output config
-        output: BatchOutput | StreamingOutput
+        # Create the output
+        output: BatchOutput | StreamingOutput | StreamToBatchOutput
         if output_type == "batch":
             output = BatchOutput(
                 output_folder=kwargs["output_folder"] if "output_folder" in kwargs else tempfile.mkdtemp(),
-                bucket=kwargs["output_s3_bucket"] if "output_s3_bucket" in kwargs else tempfile.mkdtemp(),
-                s3_folder=kwargs["output_s3_folder"] if "output_s3_folder" in kwargs else tempfile.mkdtemp(),
+                bucket=kwargs["output_s3_bucket"] if "output_s3_bucket" in kwargs else None,
+                s3_folder=kwargs["output_s3_folder"] if "output_s3_folder" in kwargs else None,
             )
         elif output_type == "streaming":
             output = StreamingOutput(
@@ -227,6 +269,13 @@ class Bolt(Task):
                 kwargs["output_kafka_cluster_connection_string"]
                 if "output_kafka_cluster_connection_string" in kwargs
                 else None,
+            )
+        elif output_type == "stream_to_batch":
+            output = StreamToBatchOutput(
+                output_folder=kwargs["output_folder"] if "output_folder" in kwargs else tempfile.mkdtemp(),
+                bucket=kwargs["output_s3_bucket"] if "output_s3_bucket" in kwargs else None,
+                s3_folder=kwargs["output_s3_folder"] if "output_s3_folder" in kwargs else None,
+                buffer_size=int(kwargs.get("buffer_size", 1000)) if "buffer_size" in kwargs else 1,
             )
         else:
             raise ValueError(f"Invalid output type: {output_type}")

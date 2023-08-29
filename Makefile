@@ -18,6 +18,7 @@ install: ## Install using local system's pip
 	@~/.local/bin/pip install . --user --break-system-packages
 
 publish: ## Publish to pypi
+	@rm -rf dist build
 	@python setup.py sdist bdist_wheel
 	@twine upload dist/geniusrise-${GENIUSRISE_VERSION}-* --verbose
 

@@ -30,7 +30,7 @@ class Task(ABC):
     """
     🛠️ **Task**: Class for managing tasks.
 
-    This class provides a foundation for creating and managing tasks. Each task has a unique identifier and can be associated with specific input and output configurations.
+    This class provides a foundation for creating and managing tasks. Each task has a unique identifier and can be associated with specific input and output data.
 
     ## Attributes:
     - `id` (uuid.UUID): Unique identifier for the task.
@@ -58,7 +58,7 @@ class Task(ABC):
             input (Input): Configuration for input data.
             output (Output): Configuration for output data.
         """
-        self.id = str(uuid.uuid4())
+        self.id = str(self.__class__.__name__) + str(uuid.uuid4())
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.info(f"🚀 Initialized Task with ID: {self.id}")
 
