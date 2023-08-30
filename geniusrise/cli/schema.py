@@ -119,7 +119,7 @@ class Output(BaseModel):
 
     @validator("type")
     def validate_type(cls, v, values, **kwargs):
-        if v not in ["batch", "streaming", "batch_to_stream"]:
+        if v not in ["batch", "streaming", "stream_to_batch"]:
             raise ValueError("Invalid output type")
         return v
 

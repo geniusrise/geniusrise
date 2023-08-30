@@ -2,6 +2,8 @@ import argparse
 import os
 
 import pytest
+from kafka import KafkaProducer
+import json
 
 from geniusrise.cli.boltctl import BoltCtl
 from geniusrise.cli.discover import Discover
@@ -9,6 +11,10 @@ from geniusrise.cli.spoutctl import SpoutCtl
 from geniusrise.cli.yamlctl import YamlCtl
 
 # from geniusrise.core import Spout, Bolt
+# fmt: off
+
+test_topic = "test_topic"
+kafka_cluster_connection_string = "localhost:9094"
 
 
 @pytest.fixture
@@ -50,7 +56,7 @@ spouts:
       args:
         bucket: "geniusrise-test-bucket"
         folder: "{tmpdir}"
-        kafka_servers: "localhost:9092"
+        kafka_servers: "localhost:9094"
         output_topic: "test_topic"
         buffer_size: 1
 bolts:
@@ -87,7 +93,7 @@ bolts:
       args:
         bucket: "geniusrise-test-bucket"
         folder: "{tmpdir}"
-        kafka_servers: "localhost:9092"
+        kafka_servers: "localhost:9094"
         input_topic: "test_topic"
         name: "{spout_name}"
         buffer_size: 1
@@ -96,7 +102,7 @@ bolts:
       args:
         bucket: "geniusrise-test-bucket"
         folder: "{tmpdir}"
-        kafka_servers: "localhost:9092"
+        kafka_servers: "localhost:9094"
         output_topic: "test_topic"
         buffer_size: 1
 """
@@ -106,14 +112,14 @@ bolts:
 
 @pytest.fixture
 def discovered_spout():
-    discover = Discover(directory=os.path.dirname(os.path.abspath(__file__)) + "/test_spout")
+    discover = Discover(directory=".")
     classes = discover.scan_directory()
     return {"TestSpoutCtlSpout": SpoutCtl(classes.get("TestSpoutCtlSpout"))}
 
 
 @pytest.fixture
 def discovered_bolt():
-    discover = Discover(directory=os.path.dirname(os.path.abspath(__file__)) + "/test_bolt")
+    discover = Discover(directory=".")
     classes = discover.scan_directory()
     return {"TestBoltCtlBolt": BoltCtl(classes.get("TestBoltCtlBolt"))}
 
@@ -134,54 +140,19 @@ def test_yamlctl_init(yamlctl):
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "dynamodb"),
-        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "in_memory"),
-        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "redis"),
-        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "postgres"),
-        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "dynamodb"),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "batch",
-            "batch_to_stream",
-            "in_memory",
-        ),
-        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch_to_stream", "redis"),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "batch",
-            "batch_to_stream",
-            "postgres",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "batch",
-            "batch_to_stream",
-            "dynamodb",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "batch",
-            "stream_to_batch",
-            "in_memory",
-        ),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "in_memory"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "redis"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "postgres"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "redis"),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "batch",
-            "stream_to_batch",
-            "postgres",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "batch",
-            "stream_to_batch",
-            "dynamodb",
-        ),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "postgres"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "in_memory"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "redis"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "postgres"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "dynamodb"),
+
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "postgres"),
@@ -190,168 +161,31 @@ def test_yamlctl_init(yamlctl):
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "dynamodb"),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "batch_to_stream",
-            "in_memory",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "batch_to_stream",
-            "redis",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "batch_to_stream",
-            "postgres",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "batch_to_stream",
-            "dynamodb",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "stream_to_batch",
-            "in_memory",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "stream_to_batch",
-            "redis",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "stream_to_batch",
-            "postgres",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "stream_to_batch",
-            "dynamodb",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "stream_to_batch",
-            "batch",
-            "in_memory",
-        ),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "in_memory"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "redis"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "postgres"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "in_memory"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "redis"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "postgres"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "dynamodb"),
+
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "batch", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "batch", "redis"),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "stream_to_batch",
-            "batch",
-            "postgres",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "stream_to_batch",
-            "batch",
-            "dynamodb",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "stream_to_batch",
-            "streaming",
-            "in_memory",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "stream_to_batch",
-            "streaming",
-            "redis",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "stream_to_batch",
-            "streaming",
-            "postgres",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "stream_to_batch",
-            "streaming",
-            "dynamodb",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "batch_to_stream",
-            "in_memory",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "batch_to_stream",
-            "redis",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "batch_to_stream",
-            "postgres",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "batch_to_stream",
-            "dynamodb",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "stream_to_batch",
-            "in_memory",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "stream_to_batch",
-            "redis",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "stream_to_batch",
-            "postgres",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "stream_to_batch",
-            "dynamodb",
-        ),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "batch", "postgres"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "streaming", "in_memory"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "streaming", "redis"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "streaming", "postgres"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "streaming", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "in_memory"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "redis"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "postgres"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "in_memory"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "redis"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "postgres"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "dynamodb"),
     ],
 )
 def test_yamlctl_run(
@@ -368,11 +202,14 @@ def test_yamlctl_run(
     with open(tmpdir + "/geniusrise.yaml", "w") as f:
         f.write(geniusfile_content)
 
+    producer = KafkaProducer(bootstrap_servers=kafka_cluster_connection_string)
+    for _ in range(2):
+        producer.send(test_topic, value=json.dumps({"test": "buffer"}).encode("utf-8"))
+        producer.flush()
+
     geniusfile_path = os.path.join(tmpdir, "geniusrise.yaml")
     # Create an instance of argparse.Namespace with the necessary attributes
-    args = argparse.Namespace(
-        spout="all", bolt=None, file=geniusfile_path
-    )  # This will run all spouts. Adjust as needed.
+    args = argparse.Namespace(spout="all", bolt=None, file=geniusfile_path)  # This will run all spouts. Adjust as needed.
 
     # Call the run method with the created args
     yamlctl.run(args)
@@ -385,54 +222,19 @@ def test_yamlctl_run(
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "dynamodb"),
-        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "in_memory"),
-        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "redis"),
-        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "postgres"),
-        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "dynamodb"),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "batch",
-            "batch_to_stream",
-            "in_memory",
-        ),
-        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch_to_stream", "redis"),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "batch",
-            "batch_to_stream",
-            "postgres",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "batch",
-            "batch_to_stream",
-            "dynamodb",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "batch",
-            "stream_to_batch",
-            "in_memory",
-        ),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "in_memory"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "redis"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "postgres"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "redis"),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "batch",
-            "stream_to_batch",
-            "postgres",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "batch",
-            "stream_to_batch",
-            "dynamodb",
-        ),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "postgres"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "in_memory"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "redis"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "postgres"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "dynamodb"),
+
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "postgres"),
@@ -441,168 +243,31 @@ def test_yamlctl_run(
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "dynamodb"),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "batch_to_stream",
-            "in_memory",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "batch_to_stream",
-            "redis",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "batch_to_stream",
-            "postgres",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "batch_to_stream",
-            "dynamodb",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "stream_to_batch",
-            "in_memory",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "stream_to_batch",
-            "redis",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "stream_to_batch",
-            "postgres",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "stream_to_batch",
-            "dynamodb",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "stream_to_batch",
-            "batch",
-            "in_memory",
-        ),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "in_memory"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "redis"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "postgres"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "in_memory"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "redis"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "postgres"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "dynamodb"),
+
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "batch", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "batch", "redis"),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "stream_to_batch",
-            "batch",
-            "postgres",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "stream_to_batch",
-            "batch",
-            "dynamodb",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "stream_to_batch",
-            "streaming",
-            "in_memory",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "stream_to_batch",
-            "streaming",
-            "redis",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "stream_to_batch",
-            "streaming",
-            "postgres",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "stream_to_batch",
-            "streaming",
-            "dynamodb",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "batch_to_stream",
-            "in_memory",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "batch_to_stream",
-            "redis",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "batch_to_stream",
-            "postgres",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "batch_to_stream",
-            "dynamodb",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "stream_to_batch",
-            "in_memory",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "stream_to_batch",
-            "redis",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "stream_to_batch",
-            "postgres",
-        ),
-        (
-            "TestSpoutCtlSpout",
-            "TestBoltCtlBolt",
-            "streaming",
-            "stream_to_batch",
-            "dynamodb",
-        ),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "batch", "postgres"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "streaming", "in_memory"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "streaming", "redis"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "streaming", "postgres"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "streaming", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "in_memory"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "redis"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "postgres"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "in_memory"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "redis"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "postgres"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "dynamodb"),
     ],
 )
 def test_yamlctl_run_2(
@@ -619,6 +284,11 @@ def test_yamlctl_run_2(
     with open(tmpdir + "/geniusrise.yaml", "w") as f:
         f.write(geniusfile_content)
     geniusfile_path = os.path.join(tmpdir, "geniusrise.yaml")
+
+    producer = KafkaProducer(bootstrap_servers=kafka_cluster_connection_string)
+    for _ in range(2):
+        producer.send(test_topic, value=json.dumps({"test": "buffer"}).encode("utf-8"))
+        producer.flush()
 
     # Create an instance of argparse.Namespace with the necessary attributes
     args = argparse.Namespace(bolt="all", spout=None, file=geniusfile_path)

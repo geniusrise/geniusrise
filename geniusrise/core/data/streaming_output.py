@@ -33,7 +33,7 @@ class StreamingOutput(Output):
 
     Usage:
     ```python
-    config = StreamingOutput("my_topic", "localhost:9092")
+    config = StreamingOutput("my_topic", "localhost:9094")
     config.save({"key": "value"}, "ignored_filename")
     config.flush()
     ```

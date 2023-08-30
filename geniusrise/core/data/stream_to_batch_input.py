@@ -40,7 +40,7 @@ class StreamToBatchInput(StreamingInput, BatchInput):
 
     Usage:
     ```python
-    config = StreamToBatchInput("my_topic", "localhost:9092", buffer_size=100)
+    config = StreamToBatchInput("my_topic", "localhost:9094", buffer_size=100)
     temp_folder = config.get()
     ```
 

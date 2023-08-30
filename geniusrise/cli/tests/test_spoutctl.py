@@ -70,7 +70,7 @@ def test_spoutctl_run(spoutctl, output_type, state_type, tmpdir):
         state_type,
         "test_method",
         "--output_kafka_topic", "test_topic",
-        "--output_kafka_cluster_connection_string", "localhost:9092",
+        "--output_kafka_cluster_connection_string", "localhost:9094",
         "--redis_host", "localhost",
         "--redis_port", "6379",
         "--redis_db", "0",
@@ -115,7 +115,7 @@ def test_spoutctl_create_spout(spoutctl, output_type, state_type, tmpdir):
     kwargs = {
         "output_folder": tmpdir,
         "output_kafka_topic": "test_topic",
-        "output_kafka_cluster_connection_string": "localhost:9092",
+        "output_kafka_cluster_connection_string": "localhost:9094",
         "redis_host": "localhost",
         "redis_port": 6379,
         "redis_db": 0,

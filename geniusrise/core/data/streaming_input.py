@@ -40,7 +40,7 @@ class StreamingInput(Input):
 
     Usage:
     ```python
-    config = StreamingInput("my_topic", "localhost:9092")
+    config = StreamingInput("my_topic", "localhost:9094")
     for message in config.iterator():
         print(message.value)
     ```

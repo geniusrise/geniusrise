@@ -92,7 +92,7 @@ class BoltCtl:
         run_parser.add_argument(
             "--input_kafka_cluster_connection_string",
             help="Kafka connection string for streaming spouts.",
-            default="localhost:9092",
+            default="localhost:9094",
             type=str,
         )
         run_parser.add_argument(
@@ -128,7 +128,7 @@ class BoltCtl:
         run_parser.add_argument(
             "--output_kafka_cluster_connection_string",
             help="Kafka connection string for streaming spouts.",
-            default="localhost:9092",
+            default="localhost:9094",
             type=str,
         )
         run_parser.add_argument(

@@ -1,5 +1,3 @@
-import os
-
 from setuptools import find_packages, setup
 
 with open("README.md", "r", encoding="utf-8") as fh:
@@ -17,14 +15,14 @@ entry_points = {
 
 setup(
     name="geniusrise",
-    version=os.environ.get("GENIUSRISE_VERSION" "0.1.0"),
+    version="0.0.1",
     packages=find_packages(exclude=["tests", "tests.*"]),
     install_requires=requirements,
     entry_points=entry_points,
     python_requires=">=3.10",
     author="Geniusrise",
     author_email="ixaxaar@geniusrise.ai",
-    description="An MLOps framework for LLMs",
+    description="An LLM framework",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/geniusrise/geniusrise",
