@@ -2,6 +2,7 @@ annotated-types==0.5.0
 ansicolors==1.1.8
 argparse-color-formatter==1.2.2.post2
 async-timeout==4.0.3
+black==23.7.0
 bleach==6.0.0
 boto3==1.28.25
 botocore==1.31.25
@@ -10,6 +11,7 @@ cachetools==5.3.1
 certifi==2023.7.22
 cffi==1.15.1
 charset-normalizer==3.2.0
+click==8.1.7
 colorama==0.4.6
 colorlog==6.7.0
 coverage==7.3.0
@@ -20,6 +22,7 @@ emoji==2.7.0
 env-file==2020.12.3
 exceptiongroup==1.1.2
 flake8==6.1.0
+geniusrise @ file:///home/ixaxaar/src/geniusrise/geniusrise
 google-auth==2.17.3
 idna==3.4
 importlib-metadata==6.8.0
@@ -39,9 +42,13 @@ mypy==1.5.0
 mypy-extensions==1.0.0
 oauthlib==3.2.2
 packaging==23.1
+pathspec==0.11.2
 pkginfo==1.9.6
+platformdirs==3.10.0
 pluggy==1.2.0
 prettytable==3.8.0
+prometheus-client==0.17.1
+psutil==5.9.5
 psycopg2==2.9.7
 pyasn1==0.5.0
 pyasn1-modules==0.3.0
