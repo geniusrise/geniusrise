@@ -39,7 +39,9 @@ def postgres_state_manager():
     conn = psycopg2.connect(host=HOST, port=PORT, user=USER, password=PASSWORD, database=DATABASE)
     with conn.cursor() as cur:
         cur.execute(
-            sql.SQL("CREATE TABLE IF NOT EXISTS {} (key TEXT PRIMARY KEY, value JSONB)").format(sql.Identifier(TABLE))
+            sql.SQL(
+                "CREATE TABLE IF NOT EXISTS {} (key TEXT PRIMARY KEY, value JSONB, created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP)"
+            ).format(sql.Identifier(TABLE))
         )
     conn.commit()
 
