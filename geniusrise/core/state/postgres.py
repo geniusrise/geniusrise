@@ -16,6 +16,7 @@
 
 import json
 from typing import Dict, Optional
+from datetime import datetime
 
 import jsonpickle
 import psycopg2
@@ -40,8 +41,8 @@ class PostgresState(State):
     print(state)  # Outputs: {"status": "active"}
     ```
 
-    !!! warning
-        Ensure PostgreSQL is accessible and the table exists.
+
+    Ensure PostgreSQL is accessible and the table exists.
     """
 
     def __init__(
@@ -72,6 +73,22 @@ class PostgresState(State):
             self.log.exception(f"🚫 Failed to connect to PostgreSQL: {e}")
             raise
             self.conn = None
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(
+                    f"""
+                    CREATE TABLE IF NOT EXISTS {self.table} (
+                        key TEXT PRIMARY KEY,
+                        value JSONB,
+                        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+                    );
+                    """
+                )
+            self.conn.commit()
+        except psycopg2.Error as e:
+            self.log.exception(f"🚫 Failed to create table in PostgreSQL: {e}")
+            raise
 
     def get(self, key: str) -> Optional[Dict]:
         """
@@ -116,12 +133,12 @@ class PostgresState(State):
                     data = {"data": jsonpickle.encode(value)}
                     cur.execute(
                         f"""
-                        INSERT INTO {self.table} (key, value)
-                        VALUES (%s, %s)
+                        INSERT INTO {self.table} (key, value, created_at, updated_at)
+                        VALUES (%s, %s, %s, %s)
                         ON CONFLICT (key)
-                        DO UPDATE SET value = EXCLUDED.value;
+                        DO UPDATE SET value = EXCLUDED.value, updated_at = %s;
                         """,
-                        (key, json.dumps(data)),
+                        (key, json.dumps(data), datetime.utcnow(), datetime.utcnow(), datetime.utcnow()),
                     )
                 self.conn.commit()
             except psycopg2.Error as e:
