@@ -23,6 +23,7 @@ publish: ## Publish to pypi
 	@twine upload dist/geniusrise-${GENIUSRISE_VERSION}-* --verbose
 
 help: ## Dislay this help
+	@echo ""
 	@printf "\033[31m%-30s\033[0m %s\n" " ██████  ███████ ███    ██ ██ ██    ██ ███████ ██████  ██ ███████ ███████"
 	@printf "\033[31m%-30s\033[0m %s\n" "██       ██      ████   ██ ██ ██    ██ ██      ██   ██ ██ ██      ██"
 	@printf "\033[31m%-30s\033[0m %s\n" "██   ███ █████   ██ ██  ██ ██ ██    ██ ███████ ██████  ██ ███████ █████   "
