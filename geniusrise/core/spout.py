@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 import tempfile
 from typing import Any
 
@@ -32,6 +31,7 @@ from geniusrise.core.state import (
     State,
 )
 from geniusrise.core.task import Task
+from geniusrise.logging import setup_logger
 
 
 class Spout(Task):
@@ -74,7 +74,7 @@ class Spout(Task):
         self.output = output
         self.state = state
 
-        self.log = logging.getLogger(self.__class__.__name__)
+        self.log = setup_logger(self.state)
 
     def __call__(self, method_name: str, *args, **kwargs) -> Any:
         """

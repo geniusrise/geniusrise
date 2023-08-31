@@ -55,7 +55,7 @@ class PostgresState(State):
         table: str = "geniusrise_state",
     ) -> None:
         """
-        Initialize a new PostgreSQL state manager.
+        💥 Initialize a new PostgreSQL state manager.
 
         Args:
             host (str): The host of the PostgreSQL server.
@@ -75,7 +75,7 @@ class PostgresState(State):
             raise
             self.conn = None
 
-    def get_state(self, key: str) -> Optional[Dict]:
+    def get(self, key: str) -> Optional[Dict]:
         """
         📖 Get the state associated with a key.
 
@@ -101,7 +101,7 @@ class PostgresState(State):
             self.log.exception("🚫 No PostgreSQL connection.")
             raise
 
-    def set_state(self, key: str, value: Dict) -> None:
+    def set(self, key: str, value: Dict) -> None:
         """
         📝 Set the state associated with a key.
 

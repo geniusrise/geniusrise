@@ -45,12 +45,12 @@ class InMemoryState(State):
 
     def __init__(self) -> None:
         """
-        Initialize a new in-memory state manager.
+        💥 Initialize a new in-memory state manager.
         """
         self.store = {}
         self.log = logging.getLogger(self.__class__.__name__)
 
-    def get_state(self, key: str) -> Optional[Dict]:
+    def get(self, key: str) -> Optional[Dict]:
         """
         📖 Get the state associated with a key.
 
@@ -67,7 +67,7 @@ class InMemoryState(State):
             self.log.warning(f"🚫 No state found for key: {key}")
         return state
 
-    def set_state(self, key: str, value: Dict) -> None:
+    def set(self, key: str, value: Dict) -> None:
         """
         📝 Set the state associated with a key.
 

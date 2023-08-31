@@ -47,7 +47,7 @@ class RedisState(State):
 
     def __init__(self, host: str, port: int, db: int) -> None:
         """
-        Initialize a new Redis state manager.
+        💥 Initialize a new Redis state manager.
 
         Args:
             host (str): The host of the Redis server.
@@ -59,7 +59,7 @@ class RedisState(State):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.info(f"🔌 Connected to Redis at {host}:{port}, DB: {db}")
 
-    def get_state(self, key: str) -> Optional[Dict]:
+    def get(self, key: str) -> Optional[Dict]:
         """
         📖 Get the state associated with a key.
 
@@ -79,7 +79,7 @@ class RedisState(State):
         else:
             return jsonpickle.decode(value.decode("utf-8"))
 
-    def set_state(self, key: str, value: Dict) -> None:
+    def set(self, key: str, value: Dict) -> None:
         """
         📝 Set the state associated with a key.
 

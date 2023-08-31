@@ -45,7 +45,7 @@ class DynamoDBState(State):
 
     def __init__(self, table_name: str, region_name: str) -> None:
         """
-        Initialize a new DynamoDB state manager.
+        💥 Initialize a new DynamoDB state manager.
 
         Args:
             table_name (str): The name of the DynamoDB table.
@@ -62,7 +62,7 @@ class DynamoDBState(State):
             self.dynamodb = None
             self.table = None
 
-    def get_state(self, key: str) -> Optional[Dict]:
+    def get(self, key: str) -> Optional[Dict]:
         """
         📖 Get the state associated with a key.
 
@@ -86,7 +86,7 @@ class DynamoDBState(State):
             self.log.exception("🚫 No DynamoDB table.")
             raise
 
-    def set_state(self, key: str, value: Dict) -> None:
+    def set(self, key: str, value: Dict) -> None:
         """
         📝 Set the state associated with a key.
 
