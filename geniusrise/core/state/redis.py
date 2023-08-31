@@ -39,8 +39,7 @@ class RedisState(State):
     print(state)  # Outputs: {"status": "active"}
     ```
 
-    !!! warning
-        Ensure Redis is accessible and running.
+    Ensure Redis is accessible and running.
     """
 
     def __init__(self, host: str, port: int, db: int) -> None:
