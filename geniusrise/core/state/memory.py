@@ -36,8 +36,7 @@ class InMemoryState(State):
     print(state)  # Outputs: {"status": "active"}
     ```
 
-    !!! warning
-        Remember, this is an in-memory store. Do not use it for persistent storage!
+    Remember, this is an in-memory store. Do not use it for persistent storage!
     """
 
     store: Dict[str, Dict]

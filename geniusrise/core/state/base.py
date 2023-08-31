@@ -23,7 +23,7 @@ import platform
 from datetime import datetime
 import psutil
 from abc import ABC, abstractmethod
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, Callable
 from prometheus_client import Counter, Gauge, Summary, CollectorRegistry
 
 
@@ -32,6 +32,7 @@ class State(ABC):
     Abstract base class for a state manager.
 
     A state manager is responsible for getting and setting state, capturing metrics, and logging.
+    It provides an interface for state management and also captures various system metrics.
 
     Attributes:
         read_ops (Counter): Counter for read operations.
@@ -39,6 +40,11 @@ class State(ABC):
         process_time (Summary): Summary for time spent in processing.
         cpu_usage (Gauge): Gauge for CPU usage.
         memory_usage (Gauge): Gauge for memory usage.
+        python_version (str): Python version.
+        cpu_count (str): Count of CPUs visible.
+        virtual_memory (str): virtual memory available.
+        gpu_count (str):  GPU count visible.
+        gpu_memory (str):  GPU memory available.
         buffer (Dict[str, Any]): Buffer for state data.
         log (logging.Logger): Logger for capturing logs.
     """
@@ -115,6 +121,8 @@ class State(ABC):
         """
         Get the state associated with a key and capture metrics.
 
+        This method wraps the abstract `get` method to provide additional functionality like metrics capturing.
+
         Args:
             key (str): The key to get the state for.
 
@@ -129,6 +137,8 @@ class State(ABC):
     def set_state(self, key: str, value: Dict[str, Any]) -> None:
         """
         Set the state associated with a key and capture metrics.
+
+        This method wraps the abstract `set` method to provide additional functionality like metrics capturing.
 
         Args:
             key (str): The key to set the state for.
@@ -146,6 +156,8 @@ class State(ABC):
     def flush_buffer(self) -> None:
         """
         Flush the buffer to the state storage.
+
+        This method is responsible for writing the buffered state data to the underlying storage mechanism.
         """
         if hasattr(self, "buffer"):
             for key, value in self.buffer.items():
@@ -156,12 +168,16 @@ class State(ABC):
     def __del__(self) -> None:
         """
         Destructor to flush the buffer before object deletion.
+
+        This ensures that any buffered state data is not lost when the object is deleted.
         """
         self.flush_buffer()
 
     def capture_metrics(self) -> None:
         """
         Capture system metrics.
+
+        This method captures various system metrics like CPU usage, memory usage, etc., and stores them in a buffer.
         """
         metrics = {
             "cpu_usage": psutil.cpu_percent(),
@@ -181,6 +197,8 @@ class State(ABC):
         """
         Periodically capture metrics.
 
+        This method runs in a separate thread and captures system metrics at regular intervals.
+
         Args:
             interval (int): Time interval in seconds.
         """
@@ -191,12 +209,16 @@ class State(ABC):
     def flush_metrics(self) -> None:
         """
         Flush the metrics buffer to the state storage.
+
+        This method is responsible for writing the buffered metrics data to the underlying storage mechanism.
         """
         self.metrics_buffer.clear()
 
     def capture_log(self, log_entry: str) -> None:
         """
         Capture log entries.
+
+        This method captures log entries and timestamps, storing them in a buffer for later use.
 
         Args:
             log_entry (str): The log entry to capture.
@@ -205,9 +227,11 @@ class State(ABC):
             {"log": log_entry, "timestamp": datetime.utcnow().isoformat()}
         )
 
-    def time_function(self, func: Any, *args: Any, **kwargs: Any) -> Any:
+    def time_function(self, func: Callable, *args: Any, **kwargs: Any) -> Any:
         """
         Time the execution of a function and capture metrics.
+
+        This method times the execution of a given function and captures the time spent in a Summary metric.
 
         Args:
             func (Any): The function to time.
