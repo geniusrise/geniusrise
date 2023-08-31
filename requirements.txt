@@ -22,7 +22,6 @@ emoji==2.7.0
 env-file==2020.12.3
 exceptiongroup==1.1.2
 flake8==6.1.0
-geniusrise @ file:///home/ixaxaar/src/geniusrise/geniusrise
 google-auth==2.17.3
 idna==3.4
 importlib-metadata==6.8.0

@@ -28,7 +28,7 @@ services:
         ports:
             - '8080:8080'
         environment:
-            - KAFKA_CLUSTERS_0_NAME="🔥☺️🔥"
+            - KAFKA_CLUSTERS_0_NAME="🔥  ☺️  🔥"
             - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
         depends_on:
             - kafka

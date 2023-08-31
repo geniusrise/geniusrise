@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 from typing import Dict, Optional
 
 from geniusrise.core.state import State
@@ -47,8 +46,8 @@ class InMemoryState(State):
         """
         💥 Initialize a new in-memory state manager.
         """
+        super().__init__()
         self.store = {}
-        self.log = logging.getLogger(self.__class__.__name__)
 
     def get(self, key: str) -> Optional[Dict]:
         """

@@ -18,12 +18,13 @@ import time
 import logging
 import threading
 import socket
+import GPUtil
 import platform
 from datetime import datetime
 import psutil
 from abc import ABC, abstractmethod
 from typing import Dict, Optional, Any
-from prometheus_client import Counter, Gauge, Summary
+from prometheus_client import Counter, Gauge, Summary, CollectorRegistry
 
 
 class State(ABC):
@@ -43,12 +44,36 @@ class State(ABC):
     """
 
     def __init__(self) -> None:
+        # Logger
+        self.log = logging.getLogger(self.__class__.__name__)
+
         # Prometheus metrics
-        self.read_ops = Counter("read_operations", "Number of read operations")
-        self.write_ops = Counter("write_operations", "Number of write operations")
-        self.process_time = Summary("process_time", "Time spent processing")
-        self.cpu_usage = Gauge("cpu_usage", "CPU usage")
-        self.memory_usage = Gauge("memory_usage", "Memory usage")
+        self.registry = CollectorRegistry()
+
+        # Basic Metrics
+        self.read_ops = Counter("read_operations", "Number of read operations", registry=self.registry)
+        self.write_ops = Counter("write_operations", "Number of write operations", registry=self.registry)
+        self.process_time = Summary("process_time", "Time spent processing", registry=self.registry)
+        self.cpu_usage = Gauge("cpu_usage", "CPU usage", registry=self.registry)
+        self.memory_usage = Gauge("memory_usage", "Memory usage", registry=self.registry)
+
+        # Python VM Metrics
+        self.python_version = platform.python_version()
+        self.cpu_count = psutil.cpu_count()
+        self.virtual_memory = psutil.virtual_memory().total / (1024**3)
+
+        # PyTorch and GPU Metrics
+        try:
+            gpus = GPUtil.getgpus()
+        except Exception as e:
+            gpus = None
+            self.log.debug(f"Nvidia gpus not available {e}")
+        if gpus:
+            self.gpu_count = len(gpus)
+            self.gpu_memory = [x.memoryTotal for x in gpus]
+        else:
+            self.gpu_count = 0
+            self.gpu_memory = [0]
 
         # Buffer for periodic flush or destructor
         self.buffer: Dict[str, Any] = {}
@@ -61,9 +86,6 @@ class State(ABC):
 
         self.hostname = socket.gethostname()
         self.system_info = platform.uname()
-
-        # Logger
-        self.log = logging.getLogger(self.__class__.__name__)
 
     @abstractmethod
     def get(self, key: str) -> Optional[Dict[str, Any]]:
@@ -125,8 +147,9 @@ class State(ABC):
         """
         Flush the buffer to the state storage.
         """
-        for key, value in self.buffer.items():
-            self.set(key, value)
+        if hasattr(self, "buffer"):
+            for key, value in self.buffer.items():
+                self.set(key, value)
         # we never clear the buffer, we assume the user keeps setting different values
         # self.buffer.clear()
 
@@ -146,10 +169,15 @@ class State(ABC):
             "hostname": socket.gethostname(),
             "system_info": platform.uname(),
             "timestamp": datetime.utcnow().isoformat(),
+            "python_version": self.python_version,
+            "cpu_count": self.cpu_count,
+            "virtual_memory": self.virtual_memory,
+            "gpu_count": self.gpu_count,
+            "gpu_memory": self.gpu_memory,
         }
         self.metrics_buffer.setdefault("metrics_history", []).append(metrics)
 
-    def capture_metrics_periodically(self, interval=60):
+    def capture_metrics_periodically(self, interval=1):
         """
         Periodically capture metrics.
 

@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 from typing import Dict, Optional
 
 import boto3
@@ -52,7 +51,6 @@ class DynamoDBState(State):
             region_name (str): The name of the AWS region.
         """
         super().__init__()
-        self.log = logging.getLogger(self.__class__.__name__)
         try:
             self.dynamodb = boto3.resource("dynamodb", region_name=region_name)
             self.table = self.dynamodb.Table(table_name)

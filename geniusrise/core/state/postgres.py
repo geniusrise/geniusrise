@@ -15,7 +15,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
-import logging
 from typing import Dict, Optional
 
 import jsonpickle
@@ -67,7 +66,6 @@ class PostgresState(State):
         """
         super().__init__()
         self.table = table
-        self.log = logging.getLogger(self.__class__.__name__)
         try:
             self.conn = psycopg2.connect(host=host, port=port, user=user, password=password, database=database)
         except psycopg2.Error as e:
