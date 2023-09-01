@@ -24,7 +24,7 @@ jobs:
       HUGGINGFACE_ACCESS_TOKEN: ${{ secrets.HUGGINGFACE_ACCESS_TOKEN }}
       PALM_KEY: ${{ secrets.PALM_KEY }}
 
-steps:
+    steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
