@@ -1,29 +1,36 @@
-# 🧠 geniusrise
+<p align="center">
+  <img src="./assets/grace-hopper.jpg" alt="Grace Hopper" width="900"/>
+</p>
 
-![grace-hopper](./assets/grace-hopper.jpg)
+<h1 align="center">
+  🧠 <span style="color:#f34960">Geniusrise</span>
+</h1>
 
-Welcome to geniusrise, a development framework for building geniuses.
-
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/geniusrise/geniusrise/pytest.yml?branch=master)
-
-[![codecov](https://codecov.io/gh/geniusrise/geniusrise/branch/main/graph/badge.svg?token=<YOUR_CODECOV_TOKEN>)](https://codecov.io/gh/geniusrise/geniusrise)
+<p align="center">
+  <img src="https://img.shields.io/github/workflow/status/geniusrise/geniusrise/pytest.yml?branch=master" alt="GitHub Workflow Status"/>
+  <img src="https://codecov.io/gh/geniusrise/geniusrise/branch/main/graph/badge.svg?token=<YOUR_CODECOV_TOKEN>" alt="Codecov"/>
+</p>
 
 ---
 
-## About
+![License](https://img.shields.io/github/license/geniusrise/geniusrise)
+![Issues](https://img.shields.io/github/issues/geniusrise/geniusrise)
 
-Geniusrise is a modular, loosely-coupled AgentOps / MLOps framework designed for
-the era of Large Language Models, offering flexibility, inclusivity, and
-standardization in designing networks of AI agents.
+## <span style="color:#e667aa">About</span>
+
+<span style="color:#e4e48c">Geniusrise</span> is a modular, loosely-coupled
+AgentOps / MLOps framework designed for the era of Large Language Models,
+offering flexibility, inclusivity, and standardization in designing networks of
+AI agents.
 
 It seamlessly integrates tasks, state management, data handling, and model
 versioning, all while supporting diverse infrastructures and user expertise
-levels. With its plug-and-play architecture, Geniusrise empowers teams to build,
-share, and deploy AI agent workflows across various platforms efficiently.
+levels. With its plug-and-play architecture,
+<span style="color:#e4e48c">Geniusrise</span> empowers teams to build, share,
+and deploy AI agent workflows across various platforms efficiently.
 
-## Links
+## <span style="color:#e667aa">Links</span>
 
-You may want to visit the following links to get started:
-
-Website: geniusrise.ai Docs: docs.geniusrise.ai Marketplace: geniusrise.com
-[coming soon]
+- **Website**: [geniusrise.ai](https://geniusrise.ai)
+- **Docs**: [docs.geniusrise.ai](https://docs.geniusrise.ai)
+- **Marketplace**: [geniusrise.com](https://geniusrise.com) [coming soon]
