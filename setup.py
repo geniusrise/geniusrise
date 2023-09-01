@@ -42,7 +42,7 @@ setup(
         "Documentation": "https://docs.geniusrise.ai/",
     },
     package_data={
-        "geniusrise": ["path/to/additional/data/files/*"],
+        "geniusrise": [],
     },
     extras_require={
         "dev": ["check-manifest"],

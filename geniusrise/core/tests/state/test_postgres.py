@@ -39,7 +39,9 @@ def postgres_state_manager():
     conn = psycopg2.connect(host=HOST, port=PORT, user=USER, password=PASSWORD, database=DATABASE)
     with conn.cursor() as cur:
         cur.execute(
-            sql.SQL("CREATE TABLE IF NOT EXISTS {} (key TEXT PRIMARY KEY, value JSONB)").format(sql.Identifier(TABLE))
+            sql.SQL(
+                "CREATE TABLE IF NOT EXISTS {} (key TEXT PRIMARY KEY, value JSONB, created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP)"
+            ).format(sql.Identifier(TABLE))
         )
     conn.commit()
 
@@ -66,7 +68,7 @@ def test_postgres_state_manager_get_state(postgres_state_manager):
     postgres_state_manager.set_state(key, value)
 
     # Then, get the state and check that it's correct
-    assert postgres_state_manager.get_state(key) == value
+    assert postgres_state_manager.get_state(key)["test"] == "data"
 
 
 # Test that the PostgresState can set state
@@ -76,4 +78,4 @@ def test_postgres_state_manager_set_state(postgres_state_manager):
     postgres_state_manager.set_state(key, value)
 
     # Check that the state was set correctly
-    assert postgres_state_manager.get_state(key) == value
+    assert postgres_state_manager.get_state(key)["test"] == "data"

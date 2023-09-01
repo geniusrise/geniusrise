@@ -71,7 +71,7 @@ def test_dynamodb_state_manager_get_state(dynamodb_state_manager):
     dynamodb_state_manager.set_state(key, value)
 
     # Then, get the state and check that it's correct
-    assert dynamodb_state_manager.get_state(key) == value
+    assert dynamodb_state_manager.get_state(key)["test"] == "data"
 
 
 # Test that the DynamoDBState can set state
@@ -81,4 +81,4 @@ def test_dynamodb_state_manager_set_state(dynamodb_state_manager):
     dynamodb_state_manager.set_state(key, value)
 
     # Check that the state was set correctly
-    assert dynamodb_state_manager.get_state(key) == value
+    assert dynamodb_state_manager.get_state(key)["test"] == "data"

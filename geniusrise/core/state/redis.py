@@ -14,8 +14,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-import logging
 from typing import Dict, Optional
 
 import jsonpickle
@@ -41,13 +39,12 @@ class RedisState(State):
     print(state)  # Outputs: {"status": "active"}
     ```
 
-    !!! warning
-        Ensure Redis is accessible and running.
+    Ensure Redis is accessible and running.
     """
 
     def __init__(self, host: str, port: int, db: int) -> None:
         """
-        Initialize a new Redis state manager.
+        💥 Initialize a new Redis state manager.
 
         Args:
             host (str): The host of the Redis server.
@@ -56,10 +53,9 @@ class RedisState(State):
         """
         super().__init__()
         self.redis = redis.Redis(host=host, port=port, db=db)
-        self.log = logging.getLogger(self.__class__.__name__)
         self.log.info(f"🔌 Connected to Redis at {host}:{port}, DB: {db}")
 
-    def get_state(self, key: str) -> Optional[Dict]:
+    def get(self, key: str) -> Optional[Dict]:
         """
         📖 Get the state associated with a key.
 
@@ -79,7 +75,7 @@ class RedisState(State):
         else:
             return jsonpickle.decode(value.decode("utf-8"))
 
-    def set_state(self, key: str, value: Dict) -> None:
+    def set(self, key: str, value: Dict) -> None:
         """
         📝 Set the state associated with a key.
 

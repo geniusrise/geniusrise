@@ -10,7 +10,6 @@ from geniusrise.cli.discover import Discover
 from geniusrise.cli.spoutctl import SpoutCtl
 from geniusrise.cli.yamlctl import YamlCtl
 
-# from geniusrise.core import Spout, Bolt
 # fmt: off
 
 test_topic = "test_topic"
@@ -44,6 +43,7 @@ spouts:
         postgres_table: "geniusrise_state"
         dynamodb_table_name: "test_table"
         dynamodb_region_name: "ap-south-1"
+        prometheus_gateway: "http://localhost:9091"
     deploy:
       type: "k8s"
       args:
@@ -58,6 +58,7 @@ spouts:
         folder: "{tmpdir}"
         kafka_servers: "localhost:9094"
         output_topic: "test_topic"
+        input_kafka_consumer_group_id: "geniusrise"
         buffer_size: 1
 bolts:
   {bolt_name}:
@@ -81,6 +82,7 @@ bolts:
         postgres_table: "geniusrise_state"
         dynamodb_table_name: "test_table"
         dynamodb_region_name: "ap-south-1"
+        prometheus_gateway: "http://localhost:9091"
     deploy:
       type: "k8s"
       args:
@@ -140,52 +142,64 @@ def test_yamlctl_init(yamlctl):
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "prometheus"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "prometheus"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "prometheus"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "prometheus"),
 
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "prometheus"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "prometheus"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "prometheus"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "prometheus"),
 
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "batch", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "batch", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "batch", "prometheus"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "streaming", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "streaming", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "streaming", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "streaming", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "streaming", "prometheus"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "prometheus"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "prometheus"),
     ],
 )
 def test_yamlctl_run(
@@ -222,52 +236,64 @@ def test_yamlctl_run(
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "prometheus"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "prometheus"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "prometheus"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "stream_to_batch", "prometheus"),
 
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "prometheus"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "prometheus"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "prometheus"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "stream_to_batch", "prometheus"),
 
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "batch", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "batch", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "batch", "prometheus"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "streaming", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "streaming", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "streaming", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "streaming", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "streaming", "prometheus"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "prometheus"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "in_memory"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "dynamodb"),
+        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "stream_to_batch", "stream_to_batch", "prometheus"),
     ],
 )
 def test_yamlctl_run_2(

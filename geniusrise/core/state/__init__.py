@@ -19,3 +19,4 @@ from .dynamo import DynamoDBState
 from .memory import InMemoryState
 from .postgres import PostgresState
 from .redis import RedisState
+from .prometheus import PrometheusState

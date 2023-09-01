@@ -15,13 +15,31 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+from typing import Any, Optional
 
 import colorlog
+from geniusrise.core.state import State
 
 from geniusrise.config import LOGLEVEL
 
 
-def setup_logger() -> logging.Logger:
+class StateHandler(logging.Handler):
+    """
+    🛠️ **StateHandler**: Handler for logging state changes.
+
+    This class is used to capture logging via state module in geniusrise.
+    """
+
+    def __init__(self, state_instance: State):
+        super().__init__()
+        self.state = state_instance
+
+    def emit(self, record: Any):
+        log_entry = self.format(record)
+        self.state.capture_log(log_entry)
+
+
+def setup_logger(state_instance: Optional[State] = None) -> logging.Logger:
     """
     🛠️ **Setup Logger**: Configure and return a logger with a default ColoredFormatter.
 
@@ -84,10 +102,12 @@ def setup_logger() -> logging.Logger:
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
 
+    if state_instance:
+        state_handler = StateHandler(state_instance)
+        state_handler.setFormatter(formatter)
+
     logging.basicConfig(encoding="utf-8", level=logging.getLevelName(LOGLEVEL), handlers=[handler])
     logger = logging.getLogger("geniusrise")
     logger.setLevel(logging.getLevelName(LOGLEVEL))
-
-    # logger.addHandler(handler)
 
     return logger

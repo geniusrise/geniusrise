@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 import tempfile
 from typing import Any
 
@@ -35,7 +34,9 @@ from geniusrise.core.state import (
     PostgresState,
     RedisState,
     State,
+    PrometheusState,
 )
+from geniusrise.logging import setup_logger
 
 from .task import Task
 
@@ -92,7 +93,7 @@ class Bolt(Task):
         self.output = output
         self.state = state
 
-        self.log = logging.getLogger(self.__class__.__name__)
+        self.log = setup_logger(self.state)
 
     def __call__(self, method_name: str, *args, **kwargs) -> Any:
         """
@@ -213,6 +214,8 @@ class Bolt(Task):
                     DynamoDB state manager config:
                     - dynamodb_table_name (str): The DynamoDB table name argument.
                     - dynamodb_region_name (str): The DynamoDB region name argument.
+                    Prometheus state manager config:
+                    - prometheus_gateway (str): The push gateway for Prometheus metrics.
                 ```
 
         Returns:
@@ -303,6 +306,10 @@ class Bolt(Task):
             state = DynamoDBState(
                 table_name=kwargs["dynamodb_table_name"] if "dynamodb_table_name" in kwargs else None,
                 region_name=kwargs["dynamodb_region_name"] if "dynamodb_region_name" in kwargs else None,
+            )
+        elif state_type == "prometheus":
+            state = PrometheusState(
+                gateway=kwargs["prometheus_gateway"] if "prometheus_gateway" in kwargs else None,
             )
         else:
             raise ValueError(f"Invalid state type: {state_type}")

@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 from typing import Dict, Optional
 
 import boto3
@@ -45,14 +44,13 @@ class DynamoDBState(State):
 
     def __init__(self, table_name: str, region_name: str) -> None:
         """
-        Initialize a new DynamoDB state manager.
+        💥 Initialize a new DynamoDB state manager.
 
         Args:
             table_name (str): The name of the DynamoDB table.
             region_name (str): The name of the AWS region.
         """
         super().__init__()
-        self.log = logging.getLogger(self.__class__.__name__)
         try:
             self.dynamodb = boto3.resource("dynamodb", region_name=region_name)
             self.table = self.dynamodb.Table(table_name)
@@ -62,7 +60,7 @@ class DynamoDBState(State):
             self.dynamodb = None
             self.table = None
 
-    def get_state(self, key: str) -> Optional[Dict]:
+    def get(self, key: str) -> Optional[Dict]:
         """
         📖 Get the state associated with a key.
 
@@ -86,7 +84,7 @@ class DynamoDBState(State):
             self.log.exception("🚫 No DynamoDB table.")
             raise
 
-    def set_state(self, key: str, value: Dict) -> None:
+    def set(self, key: str, value: Dict) -> None:
         """
         📝 Set the state associated with a key.
 

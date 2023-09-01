@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 from typing import Dict, Optional
 
 from geniusrise.core.state import State
@@ -37,20 +36,19 @@ class InMemoryState(State):
     print(state)  # Outputs: {"status": "active"}
     ```
 
-    !!! warning
-        Remember, this is an in-memory store. Do not use it for persistent storage!
+    Remember, this is an in-memory store. Do not use it for persistent storage!
     """
 
     store: Dict[str, Dict]
 
     def __init__(self) -> None:
         """
-        Initialize a new in-memory state manager.
+        💥 Initialize a new in-memory state manager.
         """
+        super().__init__()
         self.store = {}
-        self.log = logging.getLogger(self.__class__.__name__)
 
-    def get_state(self, key: str) -> Optional[Dict]:
+    def get(self, key: str) -> Optional[Dict]:
         """
         📖 Get the state associated with a key.
 
@@ -67,7 +65,7 @@ class InMemoryState(State):
             self.log.warning(f"🚫 No state found for key: {key}")
         return state
 
-    def set_state(self, key: str, value: Dict) -> None:
+    def set(self, key: str, value: Dict) -> None:
         """
         📝 Set the state associated with a key.
 

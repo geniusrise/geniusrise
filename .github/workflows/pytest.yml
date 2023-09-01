@@ -1,0 +1,56 @@
+name: Run Pytest
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      ENV: dev
+      LOGLEVEL: DEBUG
+      WANDB_DISABLED: true
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      OPENAI_ORGANIZATION: ${{ secrets.OPENAI_ORGANIZATION }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_API_TYPE: open_ai
+      OPENAI_API_BASE_URL: https://api.openai.com/v1
+      OPENAI_API_VERSION: ${{ secrets.OPENAI_API_VERSION }}
+      HUGGINGFACE_ACCESS_TOKEN: ${{ secrets.HUGGINGFACE_ACCESS_TOKEN }}
+      PALM_KEY: ${{ secrets.PALM_KEY }}
+
+steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install Docker Compose
+      run: sudo apt-get install docker-compose
+
+    - name: Start services
+      run: docker-compose -f path/to/your/docker-compose.yml up -d
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install coverage
+        pip install pytest
+
+    - name: Run tests with coverage
+      run: coverage run -m pytest -vv --log-cli-level=ERROR ./geniusrise/
+
+    - name: Generate coverage report
+      run: coverage report
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v2
