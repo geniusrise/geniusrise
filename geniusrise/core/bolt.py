@@ -34,6 +34,7 @@ from geniusrise.core.state import (
     PostgresState,
     RedisState,
     State,
+    PrometheusState,
 )
 from geniusrise.logging import setup_logger
 
@@ -213,6 +214,8 @@ class Bolt(Task):
                     DynamoDB state manager config:
                     - dynamodb_table_name (str): The DynamoDB table name argument.
                     - dynamodb_region_name (str): The DynamoDB region name argument.
+                    Prometheus state manager config:
+                    - prometheus_gageway (str): The push gateway for Prometheus metrics.
                 ```
 
         Returns:
@@ -303,6 +306,10 @@ class Bolt(Task):
             state = DynamoDBState(
                 table_name=kwargs["dynamodb_table_name"] if "dynamodb_table_name" in kwargs else None,
                 region_name=kwargs["dynamodb_region_name"] if "dynamodb_region_name" in kwargs else None,
+            )
+        elif state_type == "prometheus":
+            state = PrometheusState(
+                gateway=kwargs["prometheus_gateway"] if "prometheus_gateway" in kwargs else None,
             )
         else:
             raise ValueError(f"Invalid state type: {state_type}")

@@ -34,6 +34,7 @@ from geniusrise.core.state import (
     InMemoryState,
     PostgresState,
     RedisState,
+    PrometheusState,
 )
 
 # Define the parameters for the tests
@@ -56,6 +57,7 @@ postgres_table = "geniusrise_state"
 dynamodb_table_name = "test_table"
 dynamodb_region_name = "ap-south-1"
 buffer_size = 1
+prometheus_gateway = "localhost:9091"
 
 
 class TestBolt(Bolt):
@@ -99,6 +101,7 @@ def output(request, tmpdir):
         RedisState,
         PostgresState,
         DynamoDBState,
+        PrometheusState,
     ]
 )
 def state(request):
@@ -117,6 +120,8 @@ def state(request):
         )
     elif request.param == DynamoDBState:
         return request.param(dynamodb_table_name, dynamodb_region_name)
+    elif request.param == PrometheusState:
+        return request.param(prometheus_gateway)
 
 
 def test_bolt_init(input, output, state):
