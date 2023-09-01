@@ -156,7 +156,7 @@ class Spout(Task):
                     - dynamodb_table_name (str): The name of the DynamoDB table.
                     - dynamodb_region_name (str): The AWS region for DynamoDB.
                     Prometheus state manager config:
-                    - prometheus_gageway (str): The push gateway for Prometheus metrics.
+                    - prometheus_gateway (str): The push gateway for Prometheus metrics.
                 ```
 
         Returns:

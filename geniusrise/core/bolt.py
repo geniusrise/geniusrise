@@ -215,7 +215,7 @@ class Bolt(Task):
                     - dynamodb_table_name (str): The DynamoDB table name argument.
                     - dynamodb_region_name (str): The DynamoDB region name argument.
                     Prometheus state manager config:
-                    - prometheus_gageway (str): The push gateway for Prometheus metrics.
+                    - prometheus_gateway (str): The push gateway for Prometheus metrics.
                 ```
 
         Returns:
