@@ -67,7 +67,7 @@ class BoltCtl:
         )
         run_parser.add_argument(
             "state_type",
-            choices=["in_memory", "redis", "postgres", "dynamodb"],
+            choices=["in_memory", "redis", "postgres", "dynamodb", "prometheus"],
             help="Select the type of state manager: in_memory, redis, postgres, or dynamodb.",
             default="in_memory",
         )
@@ -207,6 +207,12 @@ class BoltCtl:
             "--dynamodb_region_name",
             help="Specify the AWS region for DynamoDB.",
             default="us-west-2",
+            type=str,
+        )
+        run_parser.add_argument(
+            "--prometheus_gateway",
+            help="Specify the prometheus gateway URL.",
+            default="localhost:9091",
             type=str,
         )
         run_parser.add_argument(
@@ -353,6 +359,8 @@ class BoltCtl:
                     DynamoDB state manager config:
                     - dynamodb_table_name (str): The DynamoDB table name argument.
                     - dynamodb_region_name (str): The DynamoDB region name argument.
+                    Prometheus state manager config:
+                    - prometheus_gateway (str): The push gateway for Prometheus metrics.
                 ```
 
         Returns:

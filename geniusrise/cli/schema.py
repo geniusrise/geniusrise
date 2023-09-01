@@ -45,6 +45,7 @@ class StateArgs(BaseModel):
     postgres_table: Optional[str] = None
     dynamodb_table_name: Optional[str] = None
     dynamodb_region_name: Optional[str] = None
+    prometheus_gateway: Optional[str] = None
 
     class Config:
         extra = Extra.allow
@@ -60,7 +61,7 @@ class State(BaseModel):
 
     @validator("type")
     def validate_type(cls, v, values, **kwargs):
-        if v not in ["in_memory", "redis", "postgres", "dynamodb"]:
+        if v not in ["in_memory", "redis", "postgres", "dynamodb", "prometheus"]:
             raise ValueError("Invalid state type")
         return v
 
@@ -86,6 +87,9 @@ class State(BaseModel):
                     raise ValueError("Missing required fields for dynamodb state type")
             elif values["type"] == "in_memory":
                 pass
+            elif values["type"] == "prometheus":
+                if not v or "prometheus_gateway" not in v:
+                    raise ValueError("Missing required fields for prometheus state type")
             else:
                 raise ValueError(f"Unknown type of state {values['type']}")
         else:
