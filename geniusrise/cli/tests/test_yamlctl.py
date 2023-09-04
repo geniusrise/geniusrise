@@ -1,3 +1,4 @@
+# type: ignore
 import argparse
 import os
 
@@ -47,10 +48,21 @@ spouts:
     deploy:
       type: "k8s"
       args:
-        name: "sample_spout_deploy"
-        namespace: "default"
-        image: "sample_spout_image"
-        replicas: 1
+        kube_config_path: ""
+        cluster_name: "geniusrise"
+        context_name: "eks"
+        namespace: "geniusrise_k8s_test"
+        labels: {"tag1": "lol", "tag2": "lel"}
+        annotations: {}
+        api_key:
+        api_host: localhost
+        verify_ssl: true
+        ssl_ca_cert:
+        cpu:
+        memory:
+        storage:
+        gpu:
+        env_vars:
     output:
       type: "{output_type}"
       args:
@@ -107,7 +119,7 @@ bolts:
         kafka_servers: "localhost:9094"
         output_topic: "test_topic"
         buffer_size: 1
-"""
+""" # NOQA E999
 
     return _geniusfile
 
