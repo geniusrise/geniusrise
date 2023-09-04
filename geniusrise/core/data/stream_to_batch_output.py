@@ -37,7 +37,7 @@ class StreamToBatchOutput(StreamingOutput, BatchOutput):
 
     Usage:
     ```python
-    config = StreamToBatchOutput("my_topic", "localhost:9092", "/path/to/output", "my_bucket", "s3/folder", buffer_size=100)
+    config = StreamToBatchOutput("my_topic", "localhost:9094", "/path/to/output", "my_bucket", "s3/folder", buffer_size=100)
     config.save({"key": "value"})
     config.flush()
     ```

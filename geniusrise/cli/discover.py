@@ -100,6 +100,7 @@ class Discover:
 
                 if "__init__.py" in files:
                     try:
+                        self.log.debug(f"Trying to import module in {root}")
                         module = self.import_module(root)
                         has_discovered = self.find_classes(module)
                         if not has_discovered:

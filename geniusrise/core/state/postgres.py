@@ -15,8 +15,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
-import logging
 from typing import Dict, Optional
+from datetime import datetime
 
 import jsonpickle
 import psycopg2
@@ -41,8 +41,8 @@ class PostgresState(State):
     print(state)  # Outputs: {"status": "active"}
     ```
 
-    !!! warning
-        Ensure PostgreSQL is accessible and the table exists.
+
+    Ensure PostgreSQL is accessible and the table exists.
     """
 
     def __init__(
@@ -55,7 +55,7 @@ class PostgresState(State):
         table: str = "geniusrise_state",
     ) -> None:
         """
-        Initialize a new PostgreSQL state manager.
+        💥 Initialize a new PostgreSQL state manager.
 
         Args:
             host (str): The host of the PostgreSQL server.
@@ -67,15 +67,30 @@ class PostgresState(State):
         """
         super().__init__()
         self.table = table
-        self.log = logging.getLogger(self.__class__.__name__)
         try:
             self.conn = psycopg2.connect(host=host, port=port, user=user, password=password, database=database)
         except psycopg2.Error as e:
             self.log.exception(f"🚫 Failed to connect to PostgreSQL: {e}")
             raise
             self.conn = None
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(
+                    f"""
+                    CREATE TABLE IF NOT EXISTS {self.table} (
+                        key TEXT PRIMARY KEY,
+                        value JSONB,
+                        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+                    );
+                    """
+                )
+            self.conn.commit()
+        except psycopg2.Error as e:
+            self.log.exception(f"🚫 Failed to create table in PostgreSQL: {e}")
+            raise
 
-    def get_state(self, key: str) -> Optional[Dict]:
+    def get(self, key: str) -> Optional[Dict]:
         """
         📖 Get the state associated with a key.
 
@@ -101,7 +116,7 @@ class PostgresState(State):
             self.log.exception("🚫 No PostgreSQL connection.")
             raise
 
-    def set_state(self, key: str, value: Dict) -> None:
+    def set(self, key: str, value: Dict) -> None:
         """
         📝 Set the state associated with a key.
 
@@ -118,12 +133,12 @@ class PostgresState(State):
                     data = {"data": jsonpickle.encode(value)}
                     cur.execute(
                         f"""
-                        INSERT INTO {self.table} (key, value)
-                        VALUES (%s, %s)
+                        INSERT INTO {self.table} (key, value, created_at, updated_at)
+                        VALUES (%s, %s, %s, %s)
                         ON CONFLICT (key)
-                        DO UPDATE SET value = EXCLUDED.value;
+                        DO UPDATE SET value = EXCLUDED.value, updated_at = %s;
                         """,
-                        (key, json.dumps(data)),
+                        (key, json.dumps(data), datetime.utcnow(), datetime.utcnow(), datetime.utcnow()),
                     )
                 self.conn.commit()
             except psycopg2.Error as e:

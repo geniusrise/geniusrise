@@ -15,7 +15,7 @@
 
 #     Usage:
 #     ```python
-#     config = BatchToStreamingOutput("my_topic", "localhost:9092", "/path/to/output", "my_bucket", "s3/folder")
+#     config = BatchToStreamingOutput("my_topic", "localhost:9094", "/path/to/output", "my_bucket", "s3/folder")
 #     config.save_batch_to_stream("example.json")
 #     ```
 

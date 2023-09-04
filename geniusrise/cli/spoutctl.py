@@ -60,7 +60,7 @@ class SpoutCtl:
         )
         create_parser.add_argument(
             "state_type",
-            choices=["in_memory", "redis", "postgres", "dynamodb"],
+            choices=["in_memory", "redis", "postgres", "dynamodb", "prometheus"],
             help="Select the type of state manager: in_memory, redis, postgres, or dynamodb.",
             default="in_memory",
         )
@@ -85,7 +85,7 @@ class SpoutCtl:
         create_parser.add_argument(
             "--output_kafka_cluster_connection_string",
             help="Kafka connection string for streaming spouts.",
-            default="localhost:9092",
+            default="localhost:9094",
             type=str,
         )
         create_parser.add_argument(
@@ -164,6 +164,12 @@ class SpoutCtl:
             "--dynamodb_region_name",
             help="Specify the AWS region for DynamoDB.",
             default="us-west-2",
+            type=str,
+        )
+        create_parser.add_argument(
+            "--prometheus_gateway",
+            help="Specify the prometheus gateway URL.",
+            default="localhost:9091",
             type=str,
         )
         create_parser.add_argument(
@@ -281,6 +287,8 @@ class SpoutCtl:
                     DynamoDB state manager config:
                     - dynamodb_table_name (str): The name of the DynamoDB table.
                     - dynamodb_region_name (str): The AWS region for DynamoDB.
+                    Prometheus state manager config:
+                    - prometheus_gateway (str): The push gateway for Prometheus metrics.
                 ```
 
         Returns:

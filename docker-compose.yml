@@ -28,7 +28,7 @@ services:
         ports:
             - '8080:8080'
         environment:
-            - KAFKA_CLUSTERS_0_NAME="🔥☺️🔥"
+            - KAFKA_CLUSTERS_0_NAME="🔥  ☺️  🔥"
             - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
         depends_on:
             - kafka
@@ -46,3 +46,8 @@ services:
         image: redis:latest
         ports:
             - '6379:6379'
+
+    prometheus-pushgateway:
+        image: prom/pushgateway:latest
+        ports:
+            - '9091:9091'

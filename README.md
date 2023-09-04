@@ -4,6 +4,10 @@
 
 Welcome to geniusrise, a development framework for building geniuses.
 
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/geniusrise/geniusrise/Run%20Pytest)
+
+[![codecov](https://codecov.io/gh/geniusrise/geniusrise/branch/main/graph/badge.svg?token=<YOUR_CODECOV_TOKEN>)](https://codecov.io/gh/geniusrise/geniusrise)
+
 ---
 
 ## About

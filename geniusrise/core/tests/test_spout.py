@@ -23,10 +23,11 @@ from geniusrise.core.state import (
     InMemoryState,
     PostgresState,
     RedisState,
+    PrometheusState,
 )
 
 output_topic = "test_topic"
-kafka_servers = "localhost:9092"
+kafka_servers = "localhost:9094"
 redis_host = "localhost"
 redis_port = 6379
 redis_db = 0
@@ -40,6 +41,7 @@ dynamodb_table_name = "test_table"
 dynamodb_region_name = "ap-south-1"
 s3_bucket = "geniusrise-test-bucket"
 s3_folder = "whatever"
+prometheus_gateway = "localhost:9091"
 
 
 class TestSpout(Spout):
@@ -54,6 +56,7 @@ class TestSpout(Spout):
         RedisState,
         PostgresState,
         DynamoDBState,
+        PrometheusState,
     ]
 )
 def state(request):
@@ -71,6 +74,8 @@ def state(request):
         )
     elif request.param == DynamoDBState:
         return request.param(dynamodb_table_name, dynamodb_region_name)
+    elif request.param == PrometheusState:
+        return request.param(prometheus_gateway)
 
 
 # Define a fixture for the output
