@@ -20,6 +20,7 @@ import logging
 
 import emoji  # type: ignore
 from rich_argparse import RichHelpFormatter
+from typing import List, Dict
 
 from geniusrise.cli.discover import DiscoveredSpout
 from geniusrise.core import Spout
@@ -315,3 +316,28 @@ class SpoutCtl:
             Any: The result of the method.
         """
         return spout.__call__(method_name, *args, **kwargs)
+
+    def get_params(self) -> List[Dict[str, object]]:
+        """
+        Get a list of parameter names and their help text for the spout.
+
+        Returns:
+            List[Dict[str, object]]: A list of dictionaries, each containing the command and its parameters.
+        """
+        parser = argparse.ArgumentParser()
+        self.create_parser(parser)
+        params = []
+        if parser._subparsers:
+            for action in parser._subparsers._group_actions:
+                if action.choices:
+                    for choice, sub_parser in action.choices.items():  # type: ignore
+                        param_list = []
+                        for a in sub_parser._actions:
+                            if a.dest != "help":
+                                param_info = {
+                                    "name": a.dest,
+                                    "help_text": a.help if a.help else "No help text available",
+                                }
+                                param_list.append(param_info)
+                        params.append({"command": choice, "params": param_list})
+        return params

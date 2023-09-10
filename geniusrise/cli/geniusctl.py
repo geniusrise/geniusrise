@@ -17,7 +17,7 @@
 import logging
 import os
 import sys
-from typing import Dict
+from typing import Dict, List, Union
 
 # from gooey import Gooey, GooeyParser, settings
 import argparse
@@ -33,6 +33,7 @@ from geniusrise.cli.discover import Discover, DiscoveredBolt, DiscoveredSpout
 from geniusrise.cli.spoutctl import SpoutCtl
 from geniusrise.cli.yamlctl import YamlCtl
 from geniusrise.logging import setup_logger
+from geniusrise.cli.gui import GradioInterface
 
 
 class GeniusCtl:
@@ -116,6 +117,13 @@ class GeniusCtl:
         self.yaml_ctl = YamlCtl(self.spout_ctls, self.bolt_ctls)
         self.yaml_ctl.create_parser(yaml_parser)
 
+        # Create subparser for GUI
+        gui_parser = subparsers.add_parser(
+            "gui",
+            help="Launch the Geniusrise GUI.",
+            formatter_class=RichHelpFormatter,
+        )
+
         # Add a 'help' command to print help for all spouts and bolts
         help_parser = subparsers.add_parser(
             "plugins",
@@ -150,6 +158,29 @@ class GeniusCtl:
             if isinstance(component, DiscoveredBolt)
         }
 
+    def get_commands_and_params(self) -> Dict[str, Union[List[str], List[Dict[str, object]]]]:
+        """
+        Get a dictionary of commands and their parameters.
+
+        Returns:
+            Dict[str, Union[List[str], List[Dict[str, object]]]]: A dictionary where keys are command names and values are lists of parameter names or parameter info dictionaries.
+        """
+        commands_and_params = {}
+
+        # Loop through spout commands
+        for spout_name, spout_ctl in self.spout_ctls.items():
+            commands_and_params[spout_name] = spout_ctl.get_params()
+
+        # Loop through bolt commands
+        for bolt_name, bolt_ctl in self.bolt_ctls.items():
+            commands_and_params[bolt_name] = bolt_ctl.get_params()
+
+        # Add other commands
+        commands_and_params["plugins"] = [{"name": "spout_or_bolt", "help_text": "Choose between spout or bolt"}]
+        commands_and_params["list"] = [{"name": "verbose", "help_text": "Print verbose output"}]
+
+        return commands_and_params  # type: ignore
+
     def run(self, args):
         """
         Run the command-line interface.
@@ -165,6 +196,8 @@ class GeniusCtl:
             self.bolt_ctls[args.top_level_command].run(args)
         elif args.top_level_command == "yaml":
             self.yaml_ctl.run(args)
+        elif args.top_level_command == "gui":
+            GradioInterface.create_gradio_interface(self.get_commands_and_params())
         elif args.top_level_command == "plugins":
             if args.spout_or_bolt in self.spouts:
                 self.spout_ctls[args.spout_or_bolt].run(args)
@@ -246,10 +279,5 @@ class GeniusCtl:
 
 def main():
     logger = setup_logger()
-    genius_ctl = GeniusCtl()
-    genius_ctl.cli()
-
-
-if __name__ == "__main__":
     genius_ctl = GeniusCtl()
     genius_ctl.cli()

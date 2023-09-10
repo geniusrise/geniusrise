@@ -1,0 +1,32 @@
+/* Background color */
+
+:root>*{
+    --body-background-fill: #0d0816;
+
+    --button-primary-text-color: white;
+    --button-primary-background-fill: #f34960;
+    --button-primary-border-color: #f34960;
+
+    --button-primary-text-color-hover: white;
+    --button-primary-background-fill-hover: #f34960;
+    --button-primary-border-color-hover: #f34960;
+
+    --button-primary-text-color-active: white;
+    --button-primary-background-fill-active: #f34960;
+    --button-primary-border-color-active: #f34960;
+
+
+    --button-secondary-text-color: white;
+    --button-secondary-background-fill: #9595e9;
+    --button-secondary-border-color: #9595e9;
+
+    --button-secondary-text-color-hover: white;
+    --button-secondary-background-fill-hover: #9595e9;
+    --button-secondary-border-color-hover: #9595e9;
+
+    --button-secondary-text-color-active: white;
+    --button-secondary-background-fill-active: #9595e9;
+    --button-secondary-border-color-active: #9595e9;
+
+    --panel-background-fill: #0d081650;
+}
