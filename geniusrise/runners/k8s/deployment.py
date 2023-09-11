@@ -1,5 +1,6 @@
 from argparse import ArgumentParser, Namespace
 import json
+import ast
 from kubernetes import client
 from typing import Optional, List
 
@@ -23,7 +24,7 @@ class Deployment(K8sResourceManager):
         Returns:
             ArgumentParser: The parser with subparsers for each command.
         """
-        subparsers = parser.add_subparsers(dest="command")
+        subparsers = parser.add_subparsers(dest="deployment")
 
         # Parser for create
         create_parser = subparsers.add_parser("create", help="Create a new deployment.")
@@ -82,20 +83,26 @@ class Deployment(K8sResourceManager):
             ssl_ca_cert=args.ssl_ca_cert if args.ssl_ca_cert else None,
         )
 
-        if args.command == "create":
-            self.create(args.name, args.image, args.command, replicas=args.replicas, env_vars=json.loads(args.env_vars))
-        elif args.command == "scale":
+        if args.deployment == "create":
+            self.create(
+                args.name,
+                args.image,
+                ast.literal_eval(args.command) if type(args.command) is str else args.command,
+                replicas=args.replicas,
+                env_vars=json.loads(args.env_vars),
+            )
+        elif args.deployment == "scale":
             self.scale(args.name, args.replicas)
-        elif args.command == "show":
+        elif args.deployment == "show":
             self.show()
-        elif args.command == "describe":
+        elif args.deployment == "describe":
             self.describe(args.name)
-        elif args.command == "delete":
+        elif args.deployment == "delete":
             self.delete(args.name)
-        elif args.command == "status":
+        elif args.deployment == "status":
             self.status(args.name)
         else:
-            self.log.error("Unknown command: %s", args.command)
+            self.log.error("Unknown command: %s", args.deployment)
 
     def __create_deployment_spec(
         self,

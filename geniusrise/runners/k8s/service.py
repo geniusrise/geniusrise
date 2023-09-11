@@ -1,8 +1,9 @@
 from argparse import ArgumentParser, Namespace
 import json
+import ast
 from kubernetes import client
 from kubernetes.client import ApiClient
-from typing import Optional
+from typing import Optional, List
 
 from .deployment import Deployment
 
@@ -25,7 +26,7 @@ class Service(Deployment):
         Returns:
             ArgumentParser: The parser with subparsers for each command.
         """
-        subparsers = parser.add_subparsers(dest="command")
+        subparsers = parser.add_subparsers(dest="service")
 
         # Parser for create
         create_parser = subparsers.add_parser("create", help="Create a new service.")
@@ -57,24 +58,24 @@ class Service(Deployment):
         Args:
             args (Namespace): The parsed command line arguments.
         """
-        if args.command == "create":
+        if args.service == "create":
             self.create(
                 args.name,
                 args.image,
-                args.command,
+                ast.literal_eval(args.command) if type(args.command) is str else args.command,
                 replicas=args.replicas,
                 port=args.port,
                 target_port=args.target_port,
                 env_vars=json.loads(args.env_vars),
             )
-        elif args.command == "delete":
+        elif args.service == "delete":
             self.delete(args.name)
-        elif args.command == "show":
+        elif args.service == "show":
             self.show()
-        elif args.command == "describe":
+        elif args.service == "describe":
             self.describe(args.name)
         else:
-            self.log.error("Unknown command: %s", args.command)
+            self.log.error("Unknown command: %s", args.service)
 
     def __create_service_spec(self, port: int, target_port: int) -> client.V1ServiceSpec:
         """
@@ -95,7 +96,7 @@ class Service(Deployment):
         self,
         name: str,
         image: str,
-        command: str,
+        command: List[str],
         registry_creds: Optional[dict] = None,
         is_service: bool = False,
         replicas: int = 1,
