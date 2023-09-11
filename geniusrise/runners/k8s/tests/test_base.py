@@ -1,7 +1,7 @@
 import pytest
 import subprocess
 import time
-from geniusrise.runners.k8s.base import K8sResourceManager  # Replace 'your_module' with the actual module name
+from geniusrise.runners.k8s.base import K8sResourceManager
 
 
 @pytest.fixture(scope="module")

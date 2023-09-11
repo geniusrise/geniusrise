@@ -5,7 +5,7 @@ import logging
 from argparse import ArgumentParser, Namespace
 from kubernetes import client, config
 from kubernetes.client import Configuration, ApiClient, V1ResourceRequirements, BatchV1Api
-from typing import Optional
+from typing import Optional, List
 
 
 class K8sResourceManager:
@@ -91,7 +91,7 @@ class K8sResourceManager:
             cluster_name=args.cluster_name if args.cluster_name else None,
             context_name=args.context_name if args.context_name else None,
             namespace=args.namespace if args.namespace else None,
-            labels=args.labels if args.labels else None,
+            labels=json.loads(args.labels) if args.labels else {"created_by": "geniusrise"},
             annotations=args.annotations if args.annotations else None,
             api_key=args.api_key if args.api_key else None,
             api_host=args.api_host if args.api_host else None,
@@ -191,10 +191,10 @@ class K8sResourceManager:
         self.api_instance.create_namespaced_secret(self.namespace, secret)
         self.log.info(f"🔑 Created image pull secret {name}")
 
-    def __create_pod_spec(
+    def _create_pod_spec(
         self,
         image: str,
-        command: str,
+        command: List[str],
         image_pull_secret_name: str,
         env_vars: dict = {},
         cpu: Optional[str] = None,

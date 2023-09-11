@@ -2,7 +2,7 @@ from argparse import ArgumentParser, Namespace
 import json
 from kubernetes import client
 from kubernetes.client import BatchV1Api, V1JobSpec
-from typing import Optional
+from typing import Optional, List
 
 from .deployment import Deployment
 
@@ -45,7 +45,7 @@ class Job(Deployment):
     def _create_job_spec(
         self,
         image: str,
-        command: str,
+        command: List[str],
         env_vars: dict = {},
         cpu: Optional[str] = None,
         memory: Optional[str] = None,
@@ -83,7 +83,7 @@ class Job(Deployment):
             resources["nvidia.com/gpu"] = gpu
 
         # Create Pod spec for the Job
-        pod_spec = self.__create_pod_spec(
+        pod_spec = self._create_pod_spec(
             image=image,
             command=command,
             image_pull_secret_name=image_pull_secret_name,  # type: ignore
@@ -102,7 +102,7 @@ class Job(Deployment):
             )
         )
 
-    def create(self, name: str, image: str, command: str, env_vars: dict = {}) -> None:  # type: ignore
+    def create(self, name: str, image: str, command: List[str], env_vars: dict = {}) -> None:  # type: ignore
         """
         🛠 Create a Kubernetes Job.
 

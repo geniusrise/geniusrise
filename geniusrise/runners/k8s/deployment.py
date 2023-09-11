@@ -1,7 +1,7 @@
 from argparse import ArgumentParser, Namespace
 import json
 from kubernetes import client
-from typing import Optional
+from typing import Optional, List
 
 from .base import K8sResourceManager
 
@@ -74,7 +74,7 @@ class Deployment(K8sResourceManager):
             cluster_name=args.cluster_name if args.cluster_name else None,
             context_name=args.context_name if args.context_name else None,
             namespace=args.namespace if args.namespace else None,
-            labels=args.labels if args.labels else None,
+            labels=args.labels if args.labels else {"created_by": "geniusrise"},
             annotations=args.annotations if args.annotations else None,
             api_key=args.api_key if args.api_key else None,
             api_host=args.api_host if args.api_host else None,
@@ -100,7 +100,7 @@ class Deployment(K8sResourceManager):
     def __create_deployment_spec(
         self,
         image: str,
-        command: str,
+        command: List[str],
         replicas: int,
         image_pull_secret_name: str,
         env_vars: dict,
@@ -131,9 +131,7 @@ class Deployment(K8sResourceManager):
             selector=client.V1LabelSelector(match_labels=self.labels),
             template=client.V1PodTemplateSpec(
                 metadata=client.V1ObjectMeta(labels=self.labels, annotations=self.annotations),
-                spec=self.__create_pod_spec(
-                    image, command, image_pull_secret_name, env_vars, cpu, memory, storage, gpu
-                ),
+                spec=self._create_pod_spec(image, command, image_pull_secret_name, env_vars, cpu, memory, storage, gpu),
             ),
         )
 
@@ -141,7 +139,7 @@ class Deployment(K8sResourceManager):
         self,
         name: str,
         image: str,
-        command: str,
+        command: List[str],
         registry_creds: Optional[dict] = None,
         is_service: bool = False,
         replicas: int = 1,
