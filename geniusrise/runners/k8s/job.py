@@ -1,5 +1,6 @@
 from argparse import ArgumentParser, Namespace
 import json
+import ast
 from kubernetes import client
 from kubernetes.client import BatchV1Api, V1JobSpec
 from typing import Optional, List
@@ -13,7 +14,7 @@ class Job(Deployment):
         self.batch_api_instance: BatchV1Api = None  # type: ignore
 
     def create_parser(self, parser: ArgumentParser) -> ArgumentParser:
-        subparsers = parser.add_subparsers(dest="command")
+        subparsers = parser.add_subparsers(dest="job")
 
         # Parser for create
         create_parser = subparsers.add_parser("create", help="Create a new job.")
@@ -33,14 +34,19 @@ class Job(Deployment):
         return parser
 
     def run(self, args: Namespace) -> None:
-        if args.command == "create":
-            self.create(args.name, args.image, args.command, env_vars=json.loads(args.env_vars))
-        elif args.command == "delete":
+        if args.job == "create":
+            self.create(
+                args.name,
+                args.image,
+                ast.literal_eval(args.command) if type(args.command) is str else args.command,
+                env_vars=json.loads(args.env_vars),
+            )
+        elif args.job == "delete":
             self.delete(args.name)
-        elif args.command == "status":
+        elif args.job == "status":
             self.status(args.name)
         else:
-            self.log.error("Unknown command: %s", args.command)
+            self.log.error("Unknown command: %s", args.job)
 
     def _create_job_spec(
         self,
@@ -93,6 +99,7 @@ class Job(Deployment):
             storage=storage,
             gpu=gpu,
         )
+        pod_spec.restart_policy = "OnFailure"
 
         # Create and return the Job spec
         return V1JobSpec(
