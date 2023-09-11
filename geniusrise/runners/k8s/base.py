@@ -4,7 +4,7 @@ import time
 import logging
 from argparse import ArgumentParser, Namespace
 from kubernetes import client, config
-from kubernetes.client import Configuration, ApiClient, V1ResourceRequirements, BatchV1Api, BatchV1beta1Api
+from kubernetes.client import Configuration, ApiClient, V1ResourceRequirements, BatchV1Api
 from typing import Optional
 
 
@@ -143,6 +143,10 @@ class K8sResourceManager:
         """
         if kube_config_path and context_name:
             config.load_kube_config(config_file=kube_config_path, context=context_name)
+            self.api_instance = client.CoreV1Api(ApiClient())
+            self.apps_api_instance = client.AppsV1Api(ApiClient())
+            self.batch_api_instance = BatchV1Api(ApiClient())
+            self.batch_beta_api_instance = BatchV1Api(ApiClient())
         elif api_key and api_host:
             configuration = Configuration()
             configuration.host = api_host
@@ -154,7 +158,7 @@ class K8sResourceManager:
             self.api_instance = client.CoreV1Api(ApiClient(configuration))
             self.apps_api_instance = client.AppsV1Api(ApiClient(configuration))
             self.batch_api_instance = BatchV1Api(ApiClient(configuration))
-            self.batch_beta_api_instance = BatchV1beta1Api(ApiClient(configuration))
+            self.batch_beta_api_instance = BatchV1Api(ApiClient(configuration))
         else:
             raise ValueError("Either kube_config_path and context_name or api_key and api_host must be provided.")
 
@@ -315,6 +319,4 @@ class K8sResourceManager:
         Returns:
             str: Logs of the pod.
         """
-        pod_list = self.api_instance.list_namespaced_pod(self.namespace, label_selector=f"app={name}")
-        pod_name = pod_list.items[0].metadata.name
-        return self.api_instance.read_namespaced_pod_log(pod_name, self.namespace, tail_lines=tail, follow=follow)
+        return self.api_instance.read_namespaced_pod_log(name, self.namespace, tail_lines=tail, follow=follow)
