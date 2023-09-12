@@ -19,17 +19,24 @@ class Job(Deployment):
         # Parser for create
         create_parser = subparsers.add_parser("create", help="Create a new job.")
         create_parser.add_argument("name", help="Name of the job.", type=str)
-        create_parser.add_argument("image", help="Docker image for the job.", type=str)
+        create_parser.add_argument("image", help="Docker image for the job.", type=str, default="geniusrise/geniusrise")
         create_parser.add_argument("command", help="Command to run in the container.", type=str)
         create_parser.add_argument("--env_vars", help="Environment variables as a JSON string.", type=str, default="{}")
+        create_parser.add_argument("--cpu", help="CPU requirements.", type=str)
+        create_parser.add_argument("--memory", help="Memory requirements.", type=str)
+        create_parser.add_argument("--storage", help="Storage requirements.", type=str)
+        create_parser.add_argument("--gpu", help="GPU requirements.", type=str)
+        create_parser = self._add_connection_args(create_parser)
 
         # Parser for delete
         delete_parser = subparsers.add_parser("delete", help="Delete a job.")
         delete_parser.add_argument("name", help="Name of the job.", type=str)
+        delete_parser = self._add_connection_args(delete_parser)
 
         # Parser for status
         status_parser = subparsers.add_parser("status", help="Get the status of a job.")
         status_parser.add_argument("name", help="Name of the job.", type=str)
+        status_parser = self._add_connection_args(status_parser)
 
         return parser
 
@@ -40,6 +47,10 @@ class Job(Deployment):
                 args.image,
                 ast.literal_eval(args.command) if type(args.command) is str else args.command,
                 env_vars=json.loads(args.env_vars),
+                cpu=args.cpu,
+                memory=args.memory,
+                storage=args.storage,
+                gpu=args.gpu,
             )
         elif args.job == "delete":
             self.delete(args.name)
@@ -109,7 +120,18 @@ class Job(Deployment):
             )
         )
 
-    def create(self, name: str, image: str, command: List[str], env_vars: dict = {}) -> None:  # type: ignore
+    def create(  # type: ignore
+        self,
+        name: str,
+        image: str,
+        command: List[str],
+        env_vars: dict = {},
+        cpu: Optional[str] = None,
+        memory: Optional[str] = None,
+        storage: Optional[str] = None,
+        gpu: Optional[str] = None,
+        image_pull_secret_name: Optional[str] = None,
+    ) -> None:
         """
         🛠 Create a Kubernetes Job.
 
@@ -119,7 +141,15 @@ class Job(Deployment):
             command (str): Command to run in the container.
             env_vars (dict): Environment variables for the Job.
         """
-        job_spec = self._create_job_spec(image, command, env_vars)
+        job_spec = self._create_job_spec(
+            image=image,
+            command=command,
+            env_vars=env_vars,
+            cpu=cpu,
+            memory=memory,
+            storage=storage,
+            gpu=gpu,
+        )
         job = client.V1Job(
             api_version="batch/v1",
             kind="Job",

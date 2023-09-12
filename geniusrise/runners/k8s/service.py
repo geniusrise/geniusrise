@@ -31,23 +31,33 @@ class Service(Deployment):
         # Parser for create
         create_parser = subparsers.add_parser("create", help="Create a new service.")
         create_parser.add_argument("name", help="Name of the service.", type=str)
-        create_parser.add_argument("image", help="Docker image for the service.", type=str)
+        create_parser.add_argument(
+            "image", help="Docker image for the service.", type=str, default="geniusrise/geniusrise"
+        )
         create_parser.add_argument("command", help="Command to run in the container.", type=str)
         create_parser.add_argument("--replicas", help="Number of replicas.", default=1, type=int)
         create_parser.add_argument("--port", help="Service port.", default=80, type=int)
         create_parser.add_argument("--target_port", help="Container target port.", default=8080, type=int)
         create_parser.add_argument("--env_vars", help="Environment variables as a JSON string.", type=str, default="{}")
+        create_parser.add_argument("--cpu", help="CPU requirements.", type=str)
+        create_parser.add_argument("--memory", help="Memory requirements.", type=str)
+        create_parser.add_argument("--storage", help="Storage requirements.", type=str)
+        create_parser.add_argument("--gpu", help="GPU requirements.", type=str)
+        create_parser = self._add_connection_args(create_parser)
 
         # Parser for delete
         delete_parser = subparsers.add_parser("delete", help="Delete a service.")
         delete_parser.add_argument("name", help="Name of the service.", type=str)
+        delete_parser = self._add_connection_args(delete_parser)
 
         # Parser for describe
         describe_parser = subparsers.add_parser("describe", help="Describe a service.")
         describe_parser.add_argument("name", help="Name of the service.", type=str)
+        describe_parser = self._add_connection_args(describe_parser)
 
         # Parser for show
         show_parser = subparsers.add_parser("show", help="List all services.")
+        show_parser = self._add_connection_args(show_parser)
 
         return parser
 
@@ -67,6 +77,10 @@ class Service(Deployment):
                 port=args.port,
                 target_port=args.target_port,
                 env_vars=json.loads(args.env_vars),
+                cpu=args.cpu,
+                memory=args.memory,
+                storage=args.storage,
+                gpu=args.gpu,
             )
         elif args.service == "delete":
             self.delete(args.name)
@@ -98,7 +112,6 @@ class Service(Deployment):
         image: str,
         command: List[str],
         registry_creds: Optional[dict] = None,
-        is_service: bool = False,
         replicas: int = 1,
         port: int = 80,
         target_port: int = 8080,
@@ -116,7 +129,6 @@ class Service(Deployment):
             image (str): Docker image for the resource.
             command (str): Command to run in the container.
             registry_creds (dict): Credentials for Docker registry.
-            is_service (bool): Whether the resource is a service.
             replicas (int): Number of replicas for Deployment.
             port (int): Service port.
             target_port (int): Container target port.
@@ -132,7 +144,6 @@ class Service(Deployment):
             image=image,
             command=command,
             registry_creds=registry_creds,
-            is_service=is_service,
             replicas=replicas,
             env_vars=env_vars,
             cpu=cpu,
@@ -152,13 +163,12 @@ class Service(Deployment):
         self.api_instance.create_namespaced_service(self.namespace, service)
         self.log.info(f"🌐 Created service {name}-service")
 
-    def delete(self, name: str, is_service: bool = False) -> None:
+    def delete(self, name: str) -> None:
         """
         🗑 Delete a Kubernetes resource (Pod/Deployment/Service).
 
         Args:
             name (str): Name of the resource to delete.
-            is_service (bool): Whether the resource is a service.
         """
         self.apps_api_instance.delete_namespaced_deployment(name, self.namespace)
         self.api_instance.delete_namespaced_service(f"{name}-service", self.namespace)

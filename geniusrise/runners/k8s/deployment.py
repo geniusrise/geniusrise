@@ -29,36 +29,42 @@ class Deployment(K8sResourceManager):
         # Parser for create
         create_parser = subparsers.add_parser("create", help="Create a new deployment.")
         create_parser.add_argument("name", help="Name of the deployment.", type=str)
-        create_parser.add_argument("image", help="Docker image for the deployment.", type=str)
+        create_parser.add_argument(
+            "image", help="Docker image for the deployment.", type=str, default="geniusrise/geniusrise"
+        )
         create_parser.add_argument("command", help="Command to run in the container.", type=str)
         create_parser.add_argument("--replicas", help="Number of replicas.", default=1, type=int)
         create_parser.add_argument("--env_vars", help="Environment variables as a JSON string.", type=str, default="{}")
-        create_parser = self.__add_connection_args(create_parser)
+        create_parser.add_argument("--cpu", help="CPU requirements.", type=str)
+        create_parser.add_argument("--memory", help="Memory requirements.", type=str)
+        create_parser.add_argument("--storage", help="Storage requirements.", type=str)
+        create_parser.add_argument("--gpu", help="GPU requirements.", type=str)
+        create_parser = self._add_connection_args(create_parser)
 
         # Parser for scale
         scale_parser = subparsers.add_parser("scale", help="Scale a deployment.")
         scale_parser.add_argument("name", help="Name of the deployment.", type=str)
         scale_parser.add_argument("replicas", help="Number of replicas.", type=int)
-        scale_parser = self.__add_connection_args(scale_parser)
+        scale_parser = self._add_connection_args(scale_parser)
 
         # Parser for describe
         describe_parser = subparsers.add_parser("describe", help="Describe a deployment.")
         describe_parser.add_argument("name", help="Name of the deployment.", type=str)
-        describe_parser = self.__add_connection_args(describe_parser)
+        describe_parser = self._add_connection_args(describe_parser)
 
         # Parser for show
         show_parser = subparsers.add_parser("show", help="List all deployments.")
-        show_parser = self.__add_connection_args(show_parser)
+        show_parser = self._add_connection_args(show_parser)
 
         # Parser for delete
         delete_parser = subparsers.add_parser("delete", help="Delete a deployment.")
         delete_parser.add_argument("name", help="Name of the deployment.", type=str)
-        delete_parser = self.__add_connection_args(delete_parser)
+        delete_parser = self._add_connection_args(delete_parser)
 
         # Parser for status
         status_parser = subparsers.add_parser("status", help="Get the status of a deployment.")
         status_parser.add_argument("name", help="Name of the deployment.", type=str)
-        status_parser = self.__add_connection_args(status_parser)
+        status_parser = self._add_connection_args(status_parser)
 
         return parser
 
@@ -90,6 +96,10 @@ class Deployment(K8sResourceManager):
                 ast.literal_eval(args.command) if type(args.command) is str else args.command,
                 replicas=args.replicas,
                 env_vars=json.loads(args.env_vars),
+                cpu=args.cpu,
+                memory=args.memory,
+                storage=args.storage,
+                gpu=args.gpu,
             )
         elif args.deployment == "scale":
             self.scale(args.name, args.replicas)
@@ -148,7 +158,6 @@ class Deployment(K8sResourceManager):
         image: str,
         command: List[str],
         registry_creds: Optional[dict] = None,
-        is_service: bool = False,
         replicas: int = 1,
         env_vars: dict = {},
         cpu: Optional[str] = None,
@@ -164,7 +173,6 @@ class Deployment(K8sResourceManager):
             image (str): Docker image for the resource.
             command (str): Command to run in the container.
             registry_creds (dict): Credentials for Docker registry.
-            is_service (bool): Whether the resource is a service.
             replicas (int): Number of replicas for Deployment.
             env_vars (dict): Environment variables for the resource.
             cpu (str): CPU requirements.

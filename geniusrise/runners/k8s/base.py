@@ -31,7 +31,7 @@ class K8sResourceManager:
         self.labels: dict = {}  # type: ignore
         self.annotations: dict = {}  # type: ignore
 
-    def __add_connection_args(self, parser: ArgumentParser) -> ArgumentParser:
+    def _add_connection_args(self, parser: ArgumentParser) -> ArgumentParser:
         """
         🛠 Add common cluster connection arguments to a parser.
 
@@ -41,11 +41,18 @@ class K8sResourceManager:
         Returns:
             ArgumentParser: The parser with added arguments.
         """
-        parser.add_argument("--kube_config_path", help="Path to the kubeconfig file.", type=str)
+        parser.add_argument(
+            "--kube_config_path", help="Path to the kubeconfig file.", type=str, default="~/.kube/config"
+        )
         parser.add_argument("--cluster_name", help="Name of the Kubernetes cluster.", type=str)
         parser.add_argument("--context_name", help="Name of the kubeconfig context.", type=str)
         parser.add_argument("--namespace", help="Kubernetes namespace.", default="default", type=str)
-        parser.add_argument("--labels", help="Labels for Kubernetes resources, as a JSON string.", type=str)
+        parser.add_argument(
+            "--labels",
+            help="Labels for Kubernetes resources, as a JSON string.",
+            type=str,
+            default='{"created_by": "geniusrise"}',
+        )
         parser.add_argument("--annotations", help="Annotations for Kubernetes resources, as a JSON string.", type=str)
         parser.add_argument("--api_key", help="API key for Kubernetes cluster.", type=str)
         parser.add_argument("--api_host", help="API host for Kubernetes cluster.", type=str)
@@ -58,23 +65,23 @@ class K8sResourceManager:
 
         pod_status_parser = subparsers.add_parser("status", help="Get the status of the Kubernetes pod.")
         pod_status_parser.add_argument("name", help="Name of the Kubernetes pod.", type=str)
-        pod_status_parser = self.__add_connection_args(pod_status_parser)
+        pod_status_parser = self._add_connection_args(pod_status_parser)
 
         # Parser for list
         list_pods_parser = subparsers.add_parser("show", help="List all pods.")
-        list_pods_parser = self.__add_connection_args(list_pods_parser)
+        list_pods_parser = self._add_connection_args(list_pods_parser)
 
         # Parser for describe
         describe_pod_parser = subparsers.add_parser("describe", help="Describe a pod.")
         describe_pod_parser.add_argument("name", help="Name of the pod.", type=str)
-        describe_pod_parser = self.__add_connection_args(describe_pod_parser)
+        describe_pod_parser = self._add_connection_args(describe_pod_parser)
 
         # Parser for pod logs
         logs_parser = subparsers.add_parser("logs", help="Get the logs of a pod.")
         logs_parser.add_argument("name", help="Name of the pod.", type=str)
         logs_parser.add_argument("--follow", help="Whether to follow the logs.", default=False, type=bool)
         logs_parser.add_argument("--tail", help="Number of lines to show from the end of the logs.", type=int)
-        logs_parser = self.__add_connection_args(logs_parser)
+        logs_parser = self._add_connection_args(logs_parser)
 
         return parser
 
