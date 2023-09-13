@@ -119,17 +119,16 @@ class GeniusCtl:
     def discover(self):
         self.discover = Discover()
         discovered_components = self.discover.scan_directory(os.getenv("GENIUS_DIR", "."))
+        discovered_installed_components = self.discover.discover_geniusrise_installed_modules()
+
+        components = {**discovered_components, **discovered_installed_components}
 
         # Segregate the discovered components based on their type
         self.spouts = {
-            name: component
-            for name, component in discovered_components.items()
-            if isinstance(component, DiscoveredSpout)
+            name: component for name, component in components.items() if isinstance(component, DiscoveredSpout)
         }
         self.bolts = {
-            name: component
-            for name, component in discovered_components.items()
-            if isinstance(component, DiscoveredBolt)
+            name: component for name, component in components.items() if isinstance(component, DiscoveredBolt)
         }
 
     def run(self, args):

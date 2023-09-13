@@ -81,14 +81,11 @@ class Discover:
         """
         directory = directory if directory else self.directory
 
-        # Discover installed extensions
-        self.discover_geniusrise_installed_modules()
-
         # Get patterns from .geniusignore
         geniusignore_patterns = self.get_geniusignore_patterns(directory)  # type: ignore
 
         # Discover user-defined spouts/bolts
-        self.log.info(emoji.emojize(f"🔍 Starting discovery in `{directory}`"))
+        self.log.warning(emoji.emojize(f"🔍 Starting discovery in `{directory}`"))
         if directory:
             self.directory = directory
             for root, dirs, files in os.walk(self.directory):
@@ -109,20 +106,20 @@ class Discover:
                         self.log.debug(f"Failed to import module at {root}: TypeError: {e}")
                     except Exception as e:
                         self.log.debug(f"Failed to import module at {root}: {e}")
-                        pass
                 else:
                     self.log.debug(f"Ignoring directory {root}, no __init__.py found")
 
         return self.classes
 
-    def discover_geniusrise_installed_modules(self):
+    def discover_geniusrise_installed_modules(self) -> Dict[str, Any]:
         """
         Discover installed geniusrise modules from Python path directories.
         """
-        self.log.info(emoji.emojize("🔎 Discovering installed geniusrise modules..."))
+        self.log.warning(emoji.emojize("🔎 Discovering installed geniusrise modules..."))
 
         # Get the list of directories in the Python path
         python_path_dirs = site.getsitepackages() + [site.getusersitepackages()]
+        self.classes = {}
 
         for directory in python_path_dirs:
             self.log.debug(f"Trying to import module in {directory}")
@@ -140,9 +137,20 @@ class Discover:
             geniusrise_packages = fnmatch.filter(packages, "geniusrise_*")
 
             for package in geniusrise_packages:
+                if "dist-info" in package:
+                    continue
                 package_path = os.path.join(directory, package)
-                # Scan the package directory for geniusrise modules
-                self.scan_directory(package_path)
+
+                # Convert package_path to Python import path
+                module_name = package_path.replace(directory + os.sep, "").replace(os.sep, ".")
+
+                try:
+                    module = importlib.import_module(module_name)
+                    self.find_classes(module)
+                except Exception as e:
+                    self.log.debug(f"Failed to import module {module_name}: {e}")
+
+        return self.classes
 
     def import_module(self, path: str):
         """
@@ -154,7 +162,6 @@ class Discover:
         Returns:
             Any: Imported module.
         """
-        # project_root = os.path.abspath(os.path.join(self.directory, "../../../../"))  # type: ignore
         directory = os.path.dirname(path)  # Get the directory containing the module
         if directory not in sys.path:
             sys.path.insert(0, directory)  # Add to sys.path
