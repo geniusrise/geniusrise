@@ -137,9 +137,19 @@ class Discover:
             geniusrise_packages = fnmatch.filter(packages, "geniusrise_*")
 
             for package in geniusrise_packages:
+                if "dist-info" in package:
+                    continue
                 package_path = os.path.join(directory, package)
-                # Scan the package directory for geniusrise modules
-                self.scan_directory(package_path)
+
+                # Convert package_path to Python import path
+                module_name = package_path.replace(directory + os.sep, "").replace(os.sep, ".")
+
+                try:
+                    module = importlib.import_module(module_name)
+                    self.find_classes(module)
+                except Exception as e:
+                    self.log.debug(f"Failed to import module {module_name}: {e}")
+
         return self.classes
 
     def import_module(self, path: str):
