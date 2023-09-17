@@ -40,10 +40,10 @@ from geniusrise.core.state import (
 # Define the parameters for the tests
 bucket = "geniusrise-test-bucket"
 s3_folder = "bolt-test"
-input_topic = "input_topic"
+input_topic = "test_topic"
 kafka_cluster_connection_string = "localhost:9094"
 group_id = "geniusrise-test-group"
-output_topic = "output_topic"
+output_topic = "test_topic"
 kafka_servers = "localhost:9094"
 redis_host = "localhost"
 redis_port = 6379

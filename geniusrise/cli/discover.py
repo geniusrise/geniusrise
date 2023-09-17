@@ -18,13 +18,13 @@ import fnmatch
 import importlib
 import inspect
 import logging
+import site
 import os
 import sys
 from abc import ABCMeta
 from typing import Any, Dict, List, Optional
 
 import emoji  # type: ignore
-import pkg_resources  # type: ignore
 import pydantic
 
 from geniusrise.core import Bolt, Spout
@@ -82,7 +82,7 @@ class Discover:
         directory = directory if directory else self.directory
 
         # Discover installed extensions
-        self.discover_installed_extensions()
+        self.discover_geniusrise_installed_modules()
 
         # Get patterns from .geniusignore
         geniusignore_patterns = self.get_geniusignore_patterns(directory)  # type: ignore
@@ -115,15 +115,34 @@ class Discover:
 
         return self.classes
 
-    def discover_installed_extensions(self):
-        """Discover installed geniusrise extensions."""
-        self.log.info(emoji.emojize("🔎 Discovering installed extensions..."))
-        for entry_point in pkg_resources.iter_entry_points(group="geniusrise.extensions"):
+    def discover_geniusrise_installed_modules(self):
+        """
+        Discover installed geniusrise modules from Python path directories.
+        """
+        self.log.info(emoji.emojize("🔎 Discovering installed geniusrise modules..."))
+
+        # Get the list of directories in the Python path
+        python_path_dirs = site.getsitepackages() + [site.getusersitepackages()]
+
+        for directory in python_path_dirs:
+            self.log.debug(f"Trying to import module in {directory}")
             try:
-                module = entry_point.load()
-                self.find_classes(module)
-            except Exception as e:
-                self.log.error(emoji.emojize(f"❌ Error discovering classes in {entry_point.name}: {e}"))
+                # List all packages in the directory
+                packages = os.listdir(directory)
+            except FileNotFoundError:
+                self.log.debug(f"Directory {directory} not found.")
+                continue
+            except PermissionError:
+                self.log.debug(f"No permission to access directory {directory}.")
+                continue
+
+            # Filter packages that match the pattern geniusrise-*
+            geniusrise_packages = fnmatch.filter(packages, "geniusrise_*")
+
+            for package in geniusrise_packages:
+                package_path = os.path.join(directory, package)
+                # Scan the package directory for geniusrise modules
+                self.scan_directory(package_path)
 
     def import_module(self, path: str):
         """

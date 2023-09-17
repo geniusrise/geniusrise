@@ -161,7 +161,7 @@ def test_boltctl_run(boltctl, input_type, output_type, state_type, tmpdir):
     ])
 
     producer = KafkaProducer(bootstrap_servers=kafka_cluster_connection_string)
-    for _ in range(2):
+    for _ in range(10):
         producer.send(test_topic, value=json.dumps({"test": "buffer"}).encode("utf-8"))
         producer.flush()
 
@@ -173,7 +173,7 @@ def test_boltctl_run(boltctl, input_type, output_type, state_type, tmpdir):
 
 def test_boltctl_execute_bolt(boltctl, tmpdir):
     producer = KafkaProducer(bootstrap_servers=kafka_cluster_connection_string)
-    for _ in range(2):
+    for _ in range(10):
         producer.send(test_topic, value=json.dumps({"test": "buffer"}).encode("utf-8"))
         producer.flush()
 
