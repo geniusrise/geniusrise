@@ -186,12 +186,12 @@ class Discover:
             discovered: DiscoveredSpout | DiscoveredBolt
             if inspect.isclass(obj) and issubclass(obj, Spout) and obj != Spout:
                 discovered = DiscoveredSpout(name=name, klass=obj, init_args=self.get_init_args(obj))
-                self.log.info(emoji.emojize(f"🚀 Discovered Spout {discovered.name}"))
+                self.log.debug(emoji.emojize(f"🚀 Discovered Spout {discovered.name}"))
                 self.classes[name] = discovered
                 has_discovered = True
             elif inspect.isclass(obj) and issubclass(obj, Bolt) and obj != Bolt:
                 discovered = DiscoveredBolt(name=name, klass=obj, init_args=self.get_init_args(obj))
-                self.log.info(emoji.emojize(f"⚡ Discovered Bolt {discovered.name}"))
+                self.log.debug(emoji.emojize(f"⚡ Discovered Bolt {discovered.name}"))
                 self.classes[name] = discovered
                 has_discovered = True
         return has_discovered

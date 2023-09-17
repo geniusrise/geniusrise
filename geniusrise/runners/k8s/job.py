@@ -147,6 +147,7 @@ class Job(Deployment):
         storage: Optional[str] = None,
         gpu: Optional[str] = None,
         image_pull_secret_name: Optional[str] = None,
+        **kwargs,
     ) -> None:
         """
         🛠 Create a Kubernetes Job.
