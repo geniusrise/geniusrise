@@ -19,8 +19,7 @@ kafka_cluster_connection_string = "localhost:9094"
 @pytest.fixture
 def sample_geniusfile(tmpdir):
     def _geniusfile(spout_name, bolt_name, input_type, output_type, state_type):
-        return f"""
-version: "1"
+        return f"""version: "1"
 spouts:
   {spout_name}:
     name: "{spout_name}"
@@ -52,7 +51,6 @@ spouts:
         context_name: "eks"
         namespace: "geniusrise_k8s_test"
         labels: {"tag1": "lol", "tag2": "lel"}
-        annotations: {}
         api_key:
         api_host: localhost
         verify_ssl: true
