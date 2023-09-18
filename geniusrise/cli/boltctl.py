@@ -200,10 +200,10 @@ class BoltCtl:
 
         def convert(value):
             try:
-                return int(value)
+                return int(value.replace('"', ""))
             except ValueError:
                 try:
-                    return float(value)
+                    return float(value.replace('"', ""))
                 except ValueError:
                     try:
                         return json.loads(value)
@@ -211,7 +211,10 @@ class BoltCtl:
                         return value
 
         for item in args_list:
-            if "=" in item:
+            if item[0] == "{":
+                i = json.loads(item)
+                kwargs = {**kwargs, **i}
+            elif "=" in item:
                 key, value = item.split("=", 1)
                 kwargs[key] = convert(value)
             else:
