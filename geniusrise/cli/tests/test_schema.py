@@ -15,9 +15,9 @@ base_yaml_data = {
             "args": {"repo_name": "zpqrtbnk/test-repo", "github_access_token": "test"},
             "output": {
                 "type": "batch",
-                "args": {"bucket": "my-bucket", "folder": "my-s3-folder"},
+                "args": {"bucket": "geniusrise-test", "folder": "my-s3-folder"},
             },
-            "state": {"type": "in_memory", "args": {}},
+            "state": {"type": "none", "args": {}},
             "deploy": {
                 "type": "k8s",
                 "args": {

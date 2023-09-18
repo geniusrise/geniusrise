@@ -180,6 +180,7 @@ class Deployment(K8sResourceManager):
         memory: Optional[str] = None,
         storage: Optional[str] = None,
         gpu: Optional[str] = None,
+        **kwargs,
     ) -> None:
         """
         🛠 Create a Kubernetes resource Deployment.

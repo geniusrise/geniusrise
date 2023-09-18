@@ -17,12 +17,14 @@
 import argparse
 import json
 import logging
+import tempfile
 
 import emoji  # type: ignore
 from rich_argparse import RichHelpFormatter
 
 from geniusrise.cli.discover import DiscoveredSpout
 from geniusrise.core import Spout
+from geniusrise.runners.k8s import Deployment, Service, Job, CronJob
 
 
 class SpoutCtl:
@@ -49,146 +51,87 @@ class SpoutCtl:
             parser (argparse.ArgumentParser): Command-line parser.
         """
         subparsers = parser.add_subparsers(dest="command")
+        # fmt: off
 
         # Create subparser for 'create' command
         create_parser = subparsers.add_parser("rise", help="Run a spout locally.", formatter_class=RichHelpFormatter)
-        create_parser.add_argument(
-            "output_type",
-            choices=["batch", "streaming", "stream_to_batch"],
-            help="Choose the type of output data: batch or streaming.",
-            default="batch",
-        )
-        create_parser.add_argument(
-            "state_type",
-            choices=["in_memory", "redis", "postgres", "dynamodb", "prometheus"],
-            help="Select the type of state manager: in_memory, redis, postgres, or dynamodb.",
-            default="in_memory",
-        )
-        create_parser.add_argument(
-            "--buffer_size",
-            help="Specify the size of the buffer.",
-            default=100,
-            type=int,
-        )
-        create_parser.add_argument(
-            "--output_folder",
-            help="Specify the directory where output files should be stored temporarily.",
-            default="/tmp",
-            type=str,
-        )
-        create_parser.add_argument(
-            "--output_kafka_topic",
-            help="Kafka output topic for streaming spouts.",
-            default="test",
-            type=str,
-        )
-        create_parser.add_argument(
-            "--output_kafka_cluster_connection_string",
-            help="Kafka connection string for streaming spouts.",
-            default="localhost:9094",
-            type=str,
-        )
-        create_parser.add_argument(
-            "--output_s3_bucket",
-            help="Provide the name of the S3 bucket for output storage.",
-            default="my-bucket",
-            type=str,
-        )
-        create_parser.add_argument(
-            "--output_s3_folder",
-            help="Indicate the S3 folder for output storage.",
-            default="my-s3-folder",
-            type=str,
-        )
-        create_parser.add_argument(
-            "--redis_host",
-            help="Enter the host address for the Redis server.",
-            default="localhost",
-            type=str,
-        )
-        create_parser.add_argument(
-            "--redis_port",
-            help="Enter the port number for the Redis server.",
-            default=6379,
-            type=int,
-        )
-        create_parser.add_argument(
-            "--redis_db",
-            help="Specify the Redis database to be used.",
-            default=0,
-            type=int,
-        )
-        create_parser.add_argument(
-            "--postgres_host",
-            help="Enter the host address for the PostgreSQL server.",
-            default="localhost",
-            type=str,
-        )
-        create_parser.add_argument(
-            "--postgres_port",
-            help="Enter the port number for the PostgreSQL server.",
-            default=5432,
-            type=int,
-        )
-        create_parser.add_argument(
-            "--postgres_user",
-            help="Provide the username for the PostgreSQL server.",
-            default="postgres",
-            type=str,
-        )
-        create_parser.add_argument(
-            "--postgres_password",
-            help="Provide the password for the PostgreSQL server.",
-            default="password",
-            type=str,
-        )
-        create_parser.add_argument(
-            "--postgres_database",
-            help="Specify the PostgreSQL database to be used.",
-            default="mydatabase",
-            type=str,
-        )
-        create_parser.add_argument(
-            "--postgres_table",
-            help="Specify the PostgreSQL table to be used.",
-            default="mytable",
-            type=str,
-        )
-        create_parser.add_argument(
-            "--dynamodb_table_name",
-            help="Provide the name of the DynamoDB table.",
-            default="mytable",
-            type=str,
-        )
-        create_parser.add_argument(
-            "--dynamodb_region_name",
-            help="Specify the AWS region for DynamoDB.",
-            default="us-west-2",
-            type=str,
-        )
-        create_parser.add_argument(
-            "--prometheus_gateway",
-            help="Specify the prometheus gateway URL.",
-            default="localhost:9091",
-            type=str,
-        )
-        create_parser.add_argument(
-            "method_name",
-            help="The name of the method to execute on the spout.",
-            type=str,
-        )
-        create_parser.add_argument(
-            "--args",
-            nargs=argparse.REMAINDER,
-            help="Additional keyword arguments to pass to the spout.",
-        )
+        create_parser.add_argument("output_type", choices=["batch", "streaming", "stream_to_batch"], help="Choose the type of output data: batch or streaming.", default="batch")
+        create_parser.add_argument("state_type", choices=["none", "redis", "postgres", "dynamodb", "prometheus"], help="Select the type of state manager: none, redis, postgres, or dynamodb.", default="none")
+        create_parser.add_argument("--buffer_size", help="Specify the size of the buffer.", default=100, type=int)
+        # output
+        create_parser.add_argument("--output_folder", help="Specify the directory where output files should be stored temporarily.", default=tempfile.mkdtemp(), type=str)
+        create_parser.add_argument("--output_kafka_topic", help="Kafka output topic for streaming spouts.", default="test", type=str)
+        create_parser.add_argument("--output_kafka_cluster_connection_string", help="Kafka connection string for streaming spouts.", default="localhost:9094", type=str)
+        create_parser.add_argument("--output_s3_bucket", help="Provide the name of the S3 bucket for output storage.", default="geniusrise-test", type=str)
+        create_parser.add_argument("--output_s3_folder", help="Indicate the S3 folder for output storage.", default="geniusrise", type=str)
+        # state
+        create_parser.add_argument("--redis_host", help="Enter the host address for the Redis server.", default="localhost", type=str)
+        create_parser.add_argument("--redis_port", help="Enter the port number for the Redis server.", default=6379, type=int)
+        create_parser.add_argument("--redis_db", help="Specify the Redis database to be used.", default=0, type=int)
+        create_parser.add_argument("--postgres_host", help="Enter the host address for the PostgreSQL server.", default="localhost", type=str)
+        create_parser.add_argument("--postgres_port", help="Enter the port number for the PostgreSQL server.", default=5432, type=int)
+        create_parser.add_argument("--postgres_user", help="Provide the username for the PostgreSQL server.", default="postgres", type=str)
+        create_parser.add_argument("--postgres_password", help="Provide the password for the PostgreSQL server.", default="password", type=str)
+        create_parser.add_argument("--postgres_database", help="Specify the PostgreSQL database to be used.", default="mydatabase", type=str)
+        create_parser.add_argument("--postgres_table", help="Specify the PostgreSQL table to be used.", default="mytable", type=str)
+        create_parser.add_argument("--dynamodb_table_name", help="Provide the name of the DynamoDB table.", default="mytable", type=str)
+        create_parser.add_argument("--dynamodb_region_name", help="Specify the AWS region for DynamoDB.", default="us-west-2", type=str)
+        create_parser.add_argument("--prometheus_gateway", help="Specify the prometheus gateway URL.", default="localhost:9091", type=str)
+        # function
+        create_parser.add_argument("method_name", help="The name of the method to execute on the spout.", type=str)
+        create_parser.add_argument("--args", nargs=argparse.REMAINDER, help="Additional keyword arguments to pass to the spout.")
+
+        deploy_parser = subparsers.add_parser("deploy", help="Run a spout remotely.", formatter_class=RichHelpFormatter)
+        deploy_parser.add_argument("output_type", choices=["batch", "streaming", "stream_to_batch"], help="Choose the type of output data: batch or streaming.", default="batch")
+        deploy_parser.add_argument("state_type", choices=["none", "redis", "postgres", "dynamodb", "prometheus"], help="Select the type of state manager: none, redis, postgres, or dynamodb.", default="none")
+        deploy_parser.add_argument("deployment_type", choices=["k8s"], help="Choose the type of deployment.", default="k8s")
+        # output
+        deploy_parser.add_argument("--buffer_size", help="Specify the size of the buffer.", default=100, type=int)
+        deploy_parser.add_argument("--output_folder", help="Specify the directory where output files should be stored temporarily.", default="/tmp", type=str)
+        deploy_parser.add_argument("--output_kafka_topic", help="Kafka output topic for streaming spouts.", default="test", type=str)
+        deploy_parser.add_argument("--output_kafka_cluster_connection_string", help="Kafka connection string for streaming spouts.", default="localhost:9094", type=str)
+        deploy_parser.add_argument("--output_s3_bucket", help="Provide the name of the S3 bucket for output storage.", default="geniusrise-test", type=str)
+        deploy_parser.add_argument("--output_s3_folder", help="Indicate the S3 folder for output storage.", default="geniusrise", type=str)
+        # state
+        deploy_parser.add_argument("--redis_host", help="Enter the host address for the Redis server.", default="localhost", type=str)
+        deploy_parser.add_argument("--redis_port", help="Enter the port number for the Redis server.", default=6379, type=int)
+        deploy_parser.add_argument("--redis_db", help="Specify the Redis database to be used.", default=0, type=int)
+        deploy_parser.add_argument("--postgres_host", help="Enter the host address for the PostgreSQL server.", default="localhost", type=str)
+        deploy_parser.add_argument("--postgres_port", help="Enter the port number for the PostgreSQL server.", default=5432, type=int)
+        deploy_parser.add_argument("--postgres_user", help="Provide the username for the PostgreSQL server.", default="postgres", type=str)
+        deploy_parser.add_argument("--postgres_password", help="Provide the password for the PostgreSQL server.", default="password", type=str)
+        deploy_parser.add_argument("--postgres_database", help="Specify the PostgreSQL database to be used.", default="mydatabase", type=str)
+        deploy_parser.add_argument("--postgres_table", help="Specify the PostgreSQL table to be used.", default="mytable", type=str)
+        deploy_parser.add_argument("--dynamodb_table_name", help="Provide the name of the DynamoDB table.", default="mytable", type=str)
+        deploy_parser.add_argument("--dynamodb_region_name", help="Specify the AWS region for DynamoDB.", default="us-west-2", type=str)
+        deploy_parser.add_argument("--prometheus_gateway", help="Specify the prometheus gateway URL.", default="localhost:9091", type=str)
+        # deployment
+        deploy_parser.add_argument("--k8s_kind", choices=["deployment", "service", "job", "cron_job"], help="Choose the type of kubernetes resource.", default="job")
+        deploy_parser.add_argument("--k8s_name", help="Name of the Kubernetes resource.", type=str)
+        deploy_parser.add_argument("--k8s_image", help="Docker image for the Kubernetes resource.", type=str)
+        deploy_parser.add_argument("--k8s_replicas", help="Number of replicas.", default=1, type=int)
+        deploy_parser.add_argument("--k8s_env_vars", help="Environment variables as a JSON string.", type=str, default="{}")
+        deploy_parser.add_argument("--k8s_cpu", help="CPU requirements.", type=str)
+        deploy_parser.add_argument("--k8s_memory", help="Memory requirements.", type=str)
+        deploy_parser.add_argument("--k8s_storage", help="Storage requirements.", type=str)
+        deploy_parser.add_argument("--k8s_gpu", help="GPU requirements.", type=str)
+        deploy_parser.add_argument("--k8s_cluster_name", help="Name of the Kubernetes cluster.", type=str)
+        deploy_parser.add_argument("--k8s_context_name", help="Name of the kubeconfig context.", type=str)
+        deploy_parser.add_argument("--k8s_namespace", help="Kubernetes namespace.", default="default", type=str)
+        deploy_parser.add_argument("--k8s_labels", help="Labels for Kubernetes resources, as a JSON string.", type=str, default='{"created_by": "geniusrise"}')
+        deploy_parser.add_argument("--k8s_annotations", help="Annotations for Kubernetes resources, as a JSON string.", type=str)
+        deploy_parser.add_argument("--port", help="Port to run the spout on as a service.", type=int)
+        deploy_parser.add_argument("--target_port", help="Port to expose the spout on as a service.", type=int)
+        deploy_parser.add_argument("--schedule", help="Schedule to run the spout on as a cron job.", type=str)
+        # function
+        deploy_parser.add_argument("method_name", help="The name of the method to execute on the spout.", type=str)
+        deploy_parser.add_argument("--args", nargs=argparse.REMAINDER, help="Additional keyword arguments to pass to the spout.")
 
         # Create subparser for 'help' command
-        execute_parser = subparsers.add_parser(
-            "help", help="Print help for the spout.", formatter_class=RichHelpFormatter
-        )
+        execute_parser = subparsers.add_parser("help", help="Print help for the spout.", formatter_class=RichHelpFormatter)
         execute_parser.add_argument("method", help="The method to execute.")
 
+        # fmt: on
         return parser
 
     def run(self, args):
@@ -204,7 +147,9 @@ class SpoutCtl:
                 kwargs = {
                     k: v
                     for k, v in vars(args).items()
-                    if v is not None and k not in ["output_type", "state_type", "args", "method_name"]
+                    if v is not None
+                    and "k8s_" not in k
+                    and k not in ["output_type", "state_type", "args", "method_name", "deployment_type"]
                 }
                 other = args.args or []
                 other_args, other_kwargs = self.parse_args_kwargs(other)
@@ -213,6 +158,9 @@ class SpoutCtl:
                 # Pass the method_name from args to execute_spout
                 result = self.execute_spout(self.spout, args.method_name, *other_args, **other_kwargs)
                 return result
+
+            elif args.command == "deploy":
+                self.deploy_spout(args)
 
             elif args.command == "help":
                 self.discovered_spout.klass.print_help(self.discovered_spout.klass)
@@ -233,10 +181,10 @@ class SpoutCtl:
 
         def convert(value):
             try:
-                return int(value)
+                return int(value.replace('"', ""))
             except ValueError:
                 try:
-                    return float(value)
+                    return float(value.replace('"', ""))
                 except ValueError:
                     try:
                         return json.loads(value)
@@ -244,11 +192,15 @@ class SpoutCtl:
                         return value
 
         for item in args_list:
-            if "=" in item:
+            if item[0] == "{":
+                i = json.loads(item)
+                kwargs = {**kwargs, **i}
+            elif "=" in item:
                 key, value = item.split("=", 1)
                 kwargs[key] = convert(value)
             else:
                 args.append(convert(item))
+
         return args, kwargs
 
     def create_spout(self, output_type: str, state_type: str, **kwargs) -> Spout:
@@ -257,7 +209,7 @@ class SpoutCtl:
 
         Args:
             output_type (str): The type of output ("batch" or "streaming").
-            state_type (str): The type of state manager ("in_memory", "redis", "postgres", or "dynamodb").
+            state_type (str): The type of state manager ("none", "redis", "postgres", or "dynamodb").
             **kwargs: Additional keyword arguments for initializing the spout.
                 ```
                 Keyword Arguments:
@@ -315,3 +267,95 @@ class SpoutCtl:
             Any: The result of the method.
         """
         return spout.__call__(method_name, *args, **kwargs)
+
+    def deploy_spout(self, args):
+        r"""
+        Deploy a spout of a specific type.
+
+        Args:
+            **kwargs: Additional keyword arguments for initializing the spout.
+                ```
+                Keyword Arguments:
+                    Batch output:
+                    - output_folder (str): The directory where output files should be stored temporarily.
+                    - output_s3_bucket (str): The name of the S3 bucket for output storage.
+                    - output_s3_folder (str): The S3 folder for output storage.
+                    Streaming output:
+                    - output_kafka_topic (str): Kafka output topic for streaming spouts.
+                    - output_kafka_cluster_connection_string (str): Kafka connection string for streaming spouts.
+                    Stream to Batch output:
+                    - output_folder (str): The directory where output files should be stored temporarily.
+                    - output_s3_bucket (str): The name of the S3 bucket for output storage.
+                    - output_s3_folder (str): The S3 folder for output storage.
+                    - buffer_size (int): Number of messages to buffer.
+                    Redis state manager config:
+                    - redis_host (str): The host address for the Redis server.
+                    - redis_port (int): The port number for the Redis server.
+                    - redis_db (int): The Redis database to be used.
+                    Postgres state manager config:
+                    - postgres_host (str): The host address for the PostgreSQL server.
+                    - postgres_port (int): The port number for the PostgreSQL server.
+                    - postgres_user (str): The username for the PostgreSQL server.
+                    - postgres_password (str): The password for the PostgreSQL server.
+                    - postgres_database (str): The PostgreSQL database to be used.
+                    - postgres_table (str): The PostgreSQL table to be used.
+                    DynamoDB state manager config:
+                    - dynamodb_table_name (str): The name of the DynamoDB table.
+                    - dynamodb_region_name (str): The AWS region for DynamoDB.
+                    Prometheus state manager config:
+                    - prometheus_gateway (str): The push gateway for Prometheus metrics.
+                ```
+        """
+        if args.deployment_type == "k8s":
+            kind = args.k8s_kind if args.k8s_kind else "job"
+
+            resource: Deployment | Service | Job | CronJob  # type: ignore
+            if kind == "deployment":
+                resource = Deployment()
+            elif kind == "service":
+                resource = Service()
+            elif kind == "job":
+                resource = Job()
+            elif kind == "cron_job":
+                resource = CronJob()
+            else:
+                raise ValueError(f"Invalid kind: {kind}")
+
+            resource.connect(
+                kube_config_path=args.k8s_kube_config_path if args.k8s_kube_config_path else None,
+                cluster_name=args.k8s_cluster_name if args.k8s_cluster_name else None,
+                context_name=args.k8s_context_name if args.k8s_context_name else None,
+                namespace=args.k8s_namespace if args.k8s_namespace else None,
+                labels=args.k8s_labels if args.k8s_labels else {"created_by": "geniusrise"},
+                annotations=args.k8s_annotations if args.k8s_annotations else None,
+                api_key=args.k8s_api_key if args.k8s_api_key else None,
+                api_host=args.k8s_api_host if args.k8s_api_host else None,
+                verify_ssl=args.k8s_verify_ssl if args.k8s_verify_ssl else None,
+                ssl_ca_cert=args.k8s_ssl_ca_cert if args.k8s_ssl_ca_cert else None,
+            )
+            k8s_kwargs = {k: v for k, v in vars(args).items() if v is not None and "k8s_" in k}
+
+            # create the command to run remotely
+            spout_kwargs = {
+                k: v
+                for k, v in vars(args).items()
+                if v is not None
+                and "k8s_" not in k
+                and k not in ["output_type", "state_type", "args", "method_name", "deployment_type"]
+            }
+            command = [
+                "genius",
+                self.__class__.__name__,
+                "rise",
+                "output_type",
+                args.output_type,
+                "state_type",
+                args.state_type,
+                "method_name",
+                args.method_name,
+            ] + [y for x in [[f"--{k}", v] for k, v in spout_kwargs.items()] for y in x]
+
+            print(command)
+            print(k8s_kwargs)
+
+            # resource.create(command=command, **k8s_kwargs)

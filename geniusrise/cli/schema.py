@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel, Extra, validator
 
@@ -30,21 +30,21 @@ class ExtraKwargs(BaseModel):
 
 class StateArgs(BaseModel):
     """
-    This class defines the arguments for the state. Depending on the type of state (in_memory, redis, postgres, dynamodb),
+    This class defines the arguments for the state. Depending on the type of state (none, redis, postgres, dynamodb),
     different arguments are required.
     """
 
-    redis_host: Optional[str] = None
-    redis_port: Optional[int] = None
-    redis_db: Optional[int] = None
-    postgres_host: Optional[str] = None
-    postgres_port: Optional[int] = None
-    postgres_user: Optional[str] = None
-    postgres_password: Optional[str] = None
-    postgres_database: Optional[str] = None
+    redis_host: Optional[str] = "127.0.0.1"
+    redis_port: Optional[int] = 6379
+    redis_db: Optional[int] = 0
+    postgres_host: Optional[str] = "127.0.0.1"
+    postgres_port: Optional[int] = 5432
+    postgres_user: Optional[str] = "postgres"
+    postgres_password: Optional[str] = "postgres"
+    postgres_database: Optional[str] = "geniusrise"
     postgres_table: Optional[str] = None
-    dynamodb_table_name: Optional[str] = None
-    dynamodb_region_name: Optional[str] = None
+    dynamodb_table_name: Optional[str] = "geniusrise"
+    dynamodb_region_name: Optional[str] = "ap-south-1"  # hah
     prometheus_gateway: Optional[str] = None
 
     class Config:
@@ -53,7 +53,7 @@ class StateArgs(BaseModel):
 
 class State(BaseModel):
     """
-    This class defines the state of the spout or bolt. The state can be of type in_memory, redis, postgres, or dynamodb.
+    This class defines the state of the spout or bolt. The state can be of type none, redis, postgres, or dynamodb.
     """
 
     type: str
@@ -61,7 +61,7 @@ class State(BaseModel):
 
     @validator("type")
     def validate_type(cls, v, values, **kwargs):
-        if v not in ["in_memory", "redis", "postgres", "dynamodb", "prometheus"]:
+        if v not in ["none", "redis", "postgres", "dynamodb", "prometheus"]:
             raise ValueError("Invalid state type")
         return v
 
@@ -69,23 +69,15 @@ class State(BaseModel):
     def validate_args(cls, v, values, **kwargs):
         if "type" in values:
             if values["type"] == "redis":
-                if not v or "redis_host" not in v or "redis_port" not in v or "redis_db" not in v:
+                if not v or "redis_db" not in v:
                     raise ValueError("Missing required fields for redis state type")
             elif values["type"] == "postgres":
-                if (
-                    not v
-                    or "postgres_host" not in v
-                    or "postgres_port" not in v
-                    or "postgres_user" not in v
-                    or "postgres_password" not in v
-                    or "postgres_database" not in v
-                    or "postgres_table" not in v
-                ):
+                if not v or "postgres_table" not in v:
                     raise ValueError("Missing required fields for postgres state type")
             elif values["type"] == "dynamodb":
-                if not v or "dynamodb_table_name" not in v or "dynamodb_region_name" not in v:
+                if not v or "dynamodb_table_name" not in v:
                     raise ValueError("Missing required fields for dynamodb state type")
-            elif values["type"] == "in_memory":
+            elif values["type"] == "none":
                 pass
             elif values["type"] == "prometheus":
                 if not v or "prometheus_gateway" not in v:
@@ -107,7 +99,7 @@ class OutputArgs(BaseModel):
     folder: Optional[str] = None
     output_topic: Optional[str] = None
     kafka_servers: Optional[str] = None
-    buffer_size: Optional[int] = 1
+    buffer_size: Optional[int] = 1000
 
     class Config:
         extra = Extra.allow
@@ -137,7 +129,7 @@ class Output(BaseModel):
                 if not v or "output_topic" not in v or "kafka_servers" not in v:
                     raise ValueError("Missing required fields for streaming output type")
             elif values["type"] == "stream_to_batch":
-                if not v or "bucket" not in v or "folder" not in v or "buffer_size" not in v:
+                if not v or "bucket" not in v or "folder" not in v:
                     raise ValueError("Missing required fields for stream_to_batch output type")
             else:
                 raise ValueError(f"Unknown type of output {values['type']}")
@@ -158,7 +150,7 @@ class InputArgs(BaseModel):
     bucket: Optional[str] = None
     folder: Optional[str] = None
     name: Optional[str] = None
-    buffer_size: Optional[int] = 1
+    buffer_size: Optional[int] = 1000
 
     class Config:
         extra = Extra.allow
@@ -198,7 +190,7 @@ class Input(BaseModel):
                 if not v or "bucket" not in v or "folder" not in v:
                     raise ValueError("Missing required fields for batch_to_stream input type")
             elif values["type"] == "stream_to_batch":
-                if not v or "input_topic" not in v or "kafka_servers" not in v or "buffer_size" not in v:
+                if not v or "input_topic" not in v or "kafka_servers" not in v:
                     raise ValueError("Missing required fields for stream_to_batch input type")
             elif values["type"] in ["spout", "bolt"]:
                 if not v or "name" not in v:
@@ -216,17 +208,38 @@ class DeployArgs(BaseModel):
     different arguments are required.
     """
 
+    # k8s
+    kind: Optional[str] = None
     name: Optional[str] = None
+    cluster_name: Optional[str] = None
+    context_name: Optional[str] = None
     namespace: Optional[str] = None
-    image: Optional[str] = None
     replicas: Optional[int] = None
+    labels: Optional[str] = None
+    annotations: Optional[str] = None
+    api_key: Optional[str] = None
+    api_host: Optional[str] = None
+    verify_ssl: Optional[str] = None
+    ssl_ca_cert: Optional[str] = None
+    storage: Optional[str] = None
+    gpu: Optional[str] = None
+    port: Optional[str] = None
+    target_port: Optional[str] = None
+    schedule: Optional[str] = None
+
+    # ecs
     account_id: Optional[str] = None
     cluster: Optional[str] = None
     subnet_ids: Optional[List[str]] = None
     security_group_ids: Optional[List[str]] = None
     log_group: Optional[str] = None
+
+    # common
+    image: Optional[str] = None
+    command: Optional[str] = None
     cpu: Optional[int] = None
     memory: Optional[int] = None
+    env_vars: Optional[str] = None
 
     class Config:
         extra = Extra.allow
@@ -267,7 +280,15 @@ class Deploy(BaseModel):
                     if not v or field not in v or not v[field]:
                         raise ValueError(f"Missing required field '{field}' for ecs deploy type")
             if values["type"] == "k8s":
-                required_fields = ["name", "namespace", "image", "replicas"]
+                required_fields = [
+                    "kind",
+                    "name",
+                    "cluster_name",
+                    "context_name",
+                    "namespace",
+                    "image",
+                    "command",
+                ]
                 for field in required_fields:
                     if not v or field not in v or not v[field]:
                         raise ValueError(f"Missing required field '{field}' for k8s deploy type")
@@ -287,8 +308,8 @@ class Spout(BaseModel):
     method: str
     args: Optional[ExtraKwargs]
     output: Output
-    state: State
-    deploy: Deploy
+    state: Optional[State] = None
+    deploy: Optional[Deploy] = None
 
 
 class Bolt(BaseModel):
@@ -301,8 +322,8 @@ class Bolt(BaseModel):
     args: Optional[ExtraKwargs]
     input: Input
     output: Output
-    state: State
-    deploy: Deploy
+    state: Optional[State] = None
+    deploy: Optional[Deploy] = None
 
 
 class Geniusfile(BaseModel):
@@ -310,12 +331,12 @@ class Geniusfile(BaseModel):
     This class defines the overall structure of the YAML file. It includes a version, spouts, and bolts.
     """
 
-    version: str
-    spouts: Dict[str, Spout]
-    bolts: Dict[str, Bolt]
+    version: Union[int, str, float]
+    spouts: Dict[str, Spout] = {}
+    bolts: Dict[str, Bolt] = {}
 
     @validator("version")
     def validate_version(cls, v, values, **kwargs):
-        if v != "1":
+        if v != "1" and v != 1 and v != 1.0:
             raise ValueError("Invalid version")
         return v

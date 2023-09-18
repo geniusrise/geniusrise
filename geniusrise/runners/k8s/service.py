@@ -136,6 +136,7 @@ class Service(Deployment):
         memory: Optional[str] = None,
         storage: Optional[str] = None,
         gpu: Optional[str] = None,
+        **kwargs,
     ) -> None:
         """
         🛠 Create a Kubernetes resource Service.

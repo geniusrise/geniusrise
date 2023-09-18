@@ -19,8 +19,12 @@ import logging
 import typing
 from typing import Dict, List
 
+# import os
+
 import emoji  # type: ignore
 import yaml  # type: ignore
+from concurrent.futures import ThreadPoolExecutor, wait
+
 
 from geniusrise.cli.boltctl import BoltCtl
 from geniusrise.cli.schema import Bolt, Geniusfile, Spout
@@ -75,7 +79,7 @@ class YamlCtl:
         parser.add_argument("--bolt", type=str, help="Name of the specific bolt to run.")
         parser.add_argument(
             "--file",
-            default=".",
+            default="genius.yml",
             type=str,
             help="Path of the genius.yml file, default to .",
         )
@@ -93,28 +97,46 @@ class YamlCtl:
         with open(args.file, "r") as file:
             self.geniusfile = Geniusfile.model_validate(yaml.safe_load(file), strict=True)
         if args.spout == "all":
-            self.run_spouts()
+            with ThreadPoolExecutor(max_workers=len(self.geniusfile.spouts)) as executor:
+                futures = self.run_spouts(executor)
+            wait(futures)
         elif args.bolt == "all":
-            self.run_bolts()
+            with ThreadPoolExecutor(max_workers=len(self.geniusfile.bolts)) as executor:
+                futures = self.run_bolts(executor)
+            wait(futures)
         elif args.spout:
             self.run_spout(args.spout)
         elif args.bolt:
             self.run_bolt(args.bolt)
         else:
-            self.run_spouts()
-            self.run_bolts()
+            with ThreadPoolExecutor(max_workers=len(self.geniusfile.spouts) + len(self.geniusfile.bolts)) as executor:
+                futures = self.run_spouts(executor)
+                futures2 = self.run_bolts(executor)
+                wait(futures + futures2)
 
-    def run_spouts(self):
+    def run_spouts(self, executor):
         """Run all spouts defined in the YAML configuration."""
         self.log.info(emoji.emojize(":rocket: Running all spouts..."))
-        for spout_name, _ in self.geniusfile.spouts.items():
-            self.run_spout(spout_name)
 
-    def run_bolts(self):
+        futures = []
+        for spout_name, _ in self.geniusfile.spouts.items():
+            self.log.debug(f"Starting spout {spout_name}...")
+            futures.append(executor.submit(self.run_spout, spout_name))
+            self.log.debug(f"Running {spout_name}...")
+
+        return futures
+
+    def run_bolts(self, executor):
         """Run all bolts defined in the YAML configuration."""
         self.log.info(emoji.emojize(":rocket: Running all bolts..."))
+
+        futures = []
         for bolt_name, _ in self.geniusfile.bolts.items():
-            self.run_bolt(bolt_name)
+            self.log.debug(f"Starting bolt {bolt_name}...")
+            futures.append(executor.submit(self.run_bolt, bolt_name))
+            self.log.debug(f"Running {bolt_name}...")
+
+        return futures
 
     def run_spout(self, spout_name: str):
         """
@@ -128,9 +150,9 @@ class YamlCtl:
             self.log.error(emoji.emojize(f":x: Spout {spout_name} not found."))
             return
 
-        spout_ctl = self.spout_ctls.get(spout_name)
+        spout_ctl = self.spout_ctls.get(spout.name)
         if not spout_ctl:
-            self.log.error(emoji.emojize(f":x: SpoutCtl for {spout_name} not found."))
+            self.log.error(emoji.emojize(f":x: SpoutCtl for {spout_name} - {spout.name} not found."))
             return
 
         self.log.info(emoji.emojize(f":rocket: Running spout {spout_name}..."))
@@ -142,13 +164,12 @@ class YamlCtl:
         ] + self._convert_spout(spout)
 
         parser = argparse.ArgumentParser()
-        self.spout_ctls[spout_name].create_parser(parser)
+        self.spout_ctls[spout.name].create_parser(parser)
         try:
             namespace_args = parser.parse_args(flat_args)
             spout_ctl.run(namespace_args)
         except Exception as e:
             self.log.exception(f"Could not execute: {e}")
-            parser.print_help()
 
     def run_bolt(self, bolt_name: str):
         """
@@ -174,9 +195,9 @@ class YamlCtl:
             bolt.input.type = resolved_output.type  # Set the resolved output type as the bolt's input type
             bolt.input.args = resolved_output.args  # Set the resolved output args as the bolt's input args
 
-        bolt_ctl = self.bolt_ctls.get(bolt_name)
+        bolt_ctl = self.bolt_ctls.get(bolt.name)
         if not bolt_ctl:
-            self.log.error(emoji.emojize(f":x: BoltCtl for {bolt_name} not found."))
+            self.log.error(emoji.emojize(f":x: BoltCtl for {bolt_name} = {bolt.name} not found."))
             return
 
         self.log.info(emoji.emojize(f":rocket: Running bolt {bolt_name}..."))
@@ -189,9 +210,8 @@ class YamlCtl:
         ] + self._convert_bolt(bolt)
 
         # TODO: choosing this weird approach helps us build validations at argparser
-        # and print argparser's help in case of problems in yaml?
         parser = argparse.ArgumentParser()
-        self.bolt_ctls[bolt_name].create_parser(parser)
+        self.bolt_ctls[bolt.name].create_parser(parser)
         namespace_args = parser.parse_args(flat_args)
         bolt_ctl.run(namespace_args)
 
@@ -222,6 +242,7 @@ class YamlCtl:
             self.log.error(emoji.emojize(f":x: Invalid reference type {input_type}."))
             return None
 
+    # TODO: maybe create argparse namespaces instead of this nonsense
     @typing.no_type_check
     def _convert_spout(self, spout: Spout) -> List[str]:
         spout_args = []
@@ -257,6 +278,11 @@ class YamlCtl:
             spout_args.append(f"--dynamodb_region_name={spout.state.args.dynamodb_region_name}")
         elif spout.state.type == "prometheus":
             spout_args.append(f"--prometheus_gateway={spout.state.args.prometheus_gateway}")
+
+        if spout.args:
+            method_args = [f'{arg[0]}="{arg[1]}"' for arg in spout.args]
+            spout_args.append("--args")
+            spout_args += method_args
 
         return spout_args
 
@@ -316,5 +342,10 @@ class YamlCtl:
             bolt_args.append(f"--dynamodb_region_name={bolt.state.args.dynamodb_region_name}")
         elif bolt.state.type == "prometheus":
             bolt_args.append(f"--prometheus_gateway={bolt.state.args.prometheus_gateway}")
+
+        if bolt.args:
+            method_args = [f'{arg[0]}="{arg[1]}"' for arg in bolt.args]
+            bolt_args.append("--args")
+            bolt_args += method_args
 
         return bolt_args

@@ -155,7 +155,7 @@ def output_type(request):
     return request.param
 
 
-@pytest.fixture(params=["in_memory", "redis", "postgres", "dynamodb"])
+@pytest.fixture(params=["none", "redis", "postgres", "dynamodb"])
 def state_type(request):
     return request.param
 
@@ -200,7 +200,7 @@ def test_bolt_create(input_type, output_type, state_type, tmpdir):
     elif output_type == "streaming":
         assert isinstance(bolt.output, StreamingOutput)
 
-    if state_type == "in_memory":
+    if state_type == "none":
         assert isinstance(bolt.state, InMemoryState)
     elif state_type == "redis":
         assert isinstance(bolt.state, RedisState)

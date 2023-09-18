@@ -61,6 +61,7 @@ class GeniusCtl:
             argparse.ArgumentParser: Command-line parser.
         """
         parser = argparse.ArgumentParser(description="Geniusrise", formatter_class=RichHelpFormatter)
+        parser.allow_abbrev = False
         subparsers = parser.add_subparsers(dest="top_level_command")
 
         # Run module discovery
@@ -90,7 +91,7 @@ class GeniusCtl:
 
         # Create subparser for YAML operations
         yaml_parser = subparsers.add_parser(
-            "yaml",
+            "rise",
             help="Manage spouts and bolts with a YAML file.",
             formatter_class=RichHelpFormatter,
         )
@@ -119,17 +120,16 @@ class GeniusCtl:
     def discover(self):
         self.discover = Discover()
         discovered_components = self.discover.scan_directory(os.getenv("GENIUS_DIR", "."))
+        discovered_installed_components = self.discover.discover_geniusrise_installed_modules()
+
+        components = {**discovered_components, **discovered_installed_components}
 
         # Segregate the discovered components based on their type
         self.spouts = {
-            name: component
-            for name, component in discovered_components.items()
-            if isinstance(component, DiscoveredSpout)
+            name: component for name, component in components.items() if isinstance(component, DiscoveredSpout)
         }
         self.bolts = {
-            name: component
-            for name, component in discovered_components.items()
-            if isinstance(component, DiscoveredBolt)
+            name: component for name, component in components.items() if isinstance(component, DiscoveredBolt)
         }
 
     def run(self, args):
@@ -145,7 +145,7 @@ class GeniusCtl:
             self.spout_ctls[args.top_level_command].run(args)
         elif args.top_level_command in self.bolts:
             self.bolt_ctls[args.top_level_command].run(args)
-        elif args.top_level_command == "yaml":
+        elif args.top_level_command == "rise":
             self.yaml_ctl.run(args)
         elif args.top_level_command == "plugins":
             if args.spout_or_bolt in self.spouts:
@@ -227,7 +227,7 @@ class GeniusCtl:
 
 
 def main():
-    logger = setup_logger()
+    setup_logger()
     genius_ctl = GeniusCtl()
     genius_ctl.cli()
 
