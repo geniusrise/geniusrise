@@ -125,7 +125,7 @@ class Spout(Task):
         Args:
             klass (type): The Spout class to create.
             output_type (str): The type of output ("batch" or "streaming").
-            state_type (str): The type of state manager ("in_memory", "redis", "postgres", or "dynamodb").
+            state_type (str): The type of state manager ("none", "redis", "postgres", or "dynamodb").
             **kwargs: Additional keyword arguments for initializing the spout.
                 ```
                 Keyword Arguments:
@@ -190,7 +190,7 @@ class Spout(Task):
 
         # Create the state manager
         state: State
-        if state_type == "in_memory":
+        if state_type == "none":
             state = InMemoryState()
         elif state_type == "redis":
             state = RedisState(

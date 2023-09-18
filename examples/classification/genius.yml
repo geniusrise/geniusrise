@@ -1,0 +1,45 @@
+version: 1
+
+spouts:
+  http_listener:
+    name: Webhook
+    method: listen
+    args:
+      port: 8080
+    state:
+      type: none
+    output:
+      type: stream_to_batch
+      args:
+        bucket: geniusrise-test
+        folder: train
+
+bolts:
+  http_classifier:
+    name: HuggingFaceClassificationFineTuner
+    method: fine_tune
+    args:
+      model_name: bert-base-uncased
+      tokenizer_name: bert-base-uncased
+      num_train_epochs: 2
+      per_device_train_batch_size: 2
+      model_class: BertForSequenceClassification
+      tokenizer_class: BertTokenizer
+      data_masked: true
+      data_extractor_lambda: "lambda x: x['data']"
+      hf_repo_id: ixaxaar/geniusrise-api-status-code-prediction
+      hf_commit_message: initial local testing
+      hf_create_pr: true
+      hf_token: ***REMOVED***
+    state:
+      type: none
+    input:
+      type: batch
+      args:
+        bucket: geniusrise-test
+        folder: train
+    output:
+      type: batch
+      args:
+        bucket: geniusrise-test
+        folder: model

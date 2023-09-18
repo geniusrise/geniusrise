@@ -166,7 +166,7 @@ class Bolt(Task):
             klass (type): The Bolt class to create.
             input_type (str): The type of input ("batch" or "streaming").
             output_type (str): The type of output ("batch" or "streaming").
-            state_type (str): The type of state manager ("in_memory", "redis", "postgres", or "dynamodb").
+            state_type (str): The type of state manager ("none", "redis", "postgres", or "dynamodb").
             **kwargs: Additional keyword arguments for initializing the bolt.
                 ```
                 Keyword Arguments:
@@ -285,7 +285,7 @@ class Bolt(Task):
 
         # Create the state manager
         state: State
-        if state_type == "in_memory":
+        if state_type == "none":
             state = InMemoryState()
         elif state_type == "redis":
             state = RedisState(

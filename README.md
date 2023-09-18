@@ -55,12 +55,12 @@ bolts:
     input:
       type: batch
       args:
-        bucket: my-bucket
+        bucket: geniusrise-test
         folder: my-shit
     output:
       type: batch
       args:
-        bucket: my-bucket
+        bucket: geniusrise-test
         folder: my-model
     deploy:
       type: 'k8s'
@@ -82,7 +82,7 @@ cat > data.jsonl <<- EOM
 {"instruction": "instruction2", "output":"output2"}
 EOM
 
-aws s3 cp data.jsonl s3://my-bucket/my-shit/
+aws s3 cp data.jsonl s3://geniusrise-test/my-shit/
 ```
 
 ### 4. Fine tune

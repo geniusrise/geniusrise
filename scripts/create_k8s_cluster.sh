@@ -43,3 +43,31 @@ eksctl create nodegroup \
     --ssh-access \
     --managed \
     --install-nvidia-plugin
+
+eksctl create iamidentitymapping \
+    --cluster geniusrise-dev \
+    --region us-east-1 \
+    --arn arn:aws:iam::1:user/god \
+    --group system:masters \
+    --username god \
+    --no-duplicate-arns
+
+eksctl create iamserviceaccount \
+    --name ebs-csi-controller-sa \
+    --namespace kube-system \
+    --cluster geniusrise-dev \
+    --role-name AmazonEKS_EBS_CSI_DriverRole \
+    --role-only \
+    --attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy \
+    --approve
+
+oidc_id=$(aws eks describe-cluster --name geniusrise-dev --query "cluster.identity.oidc.issuer" --output text | cut -d '/' -f 5)
+aws iam list-open-id-connect-providers | grep "$oidc_id" | cut -d "/" -f4\n
+
+eksctl utils associate-iam-oidc-provider --cluster geniusrise-dev --approve
+
+ksctl create addon \
+    --name aws-ebs-csi-driver \
+    --cluster geniusrise-dev \
+    --service-account-role-arn arn:aws:iam::1:role/AmazonEKS_EBS_CSI_DriverRole \
+    --force
