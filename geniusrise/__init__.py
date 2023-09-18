@@ -30,3 +30,11 @@ from geniusrise.core import (
     StreamingOutput,
     Task,
 )
+
+from geniusrise.runners import (
+    K8sResourceManager,
+    Deployment,
+    Service,
+    Job,
+    CronJob,
+)
