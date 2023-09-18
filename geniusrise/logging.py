@@ -54,13 +54,6 @@ def setup_logger(state_instance: Optional[State] = None) -> logging.Logger:
     Returns:
         logging.Logger: Configured logger with colorful outputs.
     """
-    # Reset all existing loggers
-    for logger in logging.root.manager.loggerDict.values():
-        if isinstance(logger, logging.Logger):
-            logger.setLevel(logging.NOTSET)
-            for handler in logger.handlers.copy():
-                logger.removeHandler(handler)
-
     # Define the custom formatter
     formatter = (
         colorlog.ColoredFormatter(
