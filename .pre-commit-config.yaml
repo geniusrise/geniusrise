@@ -5,6 +5,16 @@ repos:
       - id: black
         args: [--line-length=120]
 
+  - repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.1.12
+    hooks:
+      - id: insert-license
+        name: "Insert license header in C++ source files"
+        args: [--license-filepath=assets/header.txt,
+               '--comment-style=#',
+               --detect-license-in-X-top-lines=2]
+        types_or: [python, makefile, dockerfile]
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.1.0
     hooks:
@@ -51,3 +61,5 @@ repos:
       - id: mypy
         additional_dependencies:
           - types-requests
+
+exclude: ^(tests|test)/

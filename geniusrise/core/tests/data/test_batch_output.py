@@ -95,6 +95,7 @@ def file_exists_in_s3(bucket, key):
     try:
         s3.Object(bucket, key).load()
     except Exception as e:
+        print(e)
         return False
     return True
 
