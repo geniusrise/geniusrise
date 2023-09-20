@@ -15,6 +15,7 @@ from geniusrise.cli.boltctl import BoltCtl
 from geniusrise.cli.discover import Discover, DiscoveredBolt, DiscoveredSpout
 from geniusrise.cli.spoutctl import SpoutCtl
 from geniusrise.cli.yamlctl import YamlCtl
+from geniusrise.cli.dockerctl import DockerCtl
 from geniusrise.logging import setup_logger
 
 
@@ -99,6 +100,10 @@ class GeniusCtl:
         self.yaml_ctl = YamlCtl(self.spout_ctls, self.bolt_ctls)
         self.yaml_ctl.create_parser(yaml_parser)
 
+        docker_parser = subparsers.add_parser("docker", help="Package this application into a Docker image.")
+        self.docker_ctl = DockerCtl()
+        self.docker_ctl.create_parser(docker_parser)
+
         # Add a 'help' command to print help for all spouts and bolts
         help_parser = subparsers.add_parser(
             "plugins",
@@ -147,6 +152,8 @@ class GeniusCtl:
             self.bolt_ctls[args.top_level_command].run(args)
         elif args.top_level_command == "rise":
             self.yaml_ctl.run(args)
+        elif args.top_level_command == "docker":
+            self.docker_ctl.run(args)
         elif args.top_level_command == "plugins":
             if args.spout_or_bolt in self.spouts:
                 self.spout_ctls[args.spout_or_bolt].run(args)
