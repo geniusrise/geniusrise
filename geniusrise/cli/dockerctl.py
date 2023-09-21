@@ -163,7 +163,7 @@ class DockerCtl:
             "",
             # Install Python 3.10
             "RUN apt-get update \\",
-            " && apt-get install -y software-properties-common build-essential curl wget vim libpq-dev  \\",
+            " && apt-get install -y software-properties-common build-essential curl wget vim libpq-dev pkg-config \\",
             " && add-apt-repository ppa:deadsnakes/ppa \\",
             " && apt-get update \\",
             " && apt-get install -y python3.10 python3.10-dev python3.10-distutils \\",

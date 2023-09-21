@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN useradd --create-home genius
 
 RUN apt-get update \
- && apt-get install -y software-properties-common build-essential curl wget vim libpq-dev  \
+ && apt-get install -y software-properties-common build-essential curl wget vim libpq-dev pkg-config \
  && add-apt-repository ppa:deadsnakes/ppa \
  && apt-get update \
  && apt-get install -y python3.10 python3.10-dev python3.10-distutils \
@@ -14,8 +14,12 @@ RUN apt-get update \
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py \
  && python3.10 get-pip.py
 
+RUN apt-get update && apt-get install -y \libmysqlclient-dev libldap2-dev libsasl2-dev libssl-dev && apt-get clean
 
 RUN pip install geniusrise-listeners
+RUN pip install geniusrise-databases
+RUN pip install geniusrise-huggingface
+RUN pip install geniusrise-openai
 RUN pip install --upgrade geniusrise
 ENV GENIUS=/home/genius/.local/bin/genius
 
