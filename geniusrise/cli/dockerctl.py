@@ -9,16 +9,66 @@ import boto3
 
 
 class DockerCtl:
-    """
+    r"""
     This class manages the creation and uploading of Docker containers.
 
     Attributes:
         base_image (str): The base image to use for the Docker container.
         workdir (str): The working directory in the Docker container.
         local_dir (str): The local directory to copy into the Docker container.
-        packages (list): List of packages to install in the Docker container.
-        os_packages (list): List of OS packages to install in the Docker container.
-        env_vars (dict): Environment variables to set in the Docker container.
+        packages (List[str]): List of packages to install in the Docker container.
+        os_packages (List[str]): List of OS packages to install in the Docker container.
+        env_vars (Dict[str, str]): Environment variables to set in the Docker container.
+
+    Command-Line Interface:
+        genius docker package <image_name> <repository> [options]
+
+    Parameters:
+        - <image_name>: The name of the Docker image to build and upload.
+        - <repository>: The container repository to upload to (e.g., "ECR", "DockerHub", "Quay", "ACR", "GCR").
+
+    Options:
+        - --auth: Authentication credentials as a JSON string. Default is an empty JSON object.
+        - --base_image: The base image to use for the Docker container. Default is "nvidia/cuda:12.2.0-runtime-ubuntu20.04".
+        - --workdir: The working directory in the Docker container. Default is "/app".
+        - --local_dir: The local directory to copy into the Docker container. Default is ".".
+        - --packages: List of Python packages to install in the Docker container. Default is an empty list.
+        - --os_packages: List of OS packages to install in the Docker container. Default is an empty list.
+        - --env_vars: Environment variables to set in the Docker container. Default is an empty dictionary.
+
+    Authentication Details:
+        - ECR: `{"aws_region": "ap-south-1", "aws_secret_access_key": "aws_key", "aws_access_key_id": "aws_secret"}`
+        - DockerHub: `{"dockerhub_username": "username", "dockerhub_password": "password"}`
+        - ACR: `{"acr_username": "username", "acr_password": "password", "acr_login_server": "login_server"}`
+        - GCR: `{"gcr_key_file_path": "/path/to/keyfile.json", "gcr_repository": "repository"}`
+        - Quay: `{"quay_username": "username", "quay_password": "password"}`
+
+    ## Examples
+
+    #### Uploading to ECR (Amazon Elastic Container Registry)
+
+    ```bash
+    genius docker package geniusrise ecr --auth '{"aws_region": "ap-south-1"}'
+    ```
+
+    #### Uploading to DockerHub
+
+    ```bash
+    genius docker package geniusrise dockerhub --auth '{"dockerhub_username": "username", "dockerhub_password": "password"}'
+    ```
+
+    #### Uploading to ACR (Azure Container Registry)
+
+    ```bash
+    genius docker package geniusrise acr --auth '{"acr_username": "username", "acr_password": "password", "acr_login_server": "login_server"}'
+    ```
+
+    #### Uploading to GCR (Google Container Registry)
+
+    ```bash
+    genius docker package geniusrise gcr --auth '{"gcr_key_file_path": "/path/to/keyfile.json", "gcr_repository": "repository"}'
+    ```
+
     """
 
     def __init__(self):
@@ -210,9 +260,27 @@ class DockerCtl:
             return False
 
     def upload_to_ecr(self, image_name: str, auth: dict, ecr_repo: Optional[str] = None) -> bool:
+        """
+        Upload the Docker image to Amazon Elastic Container Registry (ECR).
+
+        Args:
+            image_name (str): The name of the Docker image to upload.
+            auth (dict): Authentication credentials for ECR.
+            ecr_repo (Optional[str]): The ECR repository to upload to. If not provided, it will be generated.
+
+        Returns:
+            bool: True if the upload was successful, False otherwise.
+        """
+        aws_secret_access_key = auth.get("aws_secret_access_key", os.environ.get("AWS_SECRET_ACCESS_KEY"))
+        aws_access_key_id = auth.get("aws_access_key_id", os.environ.get("AWS_ACCESS_KEY_ID"))
         aws_region = auth.get("aws_region", os.environ.get("AWS_DEFAULT_REGION"))
 
-        sts_client = boto3.client("sts", region_name=aws_region)
+        sts_client = boto3.client(
+            "sts",
+            region_name=aws_region,
+            aws_secret_access_key=aws_secret_access_key,
+            aws_access_key_id=aws_access_key_id,
+        )
         account_id = sts_client.get_caller_identity().get("Account")
         ecr_repo = f"{account_id}.dkr.ecr.{aws_region}.amazonaws.com"
 
@@ -229,6 +297,16 @@ class DockerCtl:
             return False
 
     def upload_to_acr(self, image_name: str, auth: dict) -> bool:
+        """
+        Upload the Docker image to Azure Container Registry (ACR).
+
+        Args:
+            image_name (str): The name of the Docker image to upload.
+            auth (dict): Authentication credentials for ACR.
+
+        Returns:
+            bool: True if the upload was successful, False otherwise.
+        """
         acr_username = auth.get("acr_username", os.environ.get("ACR_USERNAME"))
         acr_password = auth.get("acr_password", os.environ.get("ACR_PASSWORD"))
         acr_login_server = auth.get("acr_login_server", os.environ.get("ACR_LOGIN_SERVER"))
@@ -246,6 +324,16 @@ class DockerCtl:
             return False
 
     def upload_to_gcr(self, image_name: str, auth: dict) -> bool:
+        """
+        Upload the Docker image to Google Container Registry (GCR).
+
+        Args:
+            image_name (str): The name of the Docker image to upload.
+            auth (dict): Authentication credentials for GCR.
+
+        Returns:
+            bool: True if the upload was successful, False otherwise.
+        """
         gcr_key_file_path = auth.get("gcr_key_file_path", os.environ.get("GCR_KEY_FILE_PATH"))
         gcr_repository = auth.get("gcr_repository", os.environ.get("GCR_REPOSITORY"))
 
@@ -267,6 +355,7 @@ class DockerCtl:
 
         Args:
             image_name (str): The name of the Docker image to upload.
+            auth (dict): Authentication credentials for DockerHub.
 
         Returns:
             bool: True if the upload was successful, False otherwise.
@@ -292,6 +381,7 @@ class DockerCtl:
 
         Args:
             image_name (str): The name of the Docker image to upload.
+            auth (dict): Authentication credentials for Quay.io.
 
         Returns:
             bool: True if the upload was successful, False otherwise.
