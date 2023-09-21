@@ -60,6 +60,26 @@ class CronJob(Job):
         return parser
 
     def run(self, args: Namespace) -> None:
+        """
+        🚀 Run the Cron Job manager.
+
+        Args:
+            args (Namespace): The parsed command line arguments.
+        """
+
+        self.connect(
+            kube_config_path=args.kube_config_path if args.kube_config_path else None,
+            cluster_name=args.cluster_name if args.cluster_name else None,
+            context_name=args.context_name if args.context_name else None,
+            namespace=args.namespace if args.namespace else None,
+            labels=json.loads(args.labels) if args.labels else {"created_by": "geniusrise"},
+            annotations=args.annotations if args.annotations else None,
+            api_key=args.api_key if args.api_key else None,
+            api_host=args.api_host if args.api_host else None,
+            verify_ssl=args.verify_ssl if args.verify_ssl else None,
+            ssl_ca_cert=args.ssl_ca_cert if args.ssl_ca_cert else None,
+        )
+
         if args.command == "create_cronjob":
             self.create(
                 args.name,
@@ -189,4 +209,7 @@ class CronJob(Job):
             dict: Status of the CronJob.
         """
         cronjob = self.batch_api_instance.read_namespaced_cron_job(name, self.namespace)
+
+        self.log.info(f"📊 Status of CronJob {name}: {cronjob.status}")
+
         return {"cronjob_status": cronjob.status}

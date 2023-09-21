@@ -84,6 +84,19 @@ class Service(Deployment):
         Args:
             args (Namespace): The parsed command line arguments.
         """
+        self.connect(
+            kube_config_path=args.kube_config_path if args.kube_config_path else None,
+            cluster_name=args.cluster_name if args.cluster_name else None,
+            context_name=args.context_name if args.context_name else None,
+            namespace=args.namespace if args.namespace else None,
+            labels=json.loads(args.labels) if args.labels else {"created_by": "geniusrise"},
+            annotations=args.annotations if args.annotations else None,
+            api_key=args.api_key if args.api_key else None,
+            api_host=args.api_host if args.api_host else None,
+            verify_ssl=args.verify_ssl if args.verify_ssl else None,
+            ssl_ca_cert=args.ssl_ca_cert if args.ssl_ca_cert else None,
+        )
+
         if args.service == "create":
             self.create(
                 args.name,
@@ -174,11 +187,11 @@ class Service(Deployment):
         service = client.V1Service(
             api_version="v1",
             kind="Service",
-            metadata=client.V1ObjectMeta(name=f"{name}-service", labels=self.labels, annotations=self.annotations),
+            metadata=client.V1ObjectMeta(name=f"{name}", labels=self.labels, annotations=self.annotations),
             spec=service_spec,
         )
         self.api_instance.create_namespaced_service(self.namespace, service)
-        self.log.info(f"🌐 Created service {name}-service")
+        self.log.info(f"🌐 Created service {name}")
 
     def delete(self, name: str) -> None:
         """
@@ -188,7 +201,8 @@ class Service(Deployment):
             name (str): Name of the resource to delete.
         """
         self.apps_api_instance.delete_namespaced_deployment(name, self.namespace)
-        self.api_instance.delete_namespaced_service(f"{name}-service", self.namespace)
+        self.api_instance.delete_namespaced_service(f"{name}", self.namespace)
+        self.log.info(f"🗑️ Deleted service {name}")
 
     def status(self, name: str) -> dict:  # type: ignore
         """
@@ -212,6 +226,9 @@ class Service(Deployment):
             list: List of services.
         """
         service_list = self.api_instance.list_namespaced_service(self.namespace)
+        self.log.info(f"🧿 Services: {[service.metadata.name for service in service_list.items]}")
+        self.log.info(f"🧿 Cluster IPs: {[service.spec.cluster_ip for service in service_list.items]}")
+
         return [
             {"name": service.metadata.name, "cluster_ip": service.spec.cluster_ip} for service in service_list.items
         ]
@@ -227,6 +244,15 @@ class Service(Deployment):
             dict: Description of the service.
         """
         service = self.api_instance.read_namespaced_service(service_name, self.namespace)
+
+        self.log.info(f"🧿 Service: {service.metadata.name}")
+        self.log.info(f"🧿 Cluster IP: {service.spec.cluster_ip}")
+        self.log.info(f"🧿 Ports: {service.spec.ports}")
+        self.log.info(f"🧿 Labels: {service.metadata.labels}")
+        self.log.info(f"🧿 Annotations: {service.metadata.annotations}")
+        self.log.info(f"🧿 Target port: {service.spec.ports[0].target_port}")
+        self.log.info(f"🧿 Port: {service.spec.ports[0].port}")
+
         return {
             "name": service.metadata.name,
             "cluster_ip": service.spec.cluster_ip,
