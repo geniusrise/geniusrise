@@ -159,7 +159,7 @@ class DockerCtl:
             # Set debconf to non-interactive mode
             "ENV DEBIAN_FRONTEND=noninteractive",
             # Create a non-root user and switch to it
-            "RUN useradd --create-home appuser",
+            "RUN useradd --create-home genius",
             "",
             # Install Python 3.10
             "RUN apt-get update \\",
@@ -184,23 +184,25 @@ class DockerCtl:
         dockerfile_content.append("")
         for package in self.packages:
             dockerfile_content.append(f"RUN pip install {package}")
+        dockerfile_content.append("RUN pip install --upgrade geniusrise")
 
         # Add environment variables
         for key, value in self.env_vars.items():
             dockerfile_content.append(f"ENV {key}={value}")
+        dockerfile_content.append("ENV GENIUS=/home/genius/.local/bin/genius")
 
         # Add command to copy local directory to workdir
         dockerfile_content.append("")
-        dockerfile_content.append(f"COPY --chown=appuser:appuser {self.local_dir} {self.workdir}/")
+        dockerfile_content.append(f"COPY --chown=genius:genius {self.local_dir} {self.workdir}/")
 
         # Install requirements
         dockerfile_content.append("")
         dockerfile_content.append("RUN pip3.10 install -r requirements.txt")
 
         # Dummy entrypoint
-        dockerfile_content.append("USER appuser")
+        dockerfile_content.append("USER genius")
         dockerfile_content.append("")
-        dockerfile_content.append('ENTRYPOINT ["genius --help"]')
+        dockerfile_content.append('CMD ["genius", "--help"]')
 
         dockerfile_path = "./Dockerfile"
         with open(dockerfile_path, "w") as f:

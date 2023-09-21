@@ -3,7 +3,7 @@ FROM nvidia/cuda:12.2.0-runtime-ubuntu20.04 AS base
 WORKDIR /app
 
 ENV DEBIAN_FRONTEND=noninteractive
-RUN useradd --create-home appuser
+RUN useradd --create-home genius
 
 RUN apt-get update \
  && apt-get install -y software-properties-common build-essential curl wget vim libpq-dev  \
@@ -15,10 +15,13 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py \
  && python3.10 get-pip.py
 
 
+RUN pip install geniusrise-listeners
+RUN pip install --upgrade geniusrise
+ENV GENIUS=/home/genius/.local/bin/genius
 
-COPY --chown=appuser:appuser . /app/
+COPY --chown=genius:genius . /app/
 
 RUN pip3.10 install -r requirements.txt
-USER appuser
+USER genius
 
-ENTRYPOINT ["genius --help"]
+CMD ["genius", "--help"]
