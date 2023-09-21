@@ -1,0 +1,2292 @@
+.TH GENIUSCTL.PY "1" "2023\-09\-21" "geniusctl.py" "Generated Python Manual"
+.SH NAME
+geniusctl.py
+.SH SYNOPSIS
+.B geniusctl.py
+[-h] {TestSpoutCtlSpout,TestBoltCtlBolt,rise,docker,pod,deployment,service,job,cron_job,plugins,list} ...
+.SH DESCRIPTION
+Geniusrise
+
+.SH
+POSITIONAL ARGUMENTS
+.TP
+\fBgeniusctl.py\fR \fI\,TestSpoutCtlSpout\/\fR
+Manage spout TestSpoutCtlSpout.
+.TP
+\fBgeniusctl.py\fR \fI\,TestBoltCtlBolt\/\fR
+Manage bolt TestBoltCtlBolt.
+.TP
+\fBgeniusctl.py\fR \fI\,rise\/\fR
+Manage spouts and bolts with a YAML file.
+.TP
+\fBgeniusctl.py\fR \fI\,docker\/\fR
+Package this application into a Docker image.
+.TP
+\fBgeniusctl.py\fR \fI\,pod\/\fR
+Manage spouts and bolts as kubernetes pod
+.TP
+\fBgeniusctl.py\fR \fI\,deployment\/\fR
+Manage spouts and bolts as kubernetes deployment
+.TP
+\fBgeniusctl.py\fR \fI\,service\/\fR
+Manage spouts and bolts as kubernetes service
+.TP
+\fBgeniusctl.py\fR \fI\,job\/\fR
+Manage spouts and bolts as kubernetes job
+.TP
+\fBgeniusctl.py\fR \fI\,cron_job\/\fR
+Manage spouts and bolts as kubernetes cron_job
+.TP
+\fBgeniusctl.py\fR \fI\,plugins\/\fR
+Print help for all spouts and bolts.
+.TP
+\fBgeniusctl.py\fR \fI\,list\/\fR
+List all discovered spouts and bolts.
+
+.SH COMMAND \fI\,'geniusctl.py TestSpoutCtlSpout'\/\fR
+Usage: geniusctl.py TestSpoutCtlSpout [\-h] {rise,deploy,help} ...
+
+.SH
+POSITIONAL ARGUMENTS \fI\,'geniusctl.py TestSpoutCtlSpout'\/\fR
+.TP
+\fBgeniusctl.py TestSpoutCtlSpout\fR \fI\,rise\/\fR
+Run a spout locally.
+.TP
+\fBgeniusctl.py TestSpoutCtlSpout\fR \fI\,deploy\/\fR
+Run a spout remotely.
+.TP
+\fBgeniusctl.py TestSpoutCtlSpout\fR \fI\,help\/\fR
+Print help for the spout.
+
+.SH COMMAND \fI\,'geniusctl.py TestSpoutCtlSpout rise'\/\fR
+Usage: geniusctl.py TestSpoutCtlSpout rise [\-h] [\-\-buffer_size BUFFER_SIZE]
+                                           [\-\-output_folder OUTPUT_FOLDER]
+                                           [\-\-output_kafka_topic OUTPUT_KAFKA_TOPIC]
+                                           [\-\-output_kafka_cluster_connection_string OUTPUT_KAFKA_CLUSTER_CONNECTION_STRING]
+                                           [\-\-output_s3_bucket OUTPUT_S3_BUCKET]
+                                           [\-\-output_s3_folder OUTPUT_S3_FOLDER]
+                                           [\-\-redis_host REDIS_HOST]
+                                           [\-\-redis_port REDIS_PORT]
+                                           [\-\-redis_db REDIS_DB]
+                                           [\-\-postgres_host POSTGRES_HOST]
+                                           [\-\-postgres_port POSTGRES_PORT]
+                                           [\-\-postgres_user POSTGRES_USER]
+                                           [\-\-postgres_password POSTGRES_PASSWORD]
+                                           [\-\-postgres_database POSTGRES_DATABASE]
+                                           [\-\-postgres_table POSTGRES_TABLE]
+                                           [\-\-dynamodb_table_name DYNAMODB_TABLE_NAME]
+                                           [\-\-dynamodb_region_name DYNAMODB_REGION_NAME]
+                                           [\-\-prometheus_gateway PROMETHEUS_GATEWAY]
+                                           [\-\-args ...]
+                                           {batch,streaming,stream_to_batch}
+                                           {none,redis,postgres,dynamodb,prometheus}
+                                           method_name
+
+.TP
+\fB{batch,streaming,stream_to_batch}\fR
+Choose the type of output data: batch or streaming.
+
+.TP
+\fB{none,redis,postgres,dynamodb,prometheus}\fR
+Select the type of state manager: none, redis, postgres, or dynamodb.
+
+.TP
+\fBmethod_name\fR
+The name of the method to execute on the spout.
+
+.SH OPTIONS \fI\,'geniusctl.py TestSpoutCtlSpout rise'\/\fR
+.TP
+\fB\-\-buffer_size\fR \fI\,BUFFER_SIZE\/\fR
+Specify the size of the buffer.
+
+.TP
+\fB\-\-output_folder\fR \fI\,OUTPUT_FOLDER\/\fR
+Specify the directory where output files should be stored temporarily.
+
+.TP
+\fB\-\-output_kafka_topic\fR \fI\,OUTPUT_KAFKA_TOPIC\/\fR
+Kafka output topic for streaming spouts.
+
+.TP
+\fB\-\-output_kafka_cluster_connection_string\fR \fI\,OUTPUT_KAFKA_CLUSTER_CONNECTION_STRING\/\fR
+Kafka connection string for streaming spouts.
+
+.TP
+\fB\-\-output_s3_bucket\fR \fI\,OUTPUT_S3_BUCKET\/\fR
+Provide the name of the S3 bucket for output storage.
+
+.TP
+\fB\-\-output_s3_folder\fR \fI\,OUTPUT_S3_FOLDER\/\fR
+Indicate the S3 folder for output storage.
+
+.TP
+\fB\-\-redis_host\fR \fI\,REDIS_HOST\/\fR
+Enter the host address for the Redis server.
+
+.TP
+\fB\-\-redis_port\fR \fI\,REDIS_PORT\/\fR
+Enter the port number for the Redis server.
+
+.TP
+\fB\-\-redis_db\fR \fI\,REDIS_DB\/\fR
+Specify the Redis database to be used.
+
+.TP
+\fB\-\-postgres_host\fR \fI\,POSTGRES_HOST\/\fR
+Enter the host address for the PostgreSQL server.
+
+.TP
+\fB\-\-postgres_port\fR \fI\,POSTGRES_PORT\/\fR
+Enter the port number for the PostgreSQL server.
+
+.TP
+\fB\-\-postgres_user\fR \fI\,POSTGRES_USER\/\fR
+Provide the username for the PostgreSQL server.
+
+.TP
+\fB\-\-postgres_password\fR \fI\,POSTGRES_PASSWORD\/\fR
+Provide the password for the PostgreSQL server.
+
+.TP
+\fB\-\-postgres_database\fR \fI\,POSTGRES_DATABASE\/\fR
+Specify the PostgreSQL database to be used.
+
+.TP
+\fB\-\-postgres_table\fR \fI\,POSTGRES_TABLE\/\fR
+Specify the PostgreSQL table to be used.
+
+.TP
+\fB\-\-dynamodb_table_name\fR \fI\,DYNAMODB_TABLE_NAME\/\fR
+Provide the name of the DynamoDB table.
+
+.TP
+\fB\-\-dynamodb_region_name\fR \fI\,DYNAMODB_REGION_NAME\/\fR
+Specify the AWS region for DynamoDB.
+
+.TP
+\fB\-\-prometheus_gateway\fR \fI\,PROMETHEUS_GATEWAY\/\fR
+Specify the prometheus gateway URL.
+
+.TP
+\fB\-\-args\fR \fI\,...\/\fR
+Additional keyword arguments to pass to the spout.
+
+.SH COMMAND \fI\,'geniusctl.py TestSpoutCtlSpout deploy'\/\fR
+Usage: geniusctl.py TestSpoutCtlSpout deploy [\-h] [\-\-buffer_size BUFFER_SIZE]
+                                             [\-\-output_folder OUTPUT_FOLDER]
+                                             [\-\-output_kafka_topic OUTPUT_KAFKA_TOPIC]
+                                             [\-\-output_kafka_cluster_connection_string OUTPUT_KAFKA_CLUSTER_CONNECTION_STRING]
+                                             [\-\-output_s3_bucket OUTPUT_S3_BUCKET]
+                                             [\-\-output_s3_folder OUTPUT_S3_FOLDER]
+                                             [\-\-redis_host REDIS_HOST]
+                                             [\-\-redis_port REDIS_PORT]
+                                             [\-\-redis_db REDIS_DB]
+                                             [\-\-postgres_host POSTGRES_HOST]
+                                             [\-\-postgres_port POSTGRES_PORT]
+                                             [\-\-postgres_user POSTGRES_USER]
+                                             [\-\-postgres_password POSTGRES_PASSWORD]
+                                             [\-\-postgres_database POSTGRES_DATABASE]
+                                             [\-\-postgres_table POSTGRES_TABLE]
+                                             [\-\-dynamodb_table_name DYNAMODB_TABLE_NAME]
+                                             [\-\-dynamodb_region_name DYNAMODB_REGION_NAME]
+                                             [\-\-prometheus_gateway PROMETHEUS_GATEWAY]
+                                             [\-\-k8s_kind {deployment,service,job,cron_job}]
+                                             [\-\-k8s_name K8S_NAME]
+                                             [\-\-k8s_image K8S_IMAGE]
+                                             [\-\-k8s_replicas K8S_REPLICAS]
+                                             [\-\-k8s_env_vars K8S_ENV_VARS]
+                                             [\-\-k8s_cpu K8S_CPU]
+                                             [\-\-k8s_memory K8S_MEMORY]
+                                             [\-\-k8s_storage K8S_STORAGE]
+                                             [\-\-k8s_gpu K8S_GPU]
+                                             [\-\-k8s_kube_config_path K8S_KUBE_CONFIG_PATH]
+                                             [\-\-k8s_api_key K8S_API_KEY]
+                                             [\-\-k8s_api_host K8S_API_HOST]
+                                             [\-\-k8s_verify_ssl K8S_VERIFY_SSL]
+                                             [\-\-k8s_ssl_ca_cert K8S_SSL_CA_CERT]
+                                             [\-\-k8s_cluster_name K8S_CLUSTER_NAME]
+                                             [\-\-k8s_context_name K8S_CONTEXT_NAME]
+                                             [\-\-k8s_namespace K8S_NAMESPACE]
+                                             [\-\-k8s_labels K8S_LABELS]
+                                             [\-\-k8s_annotations K8S_ANNOTATIONS]
+                                             [\-\-k8s_port K8S_PORT]
+                                             [\-\-k8s_target_port K8S_TARGET_PORT]
+                                             [\-\-k8s_schedule K8S_SCHEDULE]
+                                             [\-\-args ...]
+                                             {batch,streaming,stream_to_batch}
+                                             {none,redis,postgres,dynamodb,prometheus}
+                                             {k8s} method_name
+
+.TP
+\fB{batch,streaming,stream_to_batch}\fR
+Choose the type of output data: batch or streaming.
+
+.TP
+\fB{none,redis,postgres,dynamodb,prometheus}\fR
+Select the type of state manager: none, redis, postgres, or dynamodb.
+
+.TP
+\fB{k8s}\fR
+Choose the type of deployment.
+
+.TP
+\fBmethod_name\fR
+The name of the method to execute on the spout.
+
+.SH OPTIONS \fI\,'geniusctl.py TestSpoutCtlSpout deploy'\/\fR
+.TP
+\fB\-\-buffer_size\fR \fI\,BUFFER_SIZE\/\fR
+Specify the size of the buffer.
+
+.TP
+\fB\-\-output_folder\fR \fI\,OUTPUT_FOLDER\/\fR
+Specify the directory where output files should be stored temporarily.
+
+.TP
+\fB\-\-output_kafka_topic\fR \fI\,OUTPUT_KAFKA_TOPIC\/\fR
+Kafka output topic for streaming spouts.
+
+.TP
+\fB\-\-output_kafka_cluster_connection_string\fR \fI\,OUTPUT_KAFKA_CLUSTER_CONNECTION_STRING\/\fR
+Kafka connection string for streaming spouts.
+
+.TP
+\fB\-\-output_s3_bucket\fR \fI\,OUTPUT_S3_BUCKET\/\fR
+Provide the name of the S3 bucket for output storage.
+
+.TP
+\fB\-\-output_s3_folder\fR \fI\,OUTPUT_S3_FOLDER\/\fR
+Indicate the S3 folder for output storage.
+
+.TP
+\fB\-\-redis_host\fR \fI\,REDIS_HOST\/\fR
+Enter the host address for the Redis server.
+
+.TP
+\fB\-\-redis_port\fR \fI\,REDIS_PORT\/\fR
+Enter the port number for the Redis server.
+
+.TP
+\fB\-\-redis_db\fR \fI\,REDIS_DB\/\fR
+Specify the Redis database to be used.
+
+.TP
+\fB\-\-postgres_host\fR \fI\,POSTGRES_HOST\/\fR
+Enter the host address for the PostgreSQL server.
+
+.TP
+\fB\-\-postgres_port\fR \fI\,POSTGRES_PORT\/\fR
+Enter the port number for the PostgreSQL server.
+
+.TP
+\fB\-\-postgres_user\fR \fI\,POSTGRES_USER\/\fR
+Provide the username for the PostgreSQL server.
+
+.TP
+\fB\-\-postgres_password\fR \fI\,POSTGRES_PASSWORD\/\fR
+Provide the password for the PostgreSQL server.
+
+.TP
+\fB\-\-postgres_database\fR \fI\,POSTGRES_DATABASE\/\fR
+Specify the PostgreSQL database to be used.
+
+.TP
+\fB\-\-postgres_table\fR \fI\,POSTGRES_TABLE\/\fR
+Specify the PostgreSQL table to be used.
+
+.TP
+\fB\-\-dynamodb_table_name\fR \fI\,DYNAMODB_TABLE_NAME\/\fR
+Provide the name of the DynamoDB table.
+
+.TP
+\fB\-\-dynamodb_region_name\fR \fI\,DYNAMODB_REGION_NAME\/\fR
+Specify the AWS region for DynamoDB.
+
+.TP
+\fB\-\-prometheus_gateway\fR \fI\,PROMETHEUS_GATEWAY\/\fR
+Specify the prometheus gateway URL.
+
+.TP
+\fB\-\-k8s_kind\fR \fI\,{deployment,service,job,cron_job}\/\fR
+Choose the type of kubernetes resource.
+
+.TP
+\fB\-\-k8s_name\fR \fI\,K8S_NAME\/\fR
+Name of the Kubernetes resource.
+
+.TP
+\fB\-\-k8s_image\fR \fI\,K8S_IMAGE\/\fR
+Docker image for the Kubernetes resource.
+
+.TP
+\fB\-\-k8s_replicas\fR \fI\,K8S_REPLICAS\/\fR
+Number of replicas.
+
+.TP
+\fB\-\-k8s_env_vars\fR \fI\,K8S_ENV_VARS\/\fR
+Environment variables as a JSON string.
+
+.TP
+\fB\-\-k8s_cpu\fR \fI\,K8S_CPU\/\fR
+CPU requirements.
+
+.TP
+\fB\-\-k8s_memory\fR \fI\,K8S_MEMORY\/\fR
+Memory requirements.
+
+.TP
+\fB\-\-k8s_storage\fR \fI\,K8S_STORAGE\/\fR
+Storage requirements.
+
+.TP
+\fB\-\-k8s_gpu\fR \fI\,K8S_GPU\/\fR
+GPU requirements.
+
+.TP
+\fB\-\-k8s_kube_config_path\fR \fI\,K8S_KUBE_CONFIG_PATH\/\fR
+Name of the Kubernetes cluster local config.
+
+.TP
+\fB\-\-k8s_api_key\fR \fI\,K8S_API_KEY\/\fR
+GPU requirements.
+
+.TP
+\fB\-\-k8s_api_host\fR \fI\,K8S_API_HOST\/\fR
+GPU requirements.
+
+.TP
+\fB\-\-k8s_verify_ssl\fR \fI\,K8S_VERIFY_SSL\/\fR
+GPU requirements.
+
+.TP
+\fB\-\-k8s_ssl_ca_cert\fR \fI\,K8S_SSL_CA_CERT\/\fR
+GPU requirements.
+
+.TP
+\fB\-\-k8s_cluster_name\fR \fI\,K8S_CLUSTER_NAME\/\fR
+Name of the Kubernetes cluster.
+
+.TP
+\fB\-\-k8s_context_name\fR \fI\,K8S_CONTEXT_NAME\/\fR
+Name of the kubeconfig context.
+
+.TP
+\fB\-\-k8s_namespace\fR \fI\,K8S_NAMESPACE\/\fR
+Kubernetes namespace.
+
+.TP
+\fB\-\-k8s_labels\fR \fI\,K8S_LABELS\/\fR
+Labels for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-k8s_annotations\fR \fI\,K8S_ANNOTATIONS\/\fR
+Annotations for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-k8s_port\fR \fI\,K8S_PORT\/\fR
+Port to run the spout on as a service.
+
+.TP
+\fB\-\-k8s_target_port\fR \fI\,K8S_TARGET_PORT\/\fR
+Port to expose the spout on as a service.
+
+.TP
+\fB\-\-k8s_schedule\fR \fI\,K8S_SCHEDULE\/\fR
+Schedule to run the spout on as a cron job.
+
+.TP
+\fB\-\-args\fR \fI\,...\/\fR
+Additional keyword arguments to pass to the spout.
+
+.SH COMMAND \fI\,'geniusctl.py TestSpoutCtlSpout help'\/\fR
+Usage: geniusctl.py TestSpoutCtlSpout help [\-h] method
+
+.TP
+\fBmethod\fR
+The method to execute.
+
+.SH COMMAND \fI\,'geniusctl.py TestBoltCtlBolt'\/\fR
+Usage: geniusctl.py TestBoltCtlBolt [\-h] {rise,deploy,help} ...
+
+.SH
+POSITIONAL ARGUMENTS \fI\,'geniusctl.py TestBoltCtlBolt'\/\fR
+.TP
+\fBgeniusctl.py TestBoltCtlBolt\fR \fI\,rise\/\fR
+Run a bolt locally.
+.TP
+\fBgeniusctl.py TestBoltCtlBolt\fR \fI\,deploy\/\fR
+Run a spout remotely.
+.TP
+\fBgeniusctl.py TestBoltCtlBolt\fR \fI\,help\/\fR
+Print help for the bolt.
+
+.SH COMMAND \fI\,'geniusctl.py TestBoltCtlBolt rise'\/\fR
+Usage: geniusctl.py TestBoltCtlBolt rise [\-h] [\-\-buffer_size BUFFER_SIZE]
+                                         [\-\-input_folder INPUT_FOLDER]
+                                         [\-\-input_kafka_topic INPUT_KAFKA_TOPIC]
+                                         [\-\-input_kafka_cluster_connection_string INPUT_KAFKA_CLUSTER_CONNECTION_STRING]
+                                         [\-\-input_kafka_consumer_group_id INPUT_KAFKA_CONSUMER_GROUP_ID]
+                                         [\-\-input_s3_bucket INPUT_S3_BUCKET]
+                                         [\-\-input_s3_folder INPUT_S3_FOLDER]
+                                         [\-\-output_folder OUTPUT_FOLDER]
+                                         [\-\-output_kafka_topic OUTPUT_KAFKA_TOPIC]
+                                         [\-\-output_kafka_cluster_connection_string OUTPUT_KAFKA_CLUSTER_CONNECTION_STRING]
+                                         [\-\-output_s3_bucket OUTPUT_S3_BUCKET]
+                                         [\-\-output_s3_folder OUTPUT_S3_FOLDER]
+                                         [\-\-redis_host REDIS_HOST]
+                                         [\-\-redis_port REDIS_PORT]
+                                         [\-\-redis_db REDIS_DB]
+                                         [\-\-postgres_host POSTGRES_HOST]
+                                         [\-\-postgres_port POSTGRES_PORT]
+                                         [\-\-postgres_user POSTGRES_USER]
+                                         [\-\-postgres_password POSTGRES_PASSWORD]
+                                         [\-\-postgres_database POSTGRES_DATABASE]
+                                         [\-\-postgres_table POSTGRES_TABLE]
+                                         [\-\-dynamodb_table_name DYNAMODB_TABLE_NAME]
+                                         [\-\-dynamodb_region_name DYNAMODB_REGION_NAME]
+                                         [\-\-prometheus_gateway PROMETHEUS_GATEWAY]
+                                         [\-\-args ...]
+                                         {batch,streaming,batch_to_stream,stream_to_batch}
+                                         {batch,streaming,stream_to_batch}
+                                         {none,redis,postgres,dynamodb,prometheus}
+                                         method_name
+
+.TP
+\fB{batch,streaming,batch_to_stream,stream_to_batch}\fR
+Choose the type of input data: batch or streaming.
+
+.TP
+\fB{batch,streaming,stream_to_batch}\fR
+Choose the type of output data: batch or streaming.
+
+.TP
+\fB{none,redis,postgres,dynamodb,prometheus}\fR
+Select the type of state manager: none, redis, postgres, or dynamodb.
+
+.TP
+\fBmethod_name\fR
+The name of the method to execute on the bolt.
+
+.SH OPTIONS \fI\,'geniusctl.py TestBoltCtlBolt rise'\/\fR
+.TP
+\fB\-\-buffer_size\fR \fI\,BUFFER_SIZE\/\fR
+Specify the size of the buffer.
+
+.TP
+\fB\-\-input_folder\fR \fI\,INPUT_FOLDER\/\fR
+Specify the directory where output files should be stored temporarily.
+
+.TP
+\fB\-\-input_kafka_topic\fR \fI\,INPUT_KAFKA_TOPIC\/\fR
+Kafka output topic for streaming spouts.
+
+.TP
+\fB\-\-input_kafka_cluster_connection_string\fR \fI\,INPUT_KAFKA_CLUSTER_CONNECTION_STRING\/\fR
+Kafka connection string for streaming spouts.
+
+.TP
+\fB\-\-input_kafka_consumer_group_id\fR \fI\,INPUT_KAFKA_CONSUMER_GROUP_ID\/\fR
+Kafka consumer group id to use.
+
+.TP
+\fB\-\-input_s3_bucket\fR \fI\,INPUT_S3_BUCKET\/\fR
+Provide the name of the S3 bucket for output storage.
+
+.TP
+\fB\-\-input_s3_folder\fR \fI\,INPUT_S3_FOLDER\/\fR
+Indicate the S3 folder for output storage.
+
+.TP
+\fB\-\-output_folder\fR \fI\,OUTPUT_FOLDER\/\fR
+Specify the directory where output files should be stored temporarily.
+
+.TP
+\fB\-\-output_kafka_topic\fR \fI\,OUTPUT_KAFKA_TOPIC\/\fR
+Kafka output topic for streaming spouts.
+
+.TP
+\fB\-\-output_kafka_cluster_connection_string\fR \fI\,OUTPUT_KAFKA_CLUSTER_CONNECTION_STRING\/\fR
+Kafka connection string for streaming spouts.
+
+.TP
+\fB\-\-output_s3_bucket\fR \fI\,OUTPUT_S3_BUCKET\/\fR
+Provide the name of the S3 bucket for output storage.
+
+.TP
+\fB\-\-output_s3_folder\fR \fI\,OUTPUT_S3_FOLDER\/\fR
+Indicate the S3 folder for output storage.
+
+.TP
+\fB\-\-redis_host\fR \fI\,REDIS_HOST\/\fR
+Enter the host address for the Redis server.
+
+.TP
+\fB\-\-redis_port\fR \fI\,REDIS_PORT\/\fR
+Enter the port number for the Redis server.
+
+.TP
+\fB\-\-redis_db\fR \fI\,REDIS_DB\/\fR
+Specify the Redis database to be used.
+
+.TP
+\fB\-\-postgres_host\fR \fI\,POSTGRES_HOST\/\fR
+Enter the host address for the PostgreSQL server.
+
+.TP
+\fB\-\-postgres_port\fR \fI\,POSTGRES_PORT\/\fR
+Enter the port number for the PostgreSQL server.
+
+.TP
+\fB\-\-postgres_user\fR \fI\,POSTGRES_USER\/\fR
+Provide the username for the PostgreSQL server.
+
+.TP
+\fB\-\-postgres_password\fR \fI\,POSTGRES_PASSWORD\/\fR
+Provide the password for the PostgreSQL server.
+
+.TP
+\fB\-\-postgres_database\fR \fI\,POSTGRES_DATABASE\/\fR
+Specify the PostgreSQL database to be used.
+
+.TP
+\fB\-\-postgres_table\fR \fI\,POSTGRES_TABLE\/\fR
+Specify the PostgreSQL table to be used.
+
+.TP
+\fB\-\-dynamodb_table_name\fR \fI\,DYNAMODB_TABLE_NAME\/\fR
+Provide the name of the DynamoDB table.
+
+.TP
+\fB\-\-dynamodb_region_name\fR \fI\,DYNAMODB_REGION_NAME\/\fR
+Specify the AWS region for DynamoDB.
+
+.TP
+\fB\-\-prometheus_gateway\fR \fI\,PROMETHEUS_GATEWAY\/\fR
+Specify the prometheus gateway URL.
+
+.TP
+\fB\-\-args\fR \fI\,...\/\fR
+Additional keyword arguments to pass to the bolt.
+
+.SH COMMAND \fI\,'geniusctl.py TestBoltCtlBolt deploy'\/\fR
+Usage: geniusctl.py TestBoltCtlBolt deploy [\-h] [\-\-buffer_size BUFFER_SIZE]
+                                           [\-\-input_folder INPUT_FOLDER]
+                                           [\-\-input_kafka_topic INPUT_KAFKA_TOPIC]
+                                           [\-\-input_kafka_cluster_connection_string INPUT_KAFKA_CLUSTER_CONNECTION_STRING]
+                                           [\-\-input_kafka_consumer_group_id INPUT_KAFKA_CONSUMER_GROUP_ID]
+                                           [\-\-input_s3_bucket INPUT_S3_BUCKET]
+                                           [\-\-input_s3_folder INPUT_S3_FOLDER]
+                                           [\-\-output_folder OUTPUT_FOLDER]
+                                           [\-\-output_kafka_topic OUTPUT_KAFKA_TOPIC]
+                                           [\-\-output_kafka_cluster_connection_string OUTPUT_KAFKA_CLUSTER_CONNECTION_STRING]
+                                           [\-\-output_s3_bucket OUTPUT_S3_BUCKET]
+                                           [\-\-output_s3_folder OUTPUT_S3_FOLDER]
+                                           [\-\-redis_host REDIS_HOST]
+                                           [\-\-redis_port REDIS_PORT]
+                                           [\-\-redis_db REDIS_DB]
+                                           [\-\-postgres_host POSTGRES_HOST]
+                                           [\-\-postgres_port POSTGRES_PORT]
+                                           [\-\-postgres_user POSTGRES_USER]
+                                           [\-\-postgres_password POSTGRES_PASSWORD]
+                                           [\-\-postgres_database POSTGRES_DATABASE]
+                                           [\-\-postgres_table POSTGRES_TABLE]
+                                           [\-\-dynamodb_table_name DYNAMODB_TABLE_NAME]
+                                           [\-\-dynamodb_region_name DYNAMODB_REGION_NAME]
+                                           [\-\-prometheus_gateway PROMETHEUS_GATEWAY]
+                                           [\-\-k8s_kind {deployment,service,job,cron_job}]
+                                           [\-\-k8s_name K8S_NAME]
+                                           [\-\-k8s_image K8S_IMAGE]
+                                           [\-\-k8s_replicas K8S_REPLICAS]
+                                           [\-\-k8s_env_vars K8S_ENV_VARS]
+                                           [\-\-k8s_cpu K8S_CPU]
+                                           [\-\-k8s_memory K8S_MEMORY]
+                                           [\-\-k8s_storage K8S_STORAGE]
+                                           [\-\-k8s_gpu K8S_GPU]
+                                           [\-\-k8s_kube_config_path K8S_KUBE_CONFIG_PATH]
+                                           [\-\-k8s_api_key K8S_API_KEY]
+                                           [\-\-k8s_api_host K8S_API_HOST]
+                                           [\-\-k8s_verify_ssl K8S_VERIFY_SSL]
+                                           [\-\-k8s_ssl_ca_cert K8S_SSL_CA_CERT]
+                                           [\-\-k8s_cluster_name K8S_CLUSTER_NAME]
+                                           [\-\-k8s_context_name K8S_CONTEXT_NAME]
+                                           [\-\-k8s_namespace K8S_NAMESPACE]
+                                           [\-\-k8s_labels K8S_LABELS]
+                                           [\-\-k8s_annotations K8S_ANNOTATIONS]
+                                           [\-\-k8s_port K8S_PORT]
+                                           [\-\-k8s_target_port K8S_TARGET_PORT]
+                                           [\-\-k8s_schedule K8S_SCHEDULE]
+                                           [\-\-args ...]
+                                           {batch,streaming,stream_to_batch}
+                                           {none,redis,postgres,dynamodb,prometheus}
+                                           {k8s} method_name
+
+.TP
+\fB{batch,streaming,stream_to_batch}\fR
+Choose the type of output data: batch or streaming.
+
+.TP
+\fB{none,redis,postgres,dynamodb,prometheus}\fR
+Select the type of state manager: none, redis, postgres, or dynamodb.
+
+.TP
+\fB{k8s}\fR
+Choose the type of deployment.
+
+.TP
+\fBmethod_name\fR
+The name of the method to execute on the spout.
+
+.SH OPTIONS \fI\,'geniusctl.py TestBoltCtlBolt deploy'\/\fR
+.TP
+\fB\-\-buffer_size\fR \fI\,BUFFER_SIZE\/\fR
+Specify the size of the buffer.
+
+.TP
+\fB\-\-input_folder\fR \fI\,INPUT_FOLDER\/\fR
+Specify the directory where output files should be stored temporarily.
+
+.TP
+\fB\-\-input_kafka_topic\fR \fI\,INPUT_KAFKA_TOPIC\/\fR
+Kafka output topic for streaming spouts.
+
+.TP
+\fB\-\-input_kafka_cluster_connection_string\fR \fI\,INPUT_KAFKA_CLUSTER_CONNECTION_STRING\/\fR
+Kafka connection string for streaming spouts.
+
+.TP
+\fB\-\-input_kafka_consumer_group_id\fR \fI\,INPUT_KAFKA_CONSUMER_GROUP_ID\/\fR
+Kafka consumer group id to use.
+
+.TP
+\fB\-\-input_s3_bucket\fR \fI\,INPUT_S3_BUCKET\/\fR
+Provide the name of the S3 bucket for output storage.
+
+.TP
+\fB\-\-input_s3_folder\fR \fI\,INPUT_S3_FOLDER\/\fR
+Indicate the S3 folder for output storage.
+
+.TP
+\fB\-\-output_folder\fR \fI\,OUTPUT_FOLDER\/\fR
+Specify the directory where output files should be stored temporarily.
+
+.TP
+\fB\-\-output_kafka_topic\fR \fI\,OUTPUT_KAFKA_TOPIC\/\fR
+Kafka output topic for streaming spouts.
+
+.TP
+\fB\-\-output_kafka_cluster_connection_string\fR \fI\,OUTPUT_KAFKA_CLUSTER_CONNECTION_STRING\/\fR
+Kafka connection string for streaming spouts.
+
+.TP
+\fB\-\-output_s3_bucket\fR \fI\,OUTPUT_S3_BUCKET\/\fR
+Provide the name of the S3 bucket for output storage.
+
+.TP
+\fB\-\-output_s3_folder\fR \fI\,OUTPUT_S3_FOLDER\/\fR
+Indicate the S3 folder for output storage.
+
+.TP
+\fB\-\-redis_host\fR \fI\,REDIS_HOST\/\fR
+Enter the host address for the Redis server.
+
+.TP
+\fB\-\-redis_port\fR \fI\,REDIS_PORT\/\fR
+Enter the port number for the Redis server.
+
+.TP
+\fB\-\-redis_db\fR \fI\,REDIS_DB\/\fR
+Specify the Redis database to be used.
+
+.TP
+\fB\-\-postgres_host\fR \fI\,POSTGRES_HOST\/\fR
+Enter the host address for the PostgreSQL server.
+
+.TP
+\fB\-\-postgres_port\fR \fI\,POSTGRES_PORT\/\fR
+Enter the port number for the PostgreSQL server.
+
+.TP
+\fB\-\-postgres_user\fR \fI\,POSTGRES_USER\/\fR
+Provide the username for the PostgreSQL server.
+
+.TP
+\fB\-\-postgres_password\fR \fI\,POSTGRES_PASSWORD\/\fR
+Provide the password for the PostgreSQL server.
+
+.TP
+\fB\-\-postgres_database\fR \fI\,POSTGRES_DATABASE\/\fR
+Specify the PostgreSQL database to be used.
+
+.TP
+\fB\-\-postgres_table\fR \fI\,POSTGRES_TABLE\/\fR
+Specify the PostgreSQL table to be used.
+
+.TP
+\fB\-\-dynamodb_table_name\fR \fI\,DYNAMODB_TABLE_NAME\/\fR
+Provide the name of the DynamoDB table.
+
+.TP
+\fB\-\-dynamodb_region_name\fR \fI\,DYNAMODB_REGION_NAME\/\fR
+Specify the AWS region for DynamoDB.
+
+.TP
+\fB\-\-prometheus_gateway\fR \fI\,PROMETHEUS_GATEWAY\/\fR
+Specify the prometheus gateway URL.
+
+.TP
+\fB\-\-k8s_kind\fR \fI\,{deployment,service,job,cron_job}\/\fR
+Choose the type of kubernetes resource.
+
+.TP
+\fB\-\-k8s_name\fR \fI\,K8S_NAME\/\fR
+Name of the Kubernetes resource.
+
+.TP
+\fB\-\-k8s_image\fR \fI\,K8S_IMAGE\/\fR
+Docker image for the Kubernetes resource.
+
+.TP
+\fB\-\-k8s_replicas\fR \fI\,K8S_REPLICAS\/\fR
+Number of replicas.
+
+.TP
+\fB\-\-k8s_env_vars\fR \fI\,K8S_ENV_VARS\/\fR
+Environment variables as a JSON string.
+
+.TP
+\fB\-\-k8s_cpu\fR \fI\,K8S_CPU\/\fR
+CPU requirements.
+
+.TP
+\fB\-\-k8s_memory\fR \fI\,K8S_MEMORY\/\fR
+Memory requirements.
+
+.TP
+\fB\-\-k8s_storage\fR \fI\,K8S_STORAGE\/\fR
+Storage requirements.
+
+.TP
+\fB\-\-k8s_gpu\fR \fI\,K8S_GPU\/\fR
+GPU requirements.
+
+.TP
+\fB\-\-k8s_kube_config_path\fR \fI\,K8S_KUBE_CONFIG_PATH\/\fR
+Name of the Kubernetes cluster local config.
+
+.TP
+\fB\-\-k8s_api_key\fR \fI\,K8S_API_KEY\/\fR
+GPU requirements.
+
+.TP
+\fB\-\-k8s_api_host\fR \fI\,K8S_API_HOST\/\fR
+GPU requirements.
+
+.TP
+\fB\-\-k8s_verify_ssl\fR \fI\,K8S_VERIFY_SSL\/\fR
+GPU requirements.
+
+.TP
+\fB\-\-k8s_ssl_ca_cert\fR \fI\,K8S_SSL_CA_CERT\/\fR
+GPU requirements.
+
+.TP
+\fB\-\-k8s_cluster_name\fR \fI\,K8S_CLUSTER_NAME\/\fR
+Name of the Kubernetes cluster.
+
+.TP
+\fB\-\-k8s_context_name\fR \fI\,K8S_CONTEXT_NAME\/\fR
+Name of the kubeconfig context.
+
+.TP
+\fB\-\-k8s_namespace\fR \fI\,K8S_NAMESPACE\/\fR
+Kubernetes namespace.
+
+.TP
+\fB\-\-k8s_labels\fR \fI\,K8S_LABELS\/\fR
+Labels for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-k8s_annotations\fR \fI\,K8S_ANNOTATIONS\/\fR
+Annotations for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-k8s_port\fR \fI\,K8S_PORT\/\fR
+Port to run the spout on as a service.
+
+.TP
+\fB\-\-k8s_target_port\fR \fI\,K8S_TARGET_PORT\/\fR
+Port to expose the spout on as a service.
+
+.TP
+\fB\-\-k8s_schedule\fR \fI\,K8S_SCHEDULE\/\fR
+Schedule to run the spout on as a cron job.
+
+.TP
+\fB\-\-args\fR \fI\,...\/\fR
+Additional keyword arguments to pass to the spout.
+
+.SH COMMAND \fI\,'geniusctl.py TestBoltCtlBolt help'\/\fR
+Usage: geniusctl.py TestBoltCtlBolt help [\-h] method
+
+.TP
+\fBmethod\fR
+The method to execute.
+
+.SH COMMAND \fI\,'geniusctl.py rise'\/\fR
+Usage: geniusctl.py rise [\-h] [\-\-spout SPOUT] [\-\-bolt BOLT] [\-\-file FILE]
+
+.SH OPTIONS \fI\,'geniusctl.py rise'\/\fR
+.TP
+\fB\-\-spout\fR \fI\,SPOUT\/\fR
+Name of the specific spout to run.
+
+.TP
+\fB\-\-bolt\fR \fI\,BOLT\/\fR
+Name of the specific bolt to run.
+
+.TP
+\fB\-\-file\fR \fI\,FILE\/\fR
+Path of the genius.yml file, default to .
+
+.SH COMMAND \fI\,'geniusctl.py docker'\/\fR
+usage: geniusctl.py docker [\-h] {package} ...
+
+.SH
+POSITIONAL ARGUMENTS \fI\,'geniusctl.py docker'\/\fR
+.TP
+\fBgeniusctl.py docker\fR \fI\,package\/\fR
+Build and upload a Docker image.
+
+.SH COMMAND \fI\,'geniusctl.py docker package'\/\fR
+Usage: geniusctl.py docker package [\-h] [\-\-auth AUTH]
+                                   [\-\-base_image BASE_IMAGE]
+                                   [\-\-workdir WORKDIR] [\-\-local_dir LOCAL_DIR]
+                                   [\-\-packages [PACKAGES ...]]
+                                   [\-\-os_packages [OS_PACKAGES ...]]
+                                   [\-\-env_vars ENV_VARS]
+                                   image_name repository
+
+.TP
+\fBimage_name\fR
+Name of the Docker image.
+
+.TP
+\fBrepository\fR
+Container repository to upload to.
+
+.SH OPTIONS \fI\,'geniusctl.py docker package'\/\fR
+.TP
+\fB\-\-auth\fR \fI\,AUTH\/\fR
+Authentication credentials as a JSON string.
+
+.TP
+\fB\-\-base_image\fR \fI\,BASE_IMAGE\/\fR
+The base image to use for the Docker container.
+
+.TP
+\fB\-\-workdir\fR \fI\,WORKDIR\/\fR
+The working directory in the Docker container.
+
+.TP
+\fB\-\-local_dir\fR \fI\,LOCAL_DIR\/\fR
+The local directory to copy into the Docker container.
+
+.TP
+\fB\-\-packages\fR \fI\,[PACKAGES ...]\/\fR
+List of Python packages to install in the Docker container.
+
+.TP
+\fB\-\-os_packages\fR \fI\,[OS_PACKAGES ...]\/\fR
+List of OS packages to install in the Docker container.
+
+.TP
+\fB\-\-env_vars\fR \fI\,ENV_VARS\/\fR
+Environment variables to set in the Docker container.
+
+.SH COMMAND \fI\,'geniusctl.py pod'\/\fR
+usage: geniusctl.py pod [\-h] {status,show,describe,logs} ...
+
+.SH
+POSITIONAL ARGUMENTS \fI\,'geniusctl.py pod'\/\fR
+.TP
+\fBgeniusctl.py pod\fR \fI\,status\/\fR
+Get the status of the Kubernetes pod.
+.TP
+\fBgeniusctl.py pod\fR \fI\,show\/\fR
+List all pods.
+.TP
+\fBgeniusctl.py pod\fR \fI\,describe\/\fR
+Describe a pod.
+.TP
+\fBgeniusctl.py pod\fR \fI\,logs\/\fR
+Get the logs of a pod.
+
+.SH COMMAND \fI\,'geniusctl.py pod status'\/\fR
+usage: geniusctl.py pod status [\-h] [\-\-kube_config_path KUBE_CONFIG_PATH]
+                               [\-\-cluster_name CLUSTER_NAME]
+                               [\-\-context_name CONTEXT_NAME]
+                               [\-\-namespace NAMESPACE] [\-\-labels LABELS]
+                               [\-\-annotations ANNOTATIONS] [\-\-api_key API_KEY]
+                               [\-\-api_host API_HOST] [\-\-verify_ssl VERIFY_SSL]
+                               [\-\-ssl_ca_cert SSL_CA_CERT]
+                               name
+
+.TP
+\fBname\fR
+Name of the Kubernetes pod.
+
+.SH OPTIONS \fI\,'geniusctl.py pod status'\/\fR
+.TP
+\fB\-\-kube_config_path\fR \fI\,KUBE_CONFIG_PATH\/\fR
+Path to the kubeconfig file.
+
+.TP
+\fB\-\-cluster_name\fR \fI\,CLUSTER_NAME\/\fR
+Name of the Kubernetes cluster.
+
+.TP
+\fB\-\-context_name\fR \fI\,CONTEXT_NAME\/\fR
+Name of the kubeconfig context.
+
+.TP
+\fB\-\-namespace\fR \fI\,NAMESPACE\/\fR
+Kubernetes namespace.
+
+.TP
+\fB\-\-labels\fR \fI\,LABELS\/\fR
+Labels for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-annotations\fR \fI\,ANNOTATIONS\/\fR
+Annotations for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-api_key\fR \fI\,API_KEY\/\fR
+API key for Kubernetes cluster.
+
+.TP
+\fB\-\-api_host\fR \fI\,API_HOST\/\fR
+API host for Kubernetes cluster.
+
+.TP
+\fB\-\-verify_ssl\fR \fI\,VERIFY_SSL\/\fR
+Whether to verify SSL certificates.
+
+.TP
+\fB\-\-ssl_ca_cert\fR \fI\,SSL_CA_CERT\/\fR
+Path to the SSL CA certificate.
+
+.SH COMMAND \fI\,'geniusctl.py pod show'\/\fR
+usage: geniusctl.py pod show [\-h] [\-\-kube_config_path KUBE_CONFIG_PATH]
+                             [\-\-cluster_name CLUSTER_NAME]
+                             [\-\-context_name CONTEXT_NAME]
+                             [\-\-namespace NAMESPACE] [\-\-labels LABELS]
+                             [\-\-annotations ANNOTATIONS] [\-\-api_key API_KEY]
+                             [\-\-api_host API_HOST] [\-\-verify_ssl VERIFY_SSL]
+                             [\-\-ssl_ca_cert SSL_CA_CERT]
+
+.SH OPTIONS \fI\,'geniusctl.py pod show'\/\fR
+.TP
+\fB\-\-kube_config_path\fR \fI\,KUBE_CONFIG_PATH\/\fR
+Path to the kubeconfig file.
+
+.TP
+\fB\-\-cluster_name\fR \fI\,CLUSTER_NAME\/\fR
+Name of the Kubernetes cluster.
+
+.TP
+\fB\-\-context_name\fR \fI\,CONTEXT_NAME\/\fR
+Name of the kubeconfig context.
+
+.TP
+\fB\-\-namespace\fR \fI\,NAMESPACE\/\fR
+Kubernetes namespace.
+
+.TP
+\fB\-\-labels\fR \fI\,LABELS\/\fR
+Labels for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-annotations\fR \fI\,ANNOTATIONS\/\fR
+Annotations for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-api_key\fR \fI\,API_KEY\/\fR
+API key for Kubernetes cluster.
+
+.TP
+\fB\-\-api_host\fR \fI\,API_HOST\/\fR
+API host for Kubernetes cluster.
+
+.TP
+\fB\-\-verify_ssl\fR \fI\,VERIFY_SSL\/\fR
+Whether to verify SSL certificates.
+
+.TP
+\fB\-\-ssl_ca_cert\fR \fI\,SSL_CA_CERT\/\fR
+Path to the SSL CA certificate.
+
+.SH COMMAND \fI\,'geniusctl.py pod describe'\/\fR
+usage: geniusctl.py pod describe [\-h] [\-\-kube_config_path KUBE_CONFIG_PATH]
+                                 [\-\-cluster_name CLUSTER_NAME]
+                                 [\-\-context_name CONTEXT_NAME]
+                                 [\-\-namespace NAMESPACE] [\-\-labels LABELS]
+                                 [\-\-annotations ANNOTATIONS]
+                                 [\-\-api_key API_KEY] [\-\-api_host API_HOST]
+                                 [\-\-verify_ssl VERIFY_SSL]
+                                 [\-\-ssl_ca_cert SSL_CA_CERT]
+                                 name
+
+.TP
+\fBname\fR
+Name of the pod.
+
+.SH OPTIONS \fI\,'geniusctl.py pod describe'\/\fR
+.TP
+\fB\-\-kube_config_path\fR \fI\,KUBE_CONFIG_PATH\/\fR
+Path to the kubeconfig file.
+
+.TP
+\fB\-\-cluster_name\fR \fI\,CLUSTER_NAME\/\fR
+Name of the Kubernetes cluster.
+
+.TP
+\fB\-\-context_name\fR \fI\,CONTEXT_NAME\/\fR
+Name of the kubeconfig context.
+
+.TP
+\fB\-\-namespace\fR \fI\,NAMESPACE\/\fR
+Kubernetes namespace.
+
+.TP
+\fB\-\-labels\fR \fI\,LABELS\/\fR
+Labels for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-annotations\fR \fI\,ANNOTATIONS\/\fR
+Annotations for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-api_key\fR \fI\,API_KEY\/\fR
+API key for Kubernetes cluster.
+
+.TP
+\fB\-\-api_host\fR \fI\,API_HOST\/\fR
+API host for Kubernetes cluster.
+
+.TP
+\fB\-\-verify_ssl\fR \fI\,VERIFY_SSL\/\fR
+Whether to verify SSL certificates.
+
+.TP
+\fB\-\-ssl_ca_cert\fR \fI\,SSL_CA_CERT\/\fR
+Path to the SSL CA certificate.
+
+.SH COMMAND \fI\,'geniusctl.py pod logs'\/\fR
+usage: geniusctl.py pod logs [\-h] [\-\-follow FOLLOW] [\-\-tail TAIL]
+                             [\-\-kube_config_path KUBE_CONFIG_PATH]
+                             [\-\-cluster_name CLUSTER_NAME]
+                             [\-\-context_name CONTEXT_NAME]
+                             [\-\-namespace NAMESPACE] [\-\-labels LABELS]
+                             [\-\-annotations ANNOTATIONS] [\-\-api_key API_KEY]
+                             [\-\-api_host API_HOST] [\-\-verify_ssl VERIFY_SSL]
+                             [\-\-ssl_ca_cert SSL_CA_CERT]
+                             name
+
+.TP
+\fBname\fR
+Name of the pod.
+
+.SH OPTIONS \fI\,'geniusctl.py pod logs'\/\fR
+.TP
+\fB\-\-follow\fR \fI\,FOLLOW\/\fR
+Whether to follow the logs.
+
+.TP
+\fB\-\-tail\fR \fI\,TAIL\/\fR
+Number of lines to show from the end of the logs.
+
+.TP
+\fB\-\-kube_config_path\fR \fI\,KUBE_CONFIG_PATH\/\fR
+Path to the kubeconfig file.
+
+.TP
+\fB\-\-cluster_name\fR \fI\,CLUSTER_NAME\/\fR
+Name of the Kubernetes cluster.
+
+.TP
+\fB\-\-context_name\fR \fI\,CONTEXT_NAME\/\fR
+Name of the kubeconfig context.
+
+.TP
+\fB\-\-namespace\fR \fI\,NAMESPACE\/\fR
+Kubernetes namespace.
+
+.TP
+\fB\-\-labels\fR \fI\,LABELS\/\fR
+Labels for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-annotations\fR \fI\,ANNOTATIONS\/\fR
+Annotations for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-api_key\fR \fI\,API_KEY\/\fR
+API key for Kubernetes cluster.
+
+.TP
+\fB\-\-api_host\fR \fI\,API_HOST\/\fR
+API host for Kubernetes cluster.
+
+.TP
+\fB\-\-verify_ssl\fR \fI\,VERIFY_SSL\/\fR
+Whether to verify SSL certificates.
+
+.TP
+\fB\-\-ssl_ca_cert\fR \fI\,SSL_CA_CERT\/\fR
+Path to the SSL CA certificate.
+
+.SH COMMAND \fI\,'geniusctl.py deployment'\/\fR
+usage: geniusctl.py deployment [\-h]
+                               {create,scale,describe,show,delete,status} ...
+
+.SH
+POSITIONAL ARGUMENTS \fI\,'geniusctl.py deployment'\/\fR
+.TP
+\fBgeniusctl.py deployment\fR \fI\,create\/\fR
+Create a new deployment.
+.TP
+\fBgeniusctl.py deployment\fR \fI\,scale\/\fR
+Scale a deployment.
+.TP
+\fBgeniusctl.py deployment\fR \fI\,describe\/\fR
+Describe a deployment.
+.TP
+\fBgeniusctl.py deployment\fR \fI\,show\/\fR
+List all deployments.
+.TP
+\fBgeniusctl.py deployment\fR \fI\,delete\/\fR
+Delete a deployment.
+.TP
+\fBgeniusctl.py deployment\fR \fI\,status\/\fR
+Get the status of a deployment.
+
+.SH COMMAND \fI\,'geniusctl.py deployment create'\/\fR
+usage: geniusctl.py deployment create [\-h] [\-\-replicas REPLICAS]
+                                      [\-\-env_vars ENV_VARS] [\-\-cpu CPU]
+                                      [\-\-memory MEMORY] [\-\-storage STORAGE]
+                                      [\-\-gpu GPU]
+                                      [\-\-kube_config_path KUBE_CONFIG_PATH]
+                                      [\-\-cluster_name CLUSTER_NAME]
+                                      [\-\-context_name CONTEXT_NAME]
+                                      [\-\-namespace NAMESPACE]
+                                      [\-\-labels LABELS]
+                                      [\-\-annotations ANNOTATIONS]
+                                      [\-\-api_key API_KEY]
+                                      [\-\-api_host API_HOST]
+                                      [\-\-verify_ssl VERIFY_SSL]
+                                      [\-\-ssl_ca_cert SSL_CA_CERT]
+                                      name image command
+
+.TP
+\fBname\fR
+Name of the deployment.
+
+.TP
+\fBimage\fR
+Docker image for the deployment.
+
+.TP
+\fBcommand\fR
+Command to run in the container.
+
+.SH OPTIONS \fI\,'geniusctl.py deployment create'\/\fR
+.TP
+\fB\-\-replicas\fR \fI\,REPLICAS\/\fR
+Number of replicas.
+
+.TP
+\fB\-\-env_vars\fR \fI\,ENV_VARS\/\fR
+Environment variables as a JSON string.
+
+.TP
+\fB\-\-cpu\fR \fI\,CPU\/\fR
+CPU requirements.
+
+.TP
+\fB\-\-memory\fR \fI\,MEMORY\/\fR
+Memory requirements.
+
+.TP
+\fB\-\-storage\fR \fI\,STORAGE\/\fR
+Storage requirements.
+
+.TP
+\fB\-\-gpu\fR \fI\,GPU\/\fR
+GPU requirements.
+
+.TP
+\fB\-\-kube_config_path\fR \fI\,KUBE_CONFIG_PATH\/\fR
+Path to the kubeconfig file.
+
+.TP
+\fB\-\-cluster_name\fR \fI\,CLUSTER_NAME\/\fR
+Name of the Kubernetes cluster.
+
+.TP
+\fB\-\-context_name\fR \fI\,CONTEXT_NAME\/\fR
+Name of the kubeconfig context.
+
+.TP
+\fB\-\-namespace\fR \fI\,NAMESPACE\/\fR
+Kubernetes namespace.
+
+.TP
+\fB\-\-labels\fR \fI\,LABELS\/\fR
+Labels for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-annotations\fR \fI\,ANNOTATIONS\/\fR
+Annotations for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-api_key\fR \fI\,API_KEY\/\fR
+API key for Kubernetes cluster.
+
+.TP
+\fB\-\-api_host\fR \fI\,API_HOST\/\fR
+API host for Kubernetes cluster.
+
+.TP
+\fB\-\-verify_ssl\fR \fI\,VERIFY_SSL\/\fR
+Whether to verify SSL certificates.
+
+.TP
+\fB\-\-ssl_ca_cert\fR \fI\,SSL_CA_CERT\/\fR
+Path to the SSL CA certificate.
+
+.SH COMMAND \fI\,'geniusctl.py deployment scale'\/\fR
+usage: geniusctl.py deployment scale [\-h]
+                                     [\-\-kube_config_path KUBE_CONFIG_PATH]
+                                     [\-\-cluster_name CLUSTER_NAME]
+                                     [\-\-context_name CONTEXT_NAME]
+                                     [\-\-namespace NAMESPACE] [\-\-labels LABELS]
+                                     [\-\-annotations ANNOTATIONS]
+                                     [\-\-api_key API_KEY] [\-\-api_host API_HOST]
+                                     [\-\-verify_ssl VERIFY_SSL]
+                                     [\-\-ssl_ca_cert SSL_CA_CERT]
+                                     name replicas
+
+.TP
+\fBname\fR
+Name of the deployment.
+
+.TP
+\fBreplicas\fR
+Number of replicas.
+
+.SH OPTIONS \fI\,'geniusctl.py deployment scale'\/\fR
+.TP
+\fB\-\-kube_config_path\fR \fI\,KUBE_CONFIG_PATH\/\fR
+Path to the kubeconfig file.
+
+.TP
+\fB\-\-cluster_name\fR \fI\,CLUSTER_NAME\/\fR
+Name of the Kubernetes cluster.
+
+.TP
+\fB\-\-context_name\fR \fI\,CONTEXT_NAME\/\fR
+Name of the kubeconfig context.
+
+.TP
+\fB\-\-namespace\fR \fI\,NAMESPACE\/\fR
+Kubernetes namespace.
+
+.TP
+\fB\-\-labels\fR \fI\,LABELS\/\fR
+Labels for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-annotations\fR \fI\,ANNOTATIONS\/\fR
+Annotations for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-api_key\fR \fI\,API_KEY\/\fR
+API key for Kubernetes cluster.
+
+.TP
+\fB\-\-api_host\fR \fI\,API_HOST\/\fR
+API host for Kubernetes cluster.
+
+.TP
+\fB\-\-verify_ssl\fR \fI\,VERIFY_SSL\/\fR
+Whether to verify SSL certificates.
+
+.TP
+\fB\-\-ssl_ca_cert\fR \fI\,SSL_CA_CERT\/\fR
+Path to the SSL CA certificate.
+
+.SH COMMAND \fI\,'geniusctl.py deployment describe'\/\fR
+usage: geniusctl.py deployment describe [\-h]
+                                        [\-\-kube_config_path KUBE_CONFIG_PATH]
+                                        [\-\-cluster_name CLUSTER_NAME]
+                                        [\-\-context_name CONTEXT_NAME]
+                                        [\-\-namespace NAMESPACE]
+                                        [\-\-labels LABELS]
+                                        [\-\-annotations ANNOTATIONS]
+                                        [\-\-api_key API_KEY]
+                                        [\-\-api_host API_HOST]
+                                        [\-\-verify_ssl VERIFY_SSL]
+                                        [\-\-ssl_ca_cert SSL_CA_CERT]
+                                        name
+
+.TP
+\fBname\fR
+Name of the deployment.
+
+.SH OPTIONS \fI\,'geniusctl.py deployment describe'\/\fR
+.TP
+\fB\-\-kube_config_path\fR \fI\,KUBE_CONFIG_PATH\/\fR
+Path to the kubeconfig file.
+
+.TP
+\fB\-\-cluster_name\fR \fI\,CLUSTER_NAME\/\fR
+Name of the Kubernetes cluster.
+
+.TP
+\fB\-\-context_name\fR \fI\,CONTEXT_NAME\/\fR
+Name of the kubeconfig context.
+
+.TP
+\fB\-\-namespace\fR \fI\,NAMESPACE\/\fR
+Kubernetes namespace.
+
+.TP
+\fB\-\-labels\fR \fI\,LABELS\/\fR
+Labels for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-annotations\fR \fI\,ANNOTATIONS\/\fR
+Annotations for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-api_key\fR \fI\,API_KEY\/\fR
+API key for Kubernetes cluster.
+
+.TP
+\fB\-\-api_host\fR \fI\,API_HOST\/\fR
+API host for Kubernetes cluster.
+
+.TP
+\fB\-\-verify_ssl\fR \fI\,VERIFY_SSL\/\fR
+Whether to verify SSL certificates.
+
+.TP
+\fB\-\-ssl_ca_cert\fR \fI\,SSL_CA_CERT\/\fR
+Path to the SSL CA certificate.
+
+.SH COMMAND \fI\,'geniusctl.py deployment show'\/\fR
+usage: geniusctl.py deployment show [\-h] [\-\-kube_config_path KUBE_CONFIG_PATH]
+                                    [\-\-cluster_name CLUSTER_NAME]
+                                    [\-\-context_name CONTEXT_NAME]
+                                    [\-\-namespace NAMESPACE] [\-\-labels LABELS]
+                                    [\-\-annotations ANNOTATIONS]
+                                    [\-\-api_key API_KEY] [\-\-api_host API_HOST]
+                                    [\-\-verify_ssl VERIFY_SSL]
+                                    [\-\-ssl_ca_cert SSL_CA_CERT]
+
+.SH OPTIONS \fI\,'geniusctl.py deployment show'\/\fR
+.TP
+\fB\-\-kube_config_path\fR \fI\,KUBE_CONFIG_PATH\/\fR
+Path to the kubeconfig file.
+
+.TP
+\fB\-\-cluster_name\fR \fI\,CLUSTER_NAME\/\fR
+Name of the Kubernetes cluster.
+
+.TP
+\fB\-\-context_name\fR \fI\,CONTEXT_NAME\/\fR
+Name of the kubeconfig context.
+
+.TP
+\fB\-\-namespace\fR \fI\,NAMESPACE\/\fR
+Kubernetes namespace.
+
+.TP
+\fB\-\-labels\fR \fI\,LABELS\/\fR
+Labels for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-annotations\fR \fI\,ANNOTATIONS\/\fR
+Annotations for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-api_key\fR \fI\,API_KEY\/\fR
+API key for Kubernetes cluster.
+
+.TP
+\fB\-\-api_host\fR \fI\,API_HOST\/\fR
+API host for Kubernetes cluster.
+
+.TP
+\fB\-\-verify_ssl\fR \fI\,VERIFY_SSL\/\fR
+Whether to verify SSL certificates.
+
+.TP
+\fB\-\-ssl_ca_cert\fR \fI\,SSL_CA_CERT\/\fR
+Path to the SSL CA certificate.
+
+.SH COMMAND \fI\,'geniusctl.py deployment delete'\/\fR
+usage: geniusctl.py deployment delete [\-h]
+                                      [\-\-kube_config_path KUBE_CONFIG_PATH]
+                                      [\-\-cluster_name CLUSTER_NAME]
+                                      [\-\-context_name CONTEXT_NAME]
+                                      [\-\-namespace NAMESPACE]
+                                      [\-\-labels LABELS]
+                                      [\-\-annotations ANNOTATIONS]
+                                      [\-\-api_key API_KEY]
+                                      [\-\-api_host API_HOST]
+                                      [\-\-verify_ssl VERIFY_SSL]
+                                      [\-\-ssl_ca_cert SSL_CA_CERT]
+                                      name
+
+.TP
+\fBname\fR
+Name of the deployment.
+
+.SH OPTIONS \fI\,'geniusctl.py deployment delete'\/\fR
+.TP
+\fB\-\-kube_config_path\fR \fI\,KUBE_CONFIG_PATH\/\fR
+Path to the kubeconfig file.
+
+.TP
+\fB\-\-cluster_name\fR \fI\,CLUSTER_NAME\/\fR
+Name of the Kubernetes cluster.
+
+.TP
+\fB\-\-context_name\fR \fI\,CONTEXT_NAME\/\fR
+Name of the kubeconfig context.
+
+.TP
+\fB\-\-namespace\fR \fI\,NAMESPACE\/\fR
+Kubernetes namespace.
+
+.TP
+\fB\-\-labels\fR \fI\,LABELS\/\fR
+Labels for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-annotations\fR \fI\,ANNOTATIONS\/\fR
+Annotations for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-api_key\fR \fI\,API_KEY\/\fR
+API key for Kubernetes cluster.
+
+.TP
+\fB\-\-api_host\fR \fI\,API_HOST\/\fR
+API host for Kubernetes cluster.
+
+.TP
+\fB\-\-verify_ssl\fR \fI\,VERIFY_SSL\/\fR
+Whether to verify SSL certificates.
+
+.TP
+\fB\-\-ssl_ca_cert\fR \fI\,SSL_CA_CERT\/\fR
+Path to the SSL CA certificate.
+
+.SH COMMAND \fI\,'geniusctl.py deployment status'\/\fR
+usage: geniusctl.py deployment status [\-h]
+                                      [\-\-kube_config_path KUBE_CONFIG_PATH]
+                                      [\-\-cluster_name CLUSTER_NAME]
+                                      [\-\-context_name CONTEXT_NAME]
+                                      [\-\-namespace NAMESPACE]
+                                      [\-\-labels LABELS]
+                                      [\-\-annotations ANNOTATIONS]
+                                      [\-\-api_key API_KEY]
+                                      [\-\-api_host API_HOST]
+                                      [\-\-verify_ssl VERIFY_SSL]
+                                      [\-\-ssl_ca_cert SSL_CA_CERT]
+                                      name
+
+.TP
+\fBname\fR
+Name of the deployment.
+
+.SH OPTIONS \fI\,'geniusctl.py deployment status'\/\fR
+.TP
+\fB\-\-kube_config_path\fR \fI\,KUBE_CONFIG_PATH\/\fR
+Path to the kubeconfig file.
+
+.TP
+\fB\-\-cluster_name\fR \fI\,CLUSTER_NAME\/\fR
+Name of the Kubernetes cluster.
+
+.TP
+\fB\-\-context_name\fR \fI\,CONTEXT_NAME\/\fR
+Name of the kubeconfig context.
+
+.TP
+\fB\-\-namespace\fR \fI\,NAMESPACE\/\fR
+Kubernetes namespace.
+
+.TP
+\fB\-\-labels\fR \fI\,LABELS\/\fR
+Labels for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-annotations\fR \fI\,ANNOTATIONS\/\fR
+Annotations for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-api_key\fR \fI\,API_KEY\/\fR
+API key for Kubernetes cluster.
+
+.TP
+\fB\-\-api_host\fR \fI\,API_HOST\/\fR
+API host for Kubernetes cluster.
+
+.TP
+\fB\-\-verify_ssl\fR \fI\,VERIFY_SSL\/\fR
+Whether to verify SSL certificates.
+
+.TP
+\fB\-\-ssl_ca_cert\fR \fI\,SSL_CA_CERT\/\fR
+Path to the SSL CA certificate.
+
+.SH COMMAND \fI\,'geniusctl.py service'\/\fR
+usage: geniusctl.py service [\-h] {create,delete,describe,show} ...
+
+.SH
+POSITIONAL ARGUMENTS \fI\,'geniusctl.py service'\/\fR
+.TP
+\fBgeniusctl.py service\fR \fI\,create\/\fR
+Create a new service.
+.TP
+\fBgeniusctl.py service\fR \fI\,delete\/\fR
+Delete a service.
+.TP
+\fBgeniusctl.py service\fR \fI\,describe\/\fR
+Describe a service.
+.TP
+\fBgeniusctl.py service\fR \fI\,show\/\fR
+List all services.
+
+.SH COMMAND \fI\,'geniusctl.py service create'\/\fR
+usage: geniusctl.py service create [\-h] [\-\-replicas REPLICAS] [\-\-port PORT]
+                                   [\-\-target_port TARGET_PORT]
+                                   [\-\-env_vars ENV_VARS] [\-\-cpu CPU]
+                                   [\-\-memory MEMORY] [\-\-storage STORAGE]
+                                   [\-\-gpu GPU]
+                                   [\-\-kube_config_path KUBE_CONFIG_PATH]
+                                   [\-\-cluster_name CLUSTER_NAME]
+                                   [\-\-context_name CONTEXT_NAME]
+                                   [\-\-namespace NAMESPACE] [\-\-labels LABELS]
+                                   [\-\-annotations ANNOTATIONS]
+                                   [\-\-api_key API_KEY] [\-\-api_host API_HOST]
+                                   [\-\-verify_ssl VERIFY_SSL]
+                                   [\-\-ssl_ca_cert SSL_CA_CERT]
+                                   name image command
+
+.TP
+\fBname\fR
+Name of the service.
+
+.TP
+\fBimage\fR
+Docker image for the service.
+
+.TP
+\fBcommand\fR
+Command to run in the container.
+
+.SH OPTIONS \fI\,'geniusctl.py service create'\/\fR
+.TP
+\fB\-\-replicas\fR \fI\,REPLICAS\/\fR
+Number of replicas.
+
+.TP
+\fB\-\-port\fR \fI\,PORT\/\fR
+Service port.
+
+.TP
+\fB\-\-target_port\fR \fI\,TARGET_PORT\/\fR
+Container target port.
+
+.TP
+\fB\-\-env_vars\fR \fI\,ENV_VARS\/\fR
+Environment variables as a JSON string.
+
+.TP
+\fB\-\-cpu\fR \fI\,CPU\/\fR
+CPU requirements.
+
+.TP
+\fB\-\-memory\fR \fI\,MEMORY\/\fR
+Memory requirements.
+
+.TP
+\fB\-\-storage\fR \fI\,STORAGE\/\fR
+Storage requirements.
+
+.TP
+\fB\-\-gpu\fR \fI\,GPU\/\fR
+GPU requirements.
+
+.TP
+\fB\-\-kube_config_path\fR \fI\,KUBE_CONFIG_PATH\/\fR
+Path to the kubeconfig file.
+
+.TP
+\fB\-\-cluster_name\fR \fI\,CLUSTER_NAME\/\fR
+Name of the Kubernetes cluster.
+
+.TP
+\fB\-\-context_name\fR \fI\,CONTEXT_NAME\/\fR
+Name of the kubeconfig context.
+
+.TP
+\fB\-\-namespace\fR \fI\,NAMESPACE\/\fR
+Kubernetes namespace.
+
+.TP
+\fB\-\-labels\fR \fI\,LABELS\/\fR
+Labels for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-annotations\fR \fI\,ANNOTATIONS\/\fR
+Annotations for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-api_key\fR \fI\,API_KEY\/\fR
+API key for Kubernetes cluster.
+
+.TP
+\fB\-\-api_host\fR \fI\,API_HOST\/\fR
+API host for Kubernetes cluster.
+
+.TP
+\fB\-\-verify_ssl\fR \fI\,VERIFY_SSL\/\fR
+Whether to verify SSL certificates.
+
+.TP
+\fB\-\-ssl_ca_cert\fR \fI\,SSL_CA_CERT\/\fR
+Path to the SSL CA certificate.
+
+.SH COMMAND \fI\,'geniusctl.py service delete'\/\fR
+usage: geniusctl.py service delete [\-h] [\-\-kube_config_path KUBE_CONFIG_PATH]
+                                   [\-\-cluster_name CLUSTER_NAME]
+                                   [\-\-context_name CONTEXT_NAME]
+                                   [\-\-namespace NAMESPACE] [\-\-labels LABELS]
+                                   [\-\-annotations ANNOTATIONS]
+                                   [\-\-api_key API_KEY] [\-\-api_host API_HOST]
+                                   [\-\-verify_ssl VERIFY_SSL]
+                                   [\-\-ssl_ca_cert SSL_CA_CERT]
+                                   name
+
+.TP
+\fBname\fR
+Name of the service.
+
+.SH OPTIONS \fI\,'geniusctl.py service delete'\/\fR
+.TP
+\fB\-\-kube_config_path\fR \fI\,KUBE_CONFIG_PATH\/\fR
+Path to the kubeconfig file.
+
+.TP
+\fB\-\-cluster_name\fR \fI\,CLUSTER_NAME\/\fR
+Name of the Kubernetes cluster.
+
+.TP
+\fB\-\-context_name\fR \fI\,CONTEXT_NAME\/\fR
+Name of the kubeconfig context.
+
+.TP
+\fB\-\-namespace\fR \fI\,NAMESPACE\/\fR
+Kubernetes namespace.
+
+.TP
+\fB\-\-labels\fR \fI\,LABELS\/\fR
+Labels for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-annotations\fR \fI\,ANNOTATIONS\/\fR
+Annotations for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-api_key\fR \fI\,API_KEY\/\fR
+API key for Kubernetes cluster.
+
+.TP
+\fB\-\-api_host\fR \fI\,API_HOST\/\fR
+API host for Kubernetes cluster.
+
+.TP
+\fB\-\-verify_ssl\fR \fI\,VERIFY_SSL\/\fR
+Whether to verify SSL certificates.
+
+.TP
+\fB\-\-ssl_ca_cert\fR \fI\,SSL_CA_CERT\/\fR
+Path to the SSL CA certificate.
+
+.SH COMMAND \fI\,'geniusctl.py service describe'\/\fR
+usage: geniusctl.py service describe [\-h]
+                                     [\-\-kube_config_path KUBE_CONFIG_PATH]
+                                     [\-\-cluster_name CLUSTER_NAME]
+                                     [\-\-context_name CONTEXT_NAME]
+                                     [\-\-namespace NAMESPACE] [\-\-labels LABELS]
+                                     [\-\-annotations ANNOTATIONS]
+                                     [\-\-api_key API_KEY] [\-\-api_host API_HOST]
+                                     [\-\-verify_ssl VERIFY_SSL]
+                                     [\-\-ssl_ca_cert SSL_CA_CERT]
+                                     name
+
+.TP
+\fBname\fR
+Name of the service.
+
+.SH OPTIONS \fI\,'geniusctl.py service describe'\/\fR
+.TP
+\fB\-\-kube_config_path\fR \fI\,KUBE_CONFIG_PATH\/\fR
+Path to the kubeconfig file.
+
+.TP
+\fB\-\-cluster_name\fR \fI\,CLUSTER_NAME\/\fR
+Name of the Kubernetes cluster.
+
+.TP
+\fB\-\-context_name\fR \fI\,CONTEXT_NAME\/\fR
+Name of the kubeconfig context.
+
+.TP
+\fB\-\-namespace\fR \fI\,NAMESPACE\/\fR
+Kubernetes namespace.
+
+.TP
+\fB\-\-labels\fR \fI\,LABELS\/\fR
+Labels for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-annotations\fR \fI\,ANNOTATIONS\/\fR
+Annotations for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-api_key\fR \fI\,API_KEY\/\fR
+API key for Kubernetes cluster.
+
+.TP
+\fB\-\-api_host\fR \fI\,API_HOST\/\fR
+API host for Kubernetes cluster.
+
+.TP
+\fB\-\-verify_ssl\fR \fI\,VERIFY_SSL\/\fR
+Whether to verify SSL certificates.
+
+.TP
+\fB\-\-ssl_ca_cert\fR \fI\,SSL_CA_CERT\/\fR
+Path to the SSL CA certificate.
+
+.SH COMMAND \fI\,'geniusctl.py service show'\/\fR
+usage: geniusctl.py service show [\-h] [\-\-kube_config_path KUBE_CONFIG_PATH]
+                                 [\-\-cluster_name CLUSTER_NAME]
+                                 [\-\-context_name CONTEXT_NAME]
+                                 [\-\-namespace NAMESPACE] [\-\-labels LABELS]
+                                 [\-\-annotations ANNOTATIONS]
+                                 [\-\-api_key API_KEY] [\-\-api_host API_HOST]
+                                 [\-\-verify_ssl VERIFY_SSL]
+                                 [\-\-ssl_ca_cert SSL_CA_CERT]
+
+.SH OPTIONS \fI\,'geniusctl.py service show'\/\fR
+.TP
+\fB\-\-kube_config_path\fR \fI\,KUBE_CONFIG_PATH\/\fR
+Path to the kubeconfig file.
+
+.TP
+\fB\-\-cluster_name\fR \fI\,CLUSTER_NAME\/\fR
+Name of the Kubernetes cluster.
+
+.TP
+\fB\-\-context_name\fR \fI\,CONTEXT_NAME\/\fR
+Name of the kubeconfig context.
+
+.TP
+\fB\-\-namespace\fR \fI\,NAMESPACE\/\fR
+Kubernetes namespace.
+
+.TP
+\fB\-\-labels\fR \fI\,LABELS\/\fR
+Labels for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-annotations\fR \fI\,ANNOTATIONS\/\fR
+Annotations for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-api_key\fR \fI\,API_KEY\/\fR
+API key for Kubernetes cluster.
+
+.TP
+\fB\-\-api_host\fR \fI\,API_HOST\/\fR
+API host for Kubernetes cluster.
+
+.TP
+\fB\-\-verify_ssl\fR \fI\,VERIFY_SSL\/\fR
+Whether to verify SSL certificates.
+
+.TP
+\fB\-\-ssl_ca_cert\fR \fI\,SSL_CA_CERT\/\fR
+Path to the SSL CA certificate.
+
+.SH COMMAND \fI\,'geniusctl.py job'\/\fR
+usage: geniusctl.py job [\-h] {create,delete,status} ...
+
+.SH
+POSITIONAL ARGUMENTS \fI\,'geniusctl.py job'\/\fR
+.TP
+\fBgeniusctl.py job\fR \fI\,create\/\fR
+Create a new job.
+.TP
+\fBgeniusctl.py job\fR \fI\,delete\/\fR
+Delete a job.
+.TP
+\fBgeniusctl.py job\fR \fI\,status\/\fR
+Get the status of a job.
+
+.SH COMMAND \fI\,'geniusctl.py job create'\/\fR
+usage: geniusctl.py job create [\-h] [\-\-env_vars ENV_VARS] [\-\-cpu CPU]
+                               [\-\-memory MEMORY] [\-\-storage STORAGE]
+                               [\-\-gpu GPU]
+                               [\-\-kube_config_path KUBE_CONFIG_PATH]
+                               [\-\-cluster_name CLUSTER_NAME]
+                               [\-\-context_name CONTEXT_NAME]
+                               [\-\-namespace NAMESPACE] [\-\-labels LABELS]
+                               [\-\-annotations ANNOTATIONS] [\-\-api_key API_KEY]
+                               [\-\-api_host API_HOST] [\-\-verify_ssl VERIFY_SSL]
+                               [\-\-ssl_ca_cert SSL_CA_CERT]
+                               name image command
+
+.TP
+\fBname\fR
+Name of the job.
+
+.TP
+\fBimage\fR
+Docker image for the job.
+
+.TP
+\fBcommand\fR
+Command to run in the container.
+
+.SH OPTIONS \fI\,'geniusctl.py job create'\/\fR
+.TP
+\fB\-\-env_vars\fR \fI\,ENV_VARS\/\fR
+Environment variables as a JSON string.
+
+.TP
+\fB\-\-cpu\fR \fI\,CPU\/\fR
+CPU requirements.
+
+.TP
+\fB\-\-memory\fR \fI\,MEMORY\/\fR
+Memory requirements.
+
+.TP
+\fB\-\-storage\fR \fI\,STORAGE\/\fR
+Storage requirements.
+
+.TP
+\fB\-\-gpu\fR \fI\,GPU\/\fR
+GPU requirements.
+
+.TP
+\fB\-\-kube_config_path\fR \fI\,KUBE_CONFIG_PATH\/\fR
+Path to the kubeconfig file.
+
+.TP
+\fB\-\-cluster_name\fR \fI\,CLUSTER_NAME\/\fR
+Name of the Kubernetes cluster.
+
+.TP
+\fB\-\-context_name\fR \fI\,CONTEXT_NAME\/\fR
+Name of the kubeconfig context.
+
+.TP
+\fB\-\-namespace\fR \fI\,NAMESPACE\/\fR
+Kubernetes namespace.
+
+.TP
+\fB\-\-labels\fR \fI\,LABELS\/\fR
+Labels for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-annotations\fR \fI\,ANNOTATIONS\/\fR
+Annotations for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-api_key\fR \fI\,API_KEY\/\fR
+API key for Kubernetes cluster.
+
+.TP
+\fB\-\-api_host\fR \fI\,API_HOST\/\fR
+API host for Kubernetes cluster.
+
+.TP
+\fB\-\-verify_ssl\fR \fI\,VERIFY_SSL\/\fR
+Whether to verify SSL certificates.
+
+.TP
+\fB\-\-ssl_ca_cert\fR \fI\,SSL_CA_CERT\/\fR
+Path to the SSL CA certificate.
+
+.SH COMMAND \fI\,'geniusctl.py job delete'\/\fR
+usage: geniusctl.py job delete [\-h] [\-\-kube_config_path KUBE_CONFIG_PATH]
+                               [\-\-cluster_name CLUSTER_NAME]
+                               [\-\-context_name CONTEXT_NAME]
+                               [\-\-namespace NAMESPACE] [\-\-labels LABELS]
+                               [\-\-annotations ANNOTATIONS] [\-\-api_key API_KEY]
+                               [\-\-api_host API_HOST] [\-\-verify_ssl VERIFY_SSL]
+                               [\-\-ssl_ca_cert SSL_CA_CERT]
+                               name
+
+.TP
+\fBname\fR
+Name of the job.
+
+.SH OPTIONS \fI\,'geniusctl.py job delete'\/\fR
+.TP
+\fB\-\-kube_config_path\fR \fI\,KUBE_CONFIG_PATH\/\fR
+Path to the kubeconfig file.
+
+.TP
+\fB\-\-cluster_name\fR \fI\,CLUSTER_NAME\/\fR
+Name of the Kubernetes cluster.
+
+.TP
+\fB\-\-context_name\fR \fI\,CONTEXT_NAME\/\fR
+Name of the kubeconfig context.
+
+.TP
+\fB\-\-namespace\fR \fI\,NAMESPACE\/\fR
+Kubernetes namespace.
+
+.TP
+\fB\-\-labels\fR \fI\,LABELS\/\fR
+Labels for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-annotations\fR \fI\,ANNOTATIONS\/\fR
+Annotations for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-api_key\fR \fI\,API_KEY\/\fR
+API key for Kubernetes cluster.
+
+.TP
+\fB\-\-api_host\fR \fI\,API_HOST\/\fR
+API host for Kubernetes cluster.
+
+.TP
+\fB\-\-verify_ssl\fR \fI\,VERIFY_SSL\/\fR
+Whether to verify SSL certificates.
+
+.TP
+\fB\-\-ssl_ca_cert\fR \fI\,SSL_CA_CERT\/\fR
+Path to the SSL CA certificate.
+
+.SH COMMAND \fI\,'geniusctl.py job status'\/\fR
+usage: geniusctl.py job status [\-h] [\-\-kube_config_path KUBE_CONFIG_PATH]
+                               [\-\-cluster_name CLUSTER_NAME]
+                               [\-\-context_name CONTEXT_NAME]
+                               [\-\-namespace NAMESPACE] [\-\-labels LABELS]
+                               [\-\-annotations ANNOTATIONS] [\-\-api_key API_KEY]
+                               [\-\-api_host API_HOST] [\-\-verify_ssl VERIFY_SSL]
+                               [\-\-ssl_ca_cert SSL_CA_CERT]
+                               name
+
+.TP
+\fBname\fR
+Name of the job.
+
+.SH OPTIONS \fI\,'geniusctl.py job status'\/\fR
+.TP
+\fB\-\-kube_config_path\fR \fI\,KUBE_CONFIG_PATH\/\fR
+Path to the kubeconfig file.
+
+.TP
+\fB\-\-cluster_name\fR \fI\,CLUSTER_NAME\/\fR
+Name of the Kubernetes cluster.
+
+.TP
+\fB\-\-context_name\fR \fI\,CONTEXT_NAME\/\fR
+Name of the kubeconfig context.
+
+.TP
+\fB\-\-namespace\fR \fI\,NAMESPACE\/\fR
+Kubernetes namespace.
+
+.TP
+\fB\-\-labels\fR \fI\,LABELS\/\fR
+Labels for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-annotations\fR \fI\,ANNOTATIONS\/\fR
+Annotations for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-api_key\fR \fI\,API_KEY\/\fR
+API key for Kubernetes cluster.
+
+.TP
+\fB\-\-api_host\fR \fI\,API_HOST\/\fR
+API host for Kubernetes cluster.
+
+.TP
+\fB\-\-verify_ssl\fR \fI\,VERIFY_SSL\/\fR
+Whether to verify SSL certificates.
+
+.TP
+\fB\-\-ssl_ca_cert\fR \fI\,SSL_CA_CERT\/\fR
+Path to the SSL CA certificate.
+
+.SH COMMAND \fI\,'geniusctl.py cron_job'\/\fR
+usage: geniusctl.py cron_job [\-h]
+                             {create_cronjob,delete_cronjob,get_cronjob_status}
+                             ...
+
+.SH
+POSITIONAL ARGUMENTS \fI\,'geniusctl.py cron_job'\/\fR
+.TP
+\fBgeniusctl.py cron_job\fR \fI\,create_cronjob\/\fR
+Create a new cronjob.
+.TP
+\fBgeniusctl.py cron_job\fR \fI\,delete_cronjob\/\fR
+Delete a cronjob.
+.TP
+\fBgeniusctl.py cron_job\fR \fI\,get_cronjob_status\/\fR
+Get the status of a cronjob.
+
+.SH COMMAND \fI\,'geniusctl.py cron_job create_cronjob'\/\fR
+usage: geniusctl.py cron_job create_cronjob [\-h] [\-\-env_vars ENV_VARS]
+                                            [\-\-cpu CPU] [\-\-memory MEMORY]
+                                            [\-\-storage STORAGE] [\-\-gpu GPU]
+                                            [\-\-kube_config_path KUBE_CONFIG_PATH]
+                                            [\-\-cluster_name CLUSTER_NAME]
+                                            [\-\-context_name CONTEXT_NAME]
+                                            [\-\-namespace NAMESPACE]
+                                            [\-\-labels LABELS]
+                                            [\-\-annotations ANNOTATIONS]
+                                            [\-\-api_key API_KEY]
+                                            [\-\-api_host API_HOST]
+                                            [\-\-verify_ssl VERIFY_SSL]
+                                            [\-\-ssl_ca_cert SSL_CA_CERT]
+                                            name image command schedule
+
+.TP
+\fBname\fR
+Name of the cronjob.
+
+.TP
+\fBimage\fR
+Docker image for the cronjob.
+
+.TP
+\fBcommand\fR
+Command to run in the container.
+
+.TP
+\fBschedule\fR
+Cron schedule.
+
+.SH OPTIONS \fI\,'geniusctl.py cron_job create_cronjob'\/\fR
+.TP
+\fB\-\-env_vars\fR \fI\,ENV_VARS\/\fR
+Environment variables as a JSON string.
+
+.TP
+\fB\-\-cpu\fR \fI\,CPU\/\fR
+CPU requirements.
+
+.TP
+\fB\-\-memory\fR \fI\,MEMORY\/\fR
+Memory requirements.
+
+.TP
+\fB\-\-storage\fR \fI\,STORAGE\/\fR
+Storage requirements.
+
+.TP
+\fB\-\-gpu\fR \fI\,GPU\/\fR
+GPU requirements.
+
+.TP
+\fB\-\-kube_config_path\fR \fI\,KUBE_CONFIG_PATH\/\fR
+Path to the kubeconfig file.
+
+.TP
+\fB\-\-cluster_name\fR \fI\,CLUSTER_NAME\/\fR
+Name of the Kubernetes cluster.
+
+.TP
+\fB\-\-context_name\fR \fI\,CONTEXT_NAME\/\fR
+Name of the kubeconfig context.
+
+.TP
+\fB\-\-namespace\fR \fI\,NAMESPACE\/\fR
+Kubernetes namespace.
+
+.TP
+\fB\-\-labels\fR \fI\,LABELS\/\fR
+Labels for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-annotations\fR \fI\,ANNOTATIONS\/\fR
+Annotations for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-api_key\fR \fI\,API_KEY\/\fR
+API key for Kubernetes cluster.
+
+.TP
+\fB\-\-api_host\fR \fI\,API_HOST\/\fR
+API host for Kubernetes cluster.
+
+.TP
+\fB\-\-verify_ssl\fR \fI\,VERIFY_SSL\/\fR
+Whether to verify SSL certificates.
+
+.TP
+\fB\-\-ssl_ca_cert\fR \fI\,SSL_CA_CERT\/\fR
+Path to the SSL CA certificate.
+
+.SH COMMAND \fI\,'geniusctl.py cron_job delete_cronjob'\/\fR
+usage: geniusctl.py cron_job delete_cronjob [\-h]
+                                            [\-\-kube_config_path KUBE_CONFIG_PATH]
+                                            [\-\-cluster_name CLUSTER_NAME]
+                                            [\-\-context_name CONTEXT_NAME]
+                                            [\-\-namespace NAMESPACE]
+                                            [\-\-labels LABELS]
+                                            [\-\-annotations ANNOTATIONS]
+                                            [\-\-api_key API_KEY]
+                                            [\-\-api_host API_HOST]
+                                            [\-\-verify_ssl VERIFY_SSL]
+                                            [\-\-ssl_ca_cert SSL_CA_CERT]
+                                            name
+
+.TP
+\fBname\fR
+Name of the cronjob.
+
+.SH OPTIONS \fI\,'geniusctl.py cron_job delete_cronjob'\/\fR
+.TP
+\fB\-\-kube_config_path\fR \fI\,KUBE_CONFIG_PATH\/\fR
+Path to the kubeconfig file.
+
+.TP
+\fB\-\-cluster_name\fR \fI\,CLUSTER_NAME\/\fR
+Name of the Kubernetes cluster.
+
+.TP
+\fB\-\-context_name\fR \fI\,CONTEXT_NAME\/\fR
+Name of the kubeconfig context.
+
+.TP
+\fB\-\-namespace\fR \fI\,NAMESPACE\/\fR
+Kubernetes namespace.
+
+.TP
+\fB\-\-labels\fR \fI\,LABELS\/\fR
+Labels for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-annotations\fR \fI\,ANNOTATIONS\/\fR
+Annotations for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-api_key\fR \fI\,API_KEY\/\fR
+API key for Kubernetes cluster.
+
+.TP
+\fB\-\-api_host\fR \fI\,API_HOST\/\fR
+API host for Kubernetes cluster.
+
+.TP
+\fB\-\-verify_ssl\fR \fI\,VERIFY_SSL\/\fR
+Whether to verify SSL certificates.
+
+.TP
+\fB\-\-ssl_ca_cert\fR \fI\,SSL_CA_CERT\/\fR
+Path to the SSL CA certificate.
+
+.SH COMMAND \fI\,'geniusctl.py cron_job get_cronjob_status'\/\fR
+usage: geniusctl.py cron_job get_cronjob_status [\-h]
+                                                [\-\-kube_config_path KUBE_CONFIG_PATH]
+                                                [\-\-cluster_name CLUSTER_NAME]
+                                                [\-\-context_name CONTEXT_NAME]
+                                                [\-\-namespace NAMESPACE]
+                                                [\-\-labels LABELS]
+                                                [\-\-annotations ANNOTATIONS]
+                                                [\-\-api_key API_KEY]
+                                                [\-\-api_host API_HOST]
+                                                [\-\-verify_ssl VERIFY_SSL]
+                                                [\-\-ssl_ca_cert SSL_CA_CERT]
+                                                name
+
+.TP
+\fBname\fR
+Name of the cronjob.
+
+.SH OPTIONS \fI\,'geniusctl.py cron_job get_cronjob_status'\/\fR
+.TP
+\fB\-\-kube_config_path\fR \fI\,KUBE_CONFIG_PATH\/\fR
+Path to the kubeconfig file.
+
+.TP
+\fB\-\-cluster_name\fR \fI\,CLUSTER_NAME\/\fR
+Name of the Kubernetes cluster.
+
+.TP
+\fB\-\-context_name\fR \fI\,CONTEXT_NAME\/\fR
+Name of the kubeconfig context.
+
+.TP
+\fB\-\-namespace\fR \fI\,NAMESPACE\/\fR
+Kubernetes namespace.
+
+.TP
+\fB\-\-labels\fR \fI\,LABELS\/\fR
+Labels for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-annotations\fR \fI\,ANNOTATIONS\/\fR
+Annotations for Kubernetes resources, as a JSON string.
+
+.TP
+\fB\-\-api_key\fR \fI\,API_KEY\/\fR
+API key for Kubernetes cluster.
+
+.TP
+\fB\-\-api_host\fR \fI\,API_HOST\/\fR
+API host for Kubernetes cluster.
+
+.TP
+\fB\-\-verify_ssl\fR \fI\,VERIFY_SSL\/\fR
+Whether to verify SSL certificates.
+
+.TP
+\fB\-\-ssl_ca_cert\fR \fI\,SSL_CA_CERT\/\fR
+Path to the SSL CA certificate.
+
+.SH COMMAND \fI\,'geniusctl.py plugins'\/\fR
+Usage: geniusctl.py plugins [\-h] [spout_or_bolt]
+
+.TP
+\fBspout_or_bolt\fR
+The spout or bolt to print help for.
+
+.SH COMMAND \fI\,'geniusctl.py list'\/\fR
+Usage: geniusctl.py list [\-h] [\-\-verbose]
+
+.SH OPTIONS \fI\,'geniusctl.py list'\/\fR
+.TP
+\fB\-\-verbose\fR
+Print verbose output.
