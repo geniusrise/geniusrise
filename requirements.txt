@@ -1,6 +1,7 @@
 annotated-types==0.5.0
 ansicolors==1.1.8
 argparse-color-formatter==1.2.2.post2
+argparse-manpage==4.4
 async-timeout==4.0.3
 black==23.7.0
 bleach==6.0.0

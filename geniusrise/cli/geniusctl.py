@@ -274,3 +274,8 @@ def main():
 if __name__ == "__main__":
     genius_ctl = GeniusCtl()
     genius_ctl.cli()
+
+
+def create_parser():
+    genius_ctl = GeniusCtl()
+    return genius_ctl.create_parser()

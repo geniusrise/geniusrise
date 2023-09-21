@@ -37,3 +37,7 @@ help: ## Dislay this help
 	echo $$line | awk 'BEGIN {FS = "## "}; {printf "\n\033[33m%s\033[0m\n", $$2}'; else \
 	echo $$line | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'; fi; \
 	done; unset IFS;
+
+generate-man: ## Generate man page for argparse
+	argparse-manpage --pyfile geniusrise/cli/geniusctl.py --function create_parser > geniusrise.man
+	# pandoc --from man --to markdown < geniusrise.man > cli.md
