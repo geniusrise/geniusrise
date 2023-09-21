@@ -245,6 +245,31 @@ class Deployment(K8sResourceManager):
             list: List of deployments.
         """
         deployment_list = self.apps_api_instance.list_namespaced_deployment(self.namespace)
+
+        self.log.info(f"🗂 Found {len(deployment_list.items)} deployments")
+        for deployment in deployment_list.items:
+            # fmt: off
+            self.log.info(f"✨ Deployment: {deployment.metadata.name} replicas: {deployment.spec.replicas}")
+            self.log.info(f"✨ Deployment: {deployment.metadata.name} labels: {deployment.metadata.labels}")
+            self.log.info(f"✨ Deployment: {deployment.metadata.name} annotations: {deployment.metadata.annotations}")
+
+            if deployment.spec.template.spec.containers and len(deployment.spec.template.spec.containers) > 0:
+                self.log.info(f"✨ Deployment: {deployment.metadata.name} image: {deployment.spec.template.spec.containers[0].image}")
+                self.log.info(f"✨ Deployment: {deployment.metadata.name} command: {deployment.spec.template.spec.containers[0].command}")
+                self.log.info(f"✨ Deployment: {deployment.metadata.name} env_vars: {deployment.spec.template.spec.containers[0].env}")
+                if deployment.spec.template.spec.containers[0].resources.requests:
+                    self.log.info(f"✨ Deployment: {deployment.metadata.name} cpu: {deployment.spec.template.spec.containers[0].resources.requests.cpu}")
+                    self.log.info(f"✨ Deployment: {deployment.metadata.name} memory: {deployment.spec.template.spec.containers[0].resources.requests.memory}")
+                    self.log.info(f"✨ Deployment: {deployment.metadata.name} storage: {deployment.spec.template.spec.containers[0].resources.requests.storage}")
+                    self.log.info(f"✨ Deployment: {deployment.metadata.name} gpu: {deployment.spec.template.spec.containers[0].resources.requests.gpu}")
+            self.log.info(f"✨ Deployment: {deployment.metadata.name} status: {deployment.status.replicas}")
+            self.log.info(f"✨ Deployment: {deployment.metadata.name} ready: {deployment.status.ready_replicas}/{deployment.spec.replicas}")
+            self.log.info(f"✨ Deployment: {deployment.metadata.name} available: {deployment.status.available_replicas}/{deployment.spec.replicas}")
+            self.log.info(f"✨ Deployment: {deployment.metadata.name} unavailable: {deployment.status.unavailable_replicas}/{deployment.spec.replicas}")
+            self.log.info(f"✨ Deployment: {deployment.metadata.name} conditions: {deployment.status.conditions}")
+            self.log.info(f"✨ Deployment: {deployment.metadata.name} image: {deployment.spec.template.spec.containers[0].image}")
+            # fmt: on
+
         return [
             {"name": deployment.metadata.name, "replicas": deployment.spec.replicas}
             for deployment in deployment_list.items
@@ -261,6 +286,28 @@ class Deployment(K8sResourceManager):
             dict: Description of the deployment.
         """
         deployment = self.apps_api_instance.read_namespaced_deployment(deployment_name, self.namespace)
+
+        # fmt: off
+        self.log.info(f"✨ Describe deployment {deployment_name}")
+        self.log.info(f"✨ Deployment: {deployment.metadata.name} replicas: {deployment.spec.replicas}")
+        self.log.info(f"✨ Deployment: {deployment.metadata.name} labels: {deployment.metadata.labels}")
+        self.log.info(f"✨ Deployment: {deployment.metadata.name} annotations: {deployment.metadata.annotations}")
+        if deployment.spec.template.spec.containers and len(deployment.spec.template.spec.containers) > 0:
+            self.log.info(f"✨ Deployment: {deployment.metadata.name} image: {deployment.spec.template.spec.containers[0].image}")
+            self.log.info(f"✨ Deployment: {deployment.metadata.name} command: {deployment.spec.template.spec.containers[0].command}")
+            self.log.info(f"✨ Deployment: {deployment.metadata.name} env_vars: {deployment.spec.template.spec.containers[0].env}")
+            if deployment.spec.template.spec.containers[0].resources.requests:
+                self.log.info(f"✨ Deployment: {deployment.metadata.name} cpu: {deployment.spec.template.spec.containers[0].resources.requests.cpu}")
+                self.log.info(f"✨ Deployment: {deployment.metadata.name} memory: {deployment.spec.template.spec.containers[0].resources.requests.memory}")
+                self.log.info(f"✨ Deployment: {deployment.metadata.name} storage: {deployment.spec.template.spec.containers[0].resources.requests.storage}")
+                self.log.info(f"✨ Deployment: {deployment.metadata.name} gpu: {deployment.spec.template.spec.containers[0].resources.requests.gpu}")
+        self.log.info(f"✨ Deployment: {deployment.metadata.name} status: {deployment.status.replicas}")
+        self.log.info(f"✨ Deployment: {deployment.metadata.name} ready: {deployment.status.ready_replicas}/{deployment.spec.replicas}")
+        self.log.info(f"✨ Deployment: {deployment.metadata.name} available: {deployment.status.available_replicas}/{deployment.spec.replicas}")
+        self.log.info(f"✨ Deployment: {deployment.metadata.name} unavailable: {deployment.status.unavailable_replicas}/{deployment.spec.replicas}")
+        self.log.info(f"✨ Deployment: {deployment.metadata.name} conditions: {deployment.status.conditions}")
+        # fmt: on
+
         return {
             "name": deployment.metadata.name,
             "replicas": deployment.spec.replicas,
@@ -276,6 +323,7 @@ class Deployment(K8sResourceManager):
             name (str): Name of the resource to delete.
         """
         self.apps_api_instance.delete_namespaced_deployment(name, self.namespace)
+        self.log.info(f"🗑️ Deleted deployment {name}")
 
     def status(self, name: str) -> dict:  # type: ignore
         """
@@ -288,4 +336,14 @@ class Deployment(K8sResourceManager):
             dict: Status of the deployment.
         """
         deployment = self.apps_api_instance.read_namespaced_deployment(name, self.namespace)
+
+        # fmt: off
+        self.log.info(f"✨ Status of deployment {name}")
+        self.log.info(f"✨ Deployment: {deployment.metadata.name} replicas: {deployment.status.replicas}")
+        self.log.info(f"✨ Deployment: {deployment.metadata.name} ready: {deployment.status.ready_replicas}/{deployment.spec.replicas}")
+        self.log.info(f"✨ Deployment: {deployment.metadata.name} available: {deployment.status.available_replicas}/{deployment.spec.replicas}")
+        self.log.info(f"✨ Deployment: {deployment.metadata.name} unavailable: {deployment.status.unavailable_replicas}/{deployment.spec.replicas}")
+        self.log.info(f"✨ Deployment: {deployment.metadata.name} conditions: {deployment.status.conditions}")
+        # fmt: on
+
         return {"deployment_status": deployment.status}

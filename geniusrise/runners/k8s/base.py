@@ -259,6 +259,7 @@ class K8sResourceManager:
                     command=command,
                     env=[client.V1EnvVar(name=k, value=v) for k, v in env_vars.items()],
                     resources=V1ResourceRequirements(limits=resources) if resources else None,
+                    image_pull_policy="Always",
                 )
             ],
             image_pull_secrets=[client.V1LocalObjectReference(name=image_pull_secret_name)]
@@ -302,6 +303,9 @@ class K8sResourceManager:
             str: The status of the Pod.
         """
         pod = self.api_instance.read_namespaced_pod(pod_name, self.namespace)
+
+        self.log.info(f"✳️ Status of pod {pod_name}: {pod.status.phase}")
+
         return pod.status.phase
 
     def show(self) -> list:
@@ -312,6 +316,11 @@ class K8sResourceManager:
             list: List of pods.
         """
         pod_list = self.api_instance.list_namespaced_pod(self.namespace)
+
+        self.log.info(f"✳️ Pods in namespace {self.namespace}:")
+        for pod in pod_list.items:
+            self.log.info(f"✳️ {pod.metadata.name}: {pod.status.phase}")
+
         return [{"name": pod.metadata.name, "status": pod.status.phase} for pod in pod_list.items]
 
     def describe(self, pod_name: str) -> dict:
@@ -325,6 +334,32 @@ class K8sResourceManager:
             dict: Description of the pod.
         """
         pod = self.api_instance.read_namespaced_pod(pod_name, self.namespace)
+
+        self.log.info(f"✳️ Describe pod {pod.metadata.name}: {pod.status.phase}")
+        self.log.info(f"✳️ Containers: {pod.spec.containers}")
+        self.log.info(f"✳️ Labels: {pod.metadata.labels}")
+        self.log.info(f"✳️ Annotations: {pod.metadata.annotations}")
+        if pod.spec.containers and len(pod.spec.containers) > 0:
+            self.log.info(f"✳️ Resources: {pod.spec.containers[0].resources}")
+            self.log.info(f"✳️ Image: {pod.spec.containers[0].image}")
+            if hasattr(pod.spec, "template") and pod.spec.template.spec.containers[0].resources.requests:
+                self.log.info(f"✳️ CPU: {pod.spec.containers[0].resources.requests.cpu}")
+                self.log.info(f"✳️ Memory: {pod.spec.containers[0].resources.requests.memory}")
+                self.log.info(f"✳️ Storage: {pod.spec.containers[0].resources.requests.storage}")
+                self.log.info(f"✳️ GPU: {pod.spec.containers[0].resources.requests.gpu}")
+                self.log.info(f"✳️ Command: {pod.spec.containers[0].command}")
+            self.log.info(f"✳️ Ports: {pod.spec.containers[0].ports}")
+            self.log.info(f"✳️ Volume Mounts: {pod.spec.containers[0].volume_mounts}")
+        self.log.info(f"✳️ Volumes: {pod.spec.volumes}")
+        self.log.info(f"✳️ Image Pull Secrets: {pod.spec.image_pull_secrets}")
+        self.log.info(f"✳️ Init Containers: {pod.spec.init_containers}")
+        self.log.info(f"✳️ Node Name: {pod.spec.node_name}")
+        self.log.info(f"✳️ Tolerations: {pod.spec.tolerations}")
+        self.log.info(f"✳️ Affinity: {pod.spec.affinity}")
+        self.log.info(f"✳️ Host Network: {pod.spec.host_network}")
+        self.log.info(f"✳️ Host PID: {pod.spec.host_pid}")
+        self.log.info(f"✳️ Host IPC: {pod.spec.host_ipc}")
+
         return {
             "name": pod.metadata.name,
             "status": pod.status.phase,
