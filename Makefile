@@ -41,3 +41,11 @@ help: ## Dislay this help
 generate-man: ## Generate man page for argparse
 	argparse-manpage --pyfile geniusrise/cli/geniusctl.py --function create_parser > geniusrise.man
 	# pandoc --from man --to markdown < geniusrise.man > cli.md
+
+create-fat-container: ## Create a fat container containing all of geniusrise
+	genius docker package geniusrise dockerhub \
+	--packages geniusrise-listeners geniusrise-databases geniusrise-huggingface geniusrise-openai \
+	--os_packages libmysqlclient-dev libldap2-dev libsasl2-dev libssl-dev
+
+create-thin-container: ## Create a fat container containing only the core framework
+	genius docker package geniusrise-core dockerhub
