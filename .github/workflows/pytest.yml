@@ -5,7 +5,6 @@ on:
     branches:
       - master
 
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -24,33 +23,35 @@ jobs:
       PALM_KEY: ${{ secrets.PALM_KEY }}
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.x"
 
-    - name: Install Docker Compose
-      run: sudo apt-get install docker-compose
+      - name: Install Docker Compose
+        run: sudo apt-get install docker-compose
 
-    - name: Start services
-      run: docker-compose up -d
+      - name: Start services
+        run: docker-compose up -d
 
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
-        pip install coverage
-        pip install pytest
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install coverage
+          pip install pytest
 
-    - name: Run tests with coverage
-      run: coverage run -m pytest -vv --log-cli-level=ERROR ./geniusrise/
+      - name: Run tests with coverage
+        run: |
+          python ./scripts/ping_topic.py &
+          coverage run -m pytest -vv --log-cli-level=ERROR ./geniusrise/
 
-    - name: Generate coverage report
-      run: coverage report
+      - name: Generate coverage report
+        run: coverage report
 
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v2
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

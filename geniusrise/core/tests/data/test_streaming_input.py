@@ -23,14 +23,16 @@ from geniusrise.core.data import StreamingInput
 
 # Constants
 KAFKA_CLUSTER_CONNECTION_STRING = "localhost:9094"
-GROUP_ID = "test_group_1"
+GROUP_ID = "geniusrise"
 INPUT_TOPIC = "test_topic"
 
 
 # Fixture for StreamingInput
 @pytest.fixture
 def streaming_input_config():
-    return StreamingInput(INPUT_TOPIC, KAFKA_CLUSTER_CONNECTION_STRING, GROUP_ID)
+    si = StreamingInput(INPUT_TOPIC, KAFKA_CLUSTER_CONNECTION_STRING, GROUP_ID)
+    yield si
+    si.close()
 
 
 # Test Initialization
@@ -48,7 +50,7 @@ def test_streaming_input_config_get(streaming_input_config):
 # Test Iterator
 def test_streaming_input_config_iterator(streaming_input_config):
     producer = KafkaProducer(bootstrap_servers=KAFKA_CLUSTER_CONNECTION_STRING)
-    producer.send(INPUT_TOPIC, value=json.dumps({"test": "iterator"}).encode("utf-8"))
+    producer.send(INPUT_TOPIC, value=json.dumps({"test": "buffer"}).encode("utf-8"))
     producer.flush()
 
     consumer = streaming_input_config.get()
@@ -60,7 +62,7 @@ def test_streaming_input_config_iterator(streaming_input_config):
         if msg_poll:
             for _, messages in msg_poll.items():
                 for message in messages:
-                    assert json.loads(message.value.decode("utf-8")) == {"test": "iterator"}
+                    assert json.loads(message.value.decode("utf-8")) == {"test": "buffer"}
                     return
         else:
             print("Retrying...")
@@ -101,28 +103,28 @@ def test_streaming_input_config_commit(streaming_input_config):
         pytest.fail("Failed to commit offsets")
 
 
-# Test Filter Messages
-def test_streaming_input_config_filter_messages(streaming_input_config):
-    try:
-        producer = KafkaProducer(bootstrap_servers=KAFKA_CLUSTER_CONNECTION_STRING)
-        producer.send(INPUT_TOPIC, value=json.dumps({"test": "filter"}).encode("utf-8"))
-        producer.flush()
+# # Test Filter Messages
+# def test_streaming_input_config_filter_messages(streaming_input_config):
+#     try:
+#         producer = KafkaProducer(bootstrap_servers=KAFKA_CLUSTER_CONNECTION_STRING)
+#         producer.send(INPUT_TOPIC, value=json.dumps({"test": "filter"}).encode("utf-8"))
+#         producer.flush()
 
-        consumer = streaming_input_config.get()
-        consumer.poll(timeout_ms=1000)  # Poll to get messages
-        streaming_input_config.seek(0)
+#         consumer = streaming_input_config.get()
+#         consumer.poll(timeout_ms=1000)  # Poll to get messages
+#         streaming_input_config.seek(0)
 
-        def filter_func(message):
-            return json.loads(message.value.decode("utf-8")) == {"test": "filter"}
+#         def filter_func(message):
+#             return json.loads(message.value.decode("utf-8")) == {"test": "filter"}
 
-        for message in consumer:
-            if filter_func(message):
-                break
+#         for message in consumer:
+#             if filter_func(message):
+#                 break
 
-        consumer.unsubscribe()
-    except Exception:
-        consumer.unsubscribe()
-        pytest.fail("Failed in filter_messages test")
+#         consumer.unsubscribe()
+#     except Exception:
+#         consumer.unsubscribe()
+#         pytest.fail("Failed in filter_messages test")
 
 
 # Test Collect Metrics

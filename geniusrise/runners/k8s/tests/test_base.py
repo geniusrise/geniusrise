@@ -28,7 +28,7 @@ def k8s_manager():
     args = {
         "kube_config_path": "~/.kube/config",
         "cluster_name": "geniusrise-dev",
-        "context_name": "arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev",
+        "context_name": "arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev",
         "namespace": "geniusrise",
         "labels": None,
         "annotations": None,

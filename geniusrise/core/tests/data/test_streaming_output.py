@@ -43,7 +43,7 @@ def kafka_consumer():
 
 # Test that the StreamingOutput can save data to the Kafka topic
 def test_streaming_output_config_save(streaming_output_config, kafka_consumer):
-    data = {"test": "data"}
+    data = {"test": "buffer"}
     for _ in range(10):
         streaming_output_config.save(data)
 
@@ -56,7 +56,7 @@ def test_streaming_output_config_save(streaming_output_config, kafka_consumer):
 
 # Test that the StreamingOutput can save data to a specific partition in the Kafka topic
 def test_streaming_output_config_save_to_partition(streaming_output_config, kafka_consumer):
-    data = {"test": "data"}
+    data = {"test": "buffer"}
     partition = 0  # Replace with the number of a partition in your Kafka topic
     streaming_output_config.save_to_partition(data, partition)
 
@@ -70,7 +70,7 @@ def test_streaming_output_config_save_to_partition(streaming_output_config, kafk
 
 # Test that the StreamingOutput can save data in bulk to the Kafka topic
 def test_streaming_output_config_save_bulk(streaming_output_config, kafka_consumer):
-    data = [{"test": "data"}, {"test": "data"}, {"test": "data"}]
+    data = [{"test": "buffer"}, {"test": "buffer"}, {"test": "buffer"}]
     streaming_output_config.save_bulk(data)
 
     # Consume from the Kafka topic and test that the data was saved

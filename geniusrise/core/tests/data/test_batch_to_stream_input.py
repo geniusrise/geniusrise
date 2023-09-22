@@ -24,7 +24,7 @@ from geniusrise.core.data.batch_to_stream_input import KafkaMessage
 
 # Constants
 KAFKA_CLUSTER_CONNECTION_STRING = "localhost:9094"
-GROUP_ID = "test_group_1"
+GROUP_ID = "geniusrise"
 INPUT_TOPIC = "test_topic"
 BUCKET = "geniusrise-test-bucket"
 S3_FOLDER = "whatever"

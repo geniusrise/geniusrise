@@ -39,7 +39,7 @@ def test_redis_state_manager_init(redis_state_manager):
 def test_redis_state_manager_get_state(redis_state_manager):
     # First, set some state
     key = "test_key"
-    value = {"test": "data"}
+    value = {"test": "buffer"}
     redis_state_manager.set_state(key, value)
 
     # Then, get the state and check that it's correct
@@ -49,7 +49,7 @@ def test_redis_state_manager_get_state(redis_state_manager):
 # Test that the RedisState can set state
 def test_redis_state_manager_set_state(redis_state_manager):
     key = "test_key"
-    value = {"test": "data"}
+    value = {"test": "buffer"}
     redis_state_manager.set_state(key, value)
 
     # Check that the state was set correctly
