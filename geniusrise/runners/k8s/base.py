@@ -164,6 +164,7 @@ class K8sResourceManager:
         Raises:
             ValueError: If neither kube_config_path and context_name nor api_key and api_host are provided.
         """
+
         if kube_config_path and context_name:
             config.load_kube_config(config_file=kube_config_path, context=context_name)
             self.api_instance = client.CoreV1Api(ApiClient())

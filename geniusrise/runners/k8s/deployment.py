@@ -24,6 +24,51 @@ from .base import K8sResourceManager
 
 
 class Deployment(K8sResourceManager):
+    r"""
+    🚀 Initialize the Deployment class for managing Kubernetes Deployments.
+
+    CLI Usage:
+        geniusrise deployment [sub-command] [options]
+        Examples:
+
+        ```bash
+        genius deployment create --name example-deployment --image example-image --command "echo hello"
+        ```
+
+        ```bash
+        genius deployment scale --name example-deployment --replicas 3
+        ```
+
+        ```bash
+        genius deployment describe --name example-deployment
+        ```
+
+        ```bash
+        genius deployment delete --name example-deployment
+        ```
+
+        ```bash
+        genius deployment status --name example-deployment
+        ```
+
+    YAML Configuration:
+
+    ```yaml
+    version: "1.0"
+    deployments:
+        - name: "example-deployment"
+        image: "example-image"
+        command: "example-command"
+        replicas: 3
+        env_vars:
+            KEY: "value"
+        cpu: "100m"
+        memory: "256Mi"
+        storage: "1Gi"
+        gpu: "1"
+    ```
+    """
+
     def __init__(self):
         """
         🚀 Initialize the Deployment class for managing Kubernetes Deployments.

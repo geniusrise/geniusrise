@@ -91,6 +91,7 @@ class BoltCtl:
         run_parser.add_argument("--args", nargs=argparse.REMAINDER, help="Additional keyword arguments to pass to the bolt.")
 
         deploy_parser = subparsers.add_parser("deploy", help="Run a spout remotely.", formatter_class=RichHelpFormatter)
+        deploy_parser.add_argument("input_type", choices=["batch", "streaming", "batch_to_stream", "stream_to_batch"], help="Choose the type of input data: batch or streaming.", default="batch")
         deploy_parser.add_argument("output_type", choices=["batch", "streaming", "stream_to_batch"], help="Choose the type of output data: batch or streaming.", default="batch")
         deploy_parser.add_argument("state_type", choices=["none", "redis", "postgres", "dynamodb", "prometheus"], help="Select the type of state manager: none, redis, postgres, or dynamodb.", default="none")
         deploy_parser.add_argument("deployment_type", choices=["k8s"], help="Choose the type of deployment.", default="k8s")
@@ -349,6 +350,29 @@ class BoltCtl:
                     - dynamodb_region_name (str): The AWS region for DynamoDB.
                     Prometheus state manager config:
                     - prometheus_gateway (str): The push gateway for Prometheus metrics.
+                    Deployment
+                    - k8s_kind (str): Kind opf kubernetes resource to be deployed as, choices are "deployment", "service", "job", "cron_job"
+                    - k8s_name (str): Name of the Kubernetes resource.
+                    - k8s_image (str): Docker image for the Kubernetes resource.
+                    - k8s_replicas (int): Number of replicas.
+                    - k8s_env_vars (json): Environment variables as a JSON string.
+                    - k8s_cpu (str): CPU requirements.
+                    - k8s_memory (str): Memory requirements.
+                    - k8s_storage (str): Storage requirements.
+                    - k8s_gpu (str): GPU requirements.
+                    - k8s_kube_config_path (str): Name of the Kubernetes cluster local config.
+                    - k8s_api_key (str): GPU requirements.
+                    - k8s_api_host (str): GPU requirements.
+                    - k8s_verify_ssl (str): GPU requirements.
+                    - k8s_ssl_ca_cert (str): GPU requirements.
+                    - k8s_cluster_name (str): Name of the Kubernetes cluster.
+                    - k8s_context_name (str): Name of the kubeconfig context.
+                    - k8s_namespace (str): Kubernetes namespace.", default="default
+                    - k8s_labels (json): Labels for Kubernetes resources, as a JSON string.
+                    - k8s_annotations (json): Annotations for Kubernetes resources, as a JSON string.
+                    - k8s_port (int): Port to run the spout on as a service.
+                    - k8s_target_port (int): Port to expose the spout on as a service.
+                    - k8s_schedule (str): Schedule to run the spout on as a cron job.
                 ```
         """
         if args.deployment_type == "k8s":
@@ -378,7 +402,7 @@ class BoltCtl:
                 verify_ssl=args.k8s_verify_ssl if args.k8s_verify_ssl else None,
                 ssl_ca_cert=args.k8s_ssl_ca_cert if args.k8s_ssl_ca_cert else None,
             )
-            k8s_kwargs = {k: v for k, v in vars(args).items() if v is not None and "k8s_" in k}
+            k8s_kwargs = {k.replace("k8s_", ""): v for k, v in vars(args).items() if v is not None and "k8s_" in k}
 
             input: dict[str, Any] = {}
             if args.input_type == "batch":
@@ -453,8 +477,9 @@ class BoltCtl:
 
             command = [
                 "genius",
-                self.discovered_spout.name,
+                self.discovered_bolt.name,
                 "rise",
+                args.input_type,
                 args.output_type,
                 args.state_type,
                 args.method_name,

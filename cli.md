@@ -1,1482 +1,1229 @@
-- [NAME](#name)
-- [SYNOPSIS](#synopsis)
 - [DESCRIPTION](#description)
-- [POSITIONAL ARGUMENTS](#positional-arguments)
-- [COMMAND `genius TestSpoutCtlSpout`](#command-genius-testspoutctlspout)
-- [POSITIONAL ARGUMENTS _`genius TestSpoutCtlSpout`_](#positional-arguments-genius-testspoutctlspout)
-- [COMMAND `genius TestSpoutCtlSpout rise`](#command-genius-testspoutctlspout-rise)
-- [OPTIONS `genius TestSpoutCtlSpout rise`](#options-genius-testspoutctlspout-rise)
-- [COMMAND `genius TestSpoutCtlSpout deploy`](#command-genius-testspoutctlspout-deploy)
-- [OPTIONS `genius TestSpoutCtlSpout deploy`](#options-genius-testspoutctlspout-deploy)
-- [COMMAND `genius TestSpoutCtlSpout help`](#command-genius-testspoutctlspout-help)
-- [COMMAND `genius TestBoltCtlBolt`](#command-genius-testboltctlbolt)
-- [POSITIONAL ARGUMENTS _`genius TestBoltCtlBolt`_](#positional-arguments-genius-testboltctlbolt)
-- [COMMAND `genius TestBoltCtlBolt rise`](#command-genius-testboltctlbolt-rise)
-- [OPTIONS `genius TestBoltCtlBolt rise`](#options-genius-testboltctlbolt-rise)
-- [COMMAND `genius TestBoltCtlBolt deploy`](#command-genius-testboltctlbolt-deploy)
-- [OPTIONS `genius TestBoltCtlBolt deploy`](#options-genius-testboltctlbolt-deploy)
-- [COMMAND `genius TestBoltCtlBolt help`](#command-genius-testboltctlbolt-help)
-- [COMMAND `genius rise`](#command-genius-rise)
-- [OPTIONS `genius rise`](#options-genius-rise)
-- [COMMAND `genius docker`](#command-genius-docker)
-- [POSITIONAL ARGUMENTS _`genius docker`_](#positional-arguments-genius-docker)
-- [COMMAND `genius docker package`](#command-genius-docker-package)
-- [OPTIONS `genius docker package`](#options-genius-docker-package)
-- [COMMAND `genius pod`](#command-genius-pod)
-- [POSITIONAL ARGUMENTS _`genius pod`_](#positional-arguments-genius-pod)
-- [COMMAND `genius pod status`](#command-genius-pod-status)
-- [OPTIONS `genius pod status`](#options-genius-pod-status)
-- [COMMAND `genius pod show`](#command-genius-pod-show)
-- [OPTIONS `genius pod show`](#options-genius-pod-show)
-- [COMMAND `genius pod describe`](#command-genius-pod-describe)
-- [OPTIONS `genius pod describe`](#options-genius-pod-describe)
-- [COMMAND `genius pod logs`](#command-genius-pod-logs)
-- [OPTIONS `genius pod logs`](#options-genius-pod-logs)
-- [COMMAND `genius deployment`](#command-genius-deployment)
-- [POSITIONAL ARGUMENTS _`genius deployment`_](#positional-arguments-genius-deployment)
-- [COMMAND `genius deployment create`](#command-genius-deployment-create)
-- [OPTIONS `genius deployment create`](#options-genius-deployment-create)
-- [COMMAND `genius deployment scale`](#command-genius-deployment-scale)
-- [OPTIONS `genius deployment scale`](#options-genius-deployment-scale)
-- [COMMAND `genius deployment describe`](#command-genius-deployment-describe)
-- [OPTIONS `genius deployment describe`](#options-genius-deployment-describe)
-- [COMMAND `genius deployment show`](#command-genius-deployment-show)
-- [OPTIONS `genius deployment show`](#options-genius-deployment-show)
-- [COMMAND `genius deployment delete`](#command-genius-deployment-delete)
-- [OPTIONS `genius deployment delete`](#options-genius-deployment-delete)
-- [COMMAND `genius deployment status`](#command-genius-deployment-status)
-- [OPTIONS `genius deployment status`](#options-genius-deployment-status)
-- [COMMAND `genius service`](#command-genius-service)
-- [POSITIONAL ARGUMENTS _`genius service`_](#positional-arguments-genius-service)
-- [COMMAND `genius service create`](#command-genius-service-create)
-- [OPTIONS `genius service create`](#options-genius-service-create)
-- [COMMAND `genius service delete`](#command-genius-service-delete)
-- [OPTIONS `genius service delete`](#options-genius-service-delete)
-- [COMMAND `genius service describe`](#command-genius-service-describe)
-- [OPTIONS `genius service describe`](#options-genius-service-describe)
-- [COMMAND `genius service show`](#command-genius-service-show)
-- [OPTIONS `genius service show`](#options-genius-service-show)
-- [COMMAND `genius job`](#command-genius-job)
-- [POSITIONAL ARGUMENTS _`genius job`_](#positional-arguments-genius-job)
-- [COMMAND `genius job create`](#command-genius-job-create)
-- [OPTIONS `genius job create`](#options-genius-job-create)
-- [COMMAND `genius job delete`](#command-genius-job-delete)
-- [OPTIONS `genius job delete`](#options-genius-job-delete)
-- [COMMAND `genius job status`](#command-genius-job-status)
-- [OPTIONS `genius job status`](#options-genius-job-status)
-- [COMMAND `genius cron_job`](#command-genius-cron_job)
-- [POSITIONAL ARGUMENTS _`genius cron_job`_](#positional-arguments-genius-cron_job)
-- [COMMAND `genius cron_job create_cronjob`](#command-genius-cron_job-create_cronjob)
-- [OPTIONS `genius cron_job create_cronjob`](#options-genius-cron_job-create_cronjob)
-- [COMMAND `genius cron_job delete_cronjob`](#command-genius-cron_job-delete_cronjob)
-- [OPTIONS `genius cron_job delete_cronjob`](#options-genius-cron_job-delete_cronjob)
-- [COMMAND `genius cron_job get_cronjob_status`](#command-genius-cron_job-get_cronjob_status)
-- [OPTIONS `genius cron_job get_cronjob_status`](#options-genius-cron_job-get_cronjob_status)
-- [COMMAND `genius plugins`](#command-genius-plugins)
-- [COMMAND `genius list`](#command-genius-list)
-- [OPTIONS `genius list`](#options-genius-list)
-
-# NAME
-
-genius
-
-# SYNOPSIS
-
-**genius** [-h]
-{TestSpoutCtlSpout,TestBoltCtlBolt,rise,docker,pod,deployment,service,job,cron_job,plugins,list}
-\...
+- [Spouts](#spouts)
+  - [Command: genius TestSpoutCtlSpout](#command-genius-testspoutctlspout)
+  - [Command: genius TestSpoutCtlSpout rise](#command-genius-testspoutctlspout-rise)
+  - [Command: genius TestSpoutCtlSpout deploy](#command-genius-testspoutctlspout-deploy)
+  - [Command: genius TestSpoutCtlSpout help](#command-genius-testspoutctlspout-help)
+- [Bolt](#bolt)
+  - [Command: genius TestBoltCtlBolt](#command-genius-testboltctlbolt)
+  - [Command: genius TestBoltCtlBolt rise](#command-genius-testboltctlbolt-rise)
+  - [Command: genius TestBoltCtlBolt deploy](#command-genius-testboltctlbolt-deploy)
+  - [Command: genius TestBoltCtlBolt help](#command-genius-testboltctlbolt-help)
+- [Deployment](#deployment)
+  - [Command: genius rise](#command-genius-rise)
+  - [Command: genius rise up](#command-genius-rise-up)
+- [Kubernetes Pods](#kubernetes-pods)
+  - [Command: genius pod](#command-genius-pod)
+  - [Command: genius pod status](#command-genius-pod-status)
+  - [Command: genius pod show](#command-genius-pod-show)
+  - [Command: genius pod describe](#command-genius-pod-describe)
+  - [Command: genius pod logs](#command-genius-pod-logs)
+- [Kubernetes Deployment](#kubernetes-deployment)
+  - [Command: genius deployment](#command-genius-deployment)
+  - [Command: genius deployment create](#command-genius-deployment-create)
+  - [Command: genius deployment scale](#command-genius-deployment-scale)
+  - [Command: genius deployment describe](#command-genius-deployment-describe)
+  - [Command: genius deployment show](#command-genius-deployment-show)
+  - [Command: genius deployment delete](#command-genius-deployment-delete)
+  - [Command: genius deployment status](#command-genius-deployment-status)
+- [Kubernetes Services](#kubernetes-services)
+  - [Command: genius service](#command-genius-service)
+  - [Command: genius service create](#command-genius-service-create)
+  - [Command: genius service delete](#command-genius-service-delete)
+  - [Command: genius service describe](#command-genius-service-describe)
+  - [Command: genius service show](#command-genius-service-show)
+- [Kubernetes Jobs](#kubernetes-jobs)
+  - [Command: genius job](#command-genius-job)
+  - [Command: genius job create](#command-genius-job-create)
+  - [Command: genius job delete](#command-genius-job-delete)
+  - [Command: genius job status](#command-genius-job-status)
+  - [Kubernetes Cron Jobs](#kubernetes-cron-jobs)
+  - [Command: genius cron_job](#command-genius-cron_job)
+  - [Command: genius cron_job create_cronjob](#command-genius-cron_job-create_cronjob)
+  - [Command: genius cron_job delete_cronjob](#command-genius-cron_job-delete_cronjob)
+  - [Command: genius cron_job get_cronjob_status](#command-genius-cron_job-get_cronjob_status)
+- [Packaging](#packaging)
+  - [Command: genius docker package](#command-genius-docker-package)
+- [Miscellaneous](#miscellaneous)
+  - [Command: genius plugins](#command-genius-plugins)
+  - [Command: genius list](#command-genius-list)
 
 # DESCRIPTION
 
 Geniusrise
 
-# POSITIONAL ARGUMENTS
+**POSITIONAL ARGUMENTS**
 
-**genius** _TestSpoutCtlSpout_: Manage spout TestSpoutCtlSpout.
+**genius** _TestSpoutCtlSpout_
 
-**genius** _TestBoltCtlBolt_: Manage bolt TestBoltCtlBolt.
+: Manage spout TestSpoutCtlSpout.
 
-**genius** _rise_: Manage spouts and bolts with a YAML file.
+**genius** _TestBoltCtlBolt_
 
-**genius** _docker_: Package this application into a Docker image.
+: Manage bolt TestBoltCtlBolt.
 
-**genius** _pod_: Manage spouts and bolts as kubernetes pod
+**genius** _rise_
 
-**genius** _deployment_: Manage spouts and bolts as kubernetes deployment
+: Manage spouts and bolts with a YAML file.
 
-**genius** _service_: Manage spouts and bolts as kubernetes service
+**genius** _docker_
 
-**genius** _job_: Manage spouts and bolts as kubernetes job
+: Package this application into a Docker image.
 
-**genius** _cron_job_: Manage spouts and bolts as kubernetes cron_job
+**genius** _pod_
 
-**genius** _plugins_: Print help for all spouts and bolts.
+: Manage spouts and bolts as kubernetes pod
 
-**genius** _list_: List all discovered spouts and bolts.
+**genius** _deployment_
 
-# COMMAND `genius TestSpoutCtlSpout`
+: Manage spouts and bolts as kubernetes deployment
 
-Usage: genius TestSpoutCtlSpout [-h] {rise,deploy,help} \...
+**genius** _service_
 
-# POSITIONAL ARGUMENTS _`genius TestSpoutCtlSpout`_
+: Manage spouts and bolts as kubernetes service
 
-**genius TestSpoutCtlSpout** _rise_: Run a spout locally.
+**genius** _job_
 
-**genius TestSpoutCtlSpout** _deploy_: Run a spout remotely.
+: Manage spouts and bolts as kubernetes job
 
-**genius TestSpoutCtlSpout** _help_: Print help for the spout.
+**genius** _cron_job_
 
-# COMMAND `genius TestSpoutCtlSpout rise`
+: Manage spouts and bolts as kubernetes cron_job
 
-Usage: genius TestSpoutCtlSpout rise [-h] [--buffer_size BUFFER_SIZE]
-[--output_folder OUTPUT_FOLDER] [--output_kafka_topic OUTPUT_KAFKA_TOPIC]
-[--output_kafka_cluster_connection_string
-OUTPUT_KAFKA_CLUSTER_CONNECTION_STRING] [--output_s3_bucket OUTPUT_S3_BUCKET]
-[--output_s3_folder OUTPUT_S3_FOLDER] [--redis_host REDIS_HOST] [--redis_port
-REDIS_PORT] [--redis_db REDIS_DB] [--postgres_host POSTGRES_HOST]
-[--postgres_port POSTGRES_PORT] [--postgres_user POSTGRES_USER]
-[--postgres_password POSTGRES_PASSWORD] [--postgres_database POSTGRES_DATABASE]
-[--postgres_table POSTGRES_TABLE] [--dynamodb_table_name DYNAMODB_TABLE_NAME]
-[--dynamodb_region_name DYNAMODB_REGION_NAME] [--prometheus_gateway
-PROMETHEUS_GATEWAY] [--args \...] {batch,streaming,stream_to_batch}
+**genius** _plugins_
+
+: Print help for all spouts and bolts.
+
+**genius** _list_
+
+: List all discovered spouts and bolts.
+
+# Spouts
+
+## Command: genius TestSpoutCtlSpout
+
+Usage: genius TestSpoutCtlSpout \[-h\] {rise,deploy,help} \...
+
+**POSITIONAL ARGUMENTS _genius TestSpoutCtlSpout_**
+
+**genius TestSpoutCtlSpout** _rise_
+
+: Run a spout locally.
+
+**genius TestSpoutCtlSpout** _deploy_
+
+: Run a spout remotely.
+
+**genius TestSpoutCtlSpout** _help_
+
+: Print help for the spout.
+
+## Command: genius TestSpoutCtlSpout rise
+
+Usage: genius TestSpoutCtlSpout rise \[-h\] \[\--buffer_size BUFFER_SIZE\]
+\[\--output_folder OUTPUT_FOLDER\] \[\--output_kafka_topic OUTPUT_KAFKA_TOPIC\]
+\[\--output_kafka_cluster_connection_string
+OUTPUT_KAFKA_CLUSTER_CONNECTION_STRING\] \[\--output_s3_bucket
+OUTPUT_S3_BUCKET\] \[\--output_s3_folder OUTPUT_S3_FOLDER\] \[\--redis_host
+REDIS_HOST\] \[\--redis_port REDIS_PORT\] \[\--redis_db REDIS_DB\]
+\[\--postgres_host POSTGRES_HOST\] \[\--postgres_port POSTGRES_PORT\]
+\[\--postgres_user POSTGRES_USER\] \[\--postgres_password POSTGRES_PASSWORD\]
+\[\--postgres_database POSTGRES_DATABASE\] \[\--postgres_table POSTGRES_TABLE\]
+\[\--dynamodb_table_name DYNAMODB_TABLE_NAME\] \[\--dynamodb_region_name
+DYNAMODB_REGION_NAME\] \[\--prometheus_gateway PROMETHEUS_GATEWAY\] \[\--args
+\...\] {batch,streaming,stream_to_batch}
 {none,redis,postgres,dynamodb,prometheus} method_name
 
-**{batch,streaming,stream_to_batch}**: Choose the type of output data: batch or
-streaming.
+**{batch,streaming,stream_to_batch}**
 
-**{none,redis,postgres,dynamodb,prometheus}**: Select the type of state manager:
-none, redis, postgres, or dynamodb.
+: Choose the type of output data: batch or streaming.
 
-**method_name**: The name of the method to execute on the spout.
+**{none,redis,postgres,dynamodb,prometheus}**
 
-# OPTIONS `genius TestSpoutCtlSpout rise`
+: Select the type of state manager: none, redis, postgres, or dynamodb.
 
-**--buffer_size** _BUFFER_SIZE_: Specify the size of the buffer.
+**method_name**
 
-**--output_folder** _OUTPUT_FOLDER_: Specify the directory where output files
-should be stored temporarily.
+: The name of the method to execute on the spout.
 
-**--output_kafka_topic** _OUTPUT_KAFKA_TOPIC_: Kafka output topic for streaming
-spouts.
+**Options genius TestSpoutCtlSpout rise**
 
-**--output_kafka_cluster_connection_string**
+**\--buffer_size** _BUFFER_SIZE_: Specify the size of the buffer.
+**\--output_folder** _OUTPUT_FOLDER_: Specify the directory where output files
+should be stored temporarily
+
+**\--output_kafka_topic** _OUTPUT_KAFKA_TOPIC_: Kafka output topic for streaming
+spouts. **\--output_kafka_cluster_connection_string**
 _OUTPUT_KAFKA_CLUSTER_CONNECTION_STRING_: Kafka connection string for streaming
-spouts.
+spouts. **\--output_s3_bucket** _OUTPUT_S3_BUCKET_: Provide the name of the S3
+bucket for output storage. **\--output_s3_folder** _OUTPUT_S3_FOLDER_: Indicate
+the S3 folder for output storage. **\--redis_host** _REDIS_HOST_: Enter the host
+address for the Redis server. **\--redis_port** _REDIS_PORT_: Enter the port
+number for the Redis server. **\--redis_db** _REDIS_DB_: Specify the Redis
+database to be used. **\--postgres_host** _POSTGRES_HOST_: Enter the host
+address for the PostgreSQL server. **\--postgres_port** _POSTGRES_PORT_: Enter
+the port number for the PostgreSQL server. **\--postgres_user** _POSTGRES_USER_:
+Provide the username for the PostgreSQL server. **\--postgres_password**
+_POSTGRES_PASSWORD_: Provide the password for the PostgreSQL server.
+**\--postgres_database** _POSTGRES_DATABASE_: Specify the PostgreSQL database to
+be used. **\--postgres_table** _POSTGRES_TABLE_: Specify the PostgreSQL table to
+be used. **\--dynamodb_table_name** _DYNAMODB_TABLE_NAME_: Provide the name of
+the DynamoDB table. **\--dynamodb_region_name** _DYNAMODB_REGION_NAME_: Specify
+the AWS region for DynamoDB. **\--prometheus_gateway** _PROMETHEUS_GATEWAY_:
+Specify the prometheus gateway URL. **\--args** _\..._: Additional keyword
+arguments to pass to the spout.
 
-**--output_s3_bucket** _OUTPUT_S3_BUCKET_: Provide the name of the S3 bucket for
-output storage.
+## Command: genius TestSpoutCtlSpout deploy
 
-**--output_s3_folder** _OUTPUT_S3_FOLDER_: Indicate the S3 folder for output
-storage.
-
-**--redis_host** _REDIS_HOST_: Enter the host address for the Redis server.
-
-**--redis_port** _REDIS_PORT_: Enter the port number for the Redis server.
-
-**--redis_db** _REDIS_DB_: Specify the Redis database to be used.
-
-**--postgres_host** _POSTGRES_HOST_: Enter the host address for the PostgreSQL
-server.
-
-**--postgres_port** _POSTGRES_PORT_: Enter the port number for the PostgreSQL
-server.
-
-**--postgres_user** _POSTGRES_USER_: Provide the username for the PostgreSQL
-server.
-
-**--postgres_password** _POSTGRES_PASSWORD_: Provide the password for the
-PostgreSQL server.
-
-**--postgres_database** _POSTGRES_DATABASE_: Specify the PostgreSQL database to
-be used.
-
-**--postgres_table** _POSTGRES_TABLE_: Specify the PostgreSQL table to be used.
-
-**--dynamodb_table_name** _DYNAMODB_TABLE_NAME_: Provide the name of the
-DynamoDB table.
-
-**--dynamodb_region_name** _DYNAMODB_REGION_NAME_: Specify the AWS region for
-DynamoDB.
-
-**--prometheus_gateway** _PROMETHEUS_GATEWAY_: Specify the prometheus gateway
-URL.
-
-**--args** _\..._: Additional keyword arguments to pass to the spout.
-
-# COMMAND `genius TestSpoutCtlSpout deploy`
-
-Usage: genius TestSpoutCtlSpout deploy [-h] [--buffer_size BUFFER_SIZE]
-[--output_folder OUTPUT_FOLDER] [--output_kafka_topic OUTPUT_KAFKA_TOPIC]
-[--output_kafka_cluster_connection_string
-OUTPUT_KAFKA_CLUSTER_CONNECTION_STRING] [--output_s3_bucket OUTPUT_S3_BUCKET]
-[--output_s3_folder OUTPUT_S3_FOLDER] [--redis_host REDIS_HOST] [--redis_port
-REDIS_PORT] [--redis_db REDIS_DB] [--postgres_host POSTGRES_HOST]
-[--postgres_port POSTGRES_PORT] [--postgres_user POSTGRES_USER]
-[--postgres_password POSTGRES_PASSWORD] [--postgres_database POSTGRES_DATABASE]
-[--postgres_table POSTGRES_TABLE] [--dynamodb_table_name DYNAMODB_TABLE_NAME]
-[--dynamodb_region_name DYNAMODB_REGION_NAME] [--prometheus_gateway
-PROMETHEUS_GATEWAY] [--k8s_kind {deployment,service,job,cron_job}] [--k8s_name
-K8S_NAME] [--k8s_image K8S_IMAGE] [--k8s_replicas K8S_REPLICAS] [--k8s_env_vars
-K8S_ENV_VARS] [--k8s_cpu K8S_CPU] [--k8s_memory K8S_MEMORY] [--k8s_storage
-K8S_STORAGE] [--k8s_gpu K8S_GPU] [--k8s_kube_config_path K8S_KUBE_CONFIG_PATH]
-[--k8s_api_key K8S_API_KEY] [--k8s_api_host K8S_API_HOST] [--k8s_verify_ssl
-K8S_VERIFY_SSL] [--k8s_ssl_ca_cert K8S_SSL_CA_CERT] [--k8s_cluster_name
-K8S_CLUSTER_NAME] [--k8s_context_name K8S_CONTEXT_NAME] [--k8s_namespace
-K8S_NAMESPACE] [--k8s_labels K8S_LABELS] [--k8s_annotations K8S_ANNOTATIONS]
-[--k8s_port K8S_PORT] [--k8s_target_port K8S_TARGET_PORT] [--k8s_schedule
-K8S_SCHEDULE] [--args \...] {batch,streaming,stream_to_batch}
+Usage: genius TestSpoutCtlSpout deploy \[-h\] \[\--buffer_size BUFFER_SIZE\]
+\[\--output_folder OUTPUT_FOLDER\] \[\--output_kafka_topic OUTPUT_KAFKA_TOPIC\]
+\[\--output_kafka_cluster_connection_string
+OUTPUT_KAFKA_CLUSTER_CONNECTION_STRING\] \[\--output_s3_bucket
+OUTPUT_S3_BUCKET\] \[\--output_s3_folder OUTPUT_S3_FOLDER\] \[\--redis_host
+REDIS_HOST\] \[\--redis_port REDIS_PORT\] \[\--redis_db REDIS_DB\]
+\[\--postgres_host POSTGRES_HOST\] \[\--postgres_port POSTGRES_PORT\]
+\[\--postgres_user POSTGRES_USER\] \[\--postgres_password POSTGRES_PASSWORD\]
+\[\--postgres_database POSTGRES_DATABASE\] \[\--postgres_table POSTGRES_TABLE\]
+\[\--dynamodb_table_name DYNAMODB_TABLE_NAME\] \[\--dynamodb_region_name
+DYNAMODB_REGION_NAME\] \[\--prometheus_gateway PROMETHEUS_GATEWAY\]
+\[\--k8s_kind {deployment,service,job,cron_job}\] \[\--k8s_name K8S_NAME\]
+\[\--k8s_image K8S_IMAGE\] \[\--k8s_replicas K8S_REPLICAS\] \[\--k8s_env_vars
+K8S_ENV_VARS\] \[\--k8s_cpu K8S_CPU\] \[\--k8s_memory K8S_MEMORY\]
+\[\--k8s_storage K8S_STORAGE\] \[\--k8s_gpu K8S_GPU\] \[\--k8s_kube_config_path
+K8S_KUBE_CONFIG_PATH\] \[\--k8s_api_key K8S_API_KEY\] \[\--k8s_api_host
+K8S_API_HOST\] \[\--k8s_verify_ssl K8S_VERIFY_SSL\] \[\--k8s_ssl_ca_cert
+K8S_SSL_CA_CERT\] \[\--k8s_cluster_name K8S_CLUSTER_NAME\] \[\--k8s_context_name
+K8S_CONTEXT_NAME\] \[\--k8s_namespace K8S_NAMESPACE\] \[\--k8s_labels
+K8S_LABELS\] \[\--k8s_annotations K8S_ANNOTATIONS\] \[\--k8s_port K8S_PORT\]
+\[\--k8s_target_port K8S_TARGET_PORT\] \[\--k8s_schedule K8S_SCHEDULE\]
+\[\--args \...\] {batch,streaming,stream_to_batch}
 {none,redis,postgres,dynamodb,prometheus} {k8s} method_name
 
-**{batch,streaming,stream_to_batch}**: Choose the type of output data: batch or
-streaming.
+**{batch,streaming,stream_to_batch}**
 
-**{none,redis,postgres,dynamodb,prometheus}**: Select the type of state manager:
-none, redis, postgres, or dynamodb.
+: Choose the type of output data: batch or streaming.
 
-**{k8s}**: Choose the type of deployment.
+**{none,redis,postgres,dynamodb,prometheus}**
 
-**method_name**: The name of the method to execute on the spout.
+: Select the type of state manager: none, redis, postgres, or dynamodb.
 
-# OPTIONS `genius TestSpoutCtlSpout deploy`
+**{k8s}**
 
-**--buffer_size** _BUFFER_SIZE_: Specify the size of the buffer.
+: Choose the type of deployment.
 
-**--output_folder** _OUTPUT_FOLDER_: Specify the directory where output files
-should be stored temporarily.
+**method_name**
 
-**--output_kafka_topic** _OUTPUT_KAFKA_TOPIC_: Kafka output topic for streaming
-spouts.
+: The name of the method to execute on the spout.
 
-**--output_kafka_cluster_connection_string**
+**Options genius TestSpoutCtlSpout deploy**
+
+**\--buffer_size** _BUFFER_SIZE_: Specify the size of the buffer.
+**\--output_folder** _OUTPUT_FOLDER_: Specify the directory where output files
+should be stored temporarily
+
+**\--output_kafka_topic** _OUTPUT_KAFKA_TOPIC_: Kafka output topic for streaming
+spouts. **\--output_kafka_cluster_connection_string**
 _OUTPUT_KAFKA_CLUSTER_CONNECTION_STRING_: Kafka connection string for streaming
-spouts.
+spouts. **\--output_s3_bucket** _OUTPUT_S3_BUCKET_: Provide the name of the S3
+bucket for output storage. **\--output_s3_folder** _OUTPUT_S3_FOLDER_: Indicate
+the S3 folder for output storage. **\--redis_host** _REDIS_HOST_: Enter the host
+address for the Redis server. **\--redis_port** _REDIS_PORT_: Enter the port
+number for the Redis server. **\--redis_db** _REDIS_DB_: Specify the Redis
+database to be used. **\--postgres_host** _POSTGRES_HOST_: Enter the host
+address for the PostgreSQL server. **\--postgres_port** _POSTGRES_PORT_: Enter
+the port number for the PostgreSQL server. **\--postgres_user** _POSTGRES_USER_:
+Provide the username for the PostgreSQL server. **\--postgres_password**
+_POSTGRES_PASSWORD_: Provide the password for the PostgreSQL server.
+**\--postgres_database** _POSTGRES_DATABASE_: Specify the PostgreSQL database to
+be used. **\--postgres_table** _POSTGRES_TABLE_: Specify the PostgreSQL table to
+be used. **\--dynamodb_table_name** _DYNAMODB_TABLE_NAME_: Provide the name of
+the DynamoDB table. **\--dynamodb_region_name** _DYNAMODB_REGION_NAME_: Specify
+the AWS region for DynamoDB. **\--prometheus_gateway** _PROMETHEUS_GATEWAY_:
+Specify the prometheus gateway URL. **\--k8s_kind**
+_{deployment,service,job,cron_job}_: Choose the type of kubernetes resource.
+**\--k8s_name** _K8S_NAME_: Name of the Kubernetes resource. **\--k8s_image**
+_K8S_IMAGE_: Docker image for the Kubernetes resource. **\--k8s_replicas**
+_K8S_REPLICAS_: Number of replicas. **\--k8s_env_vars** _K8S_ENV_VARS_:
+Environment variables as a JSON string. **\--k8s_cpu** _K8S_CPU_: CPU
+requirements. **\--k8s_memory** _K8S_MEMORY_: Memory requirements.
+**\--k8s_storage** _K8S_STORAGE_: Storage requirements. **\--k8s_gpu**
+_K8S_GPU_: GPU requirements. **\--k8s_kube_config_path** _K8S_KUBE_CONFIG_PATH_:
+Name of the Kubernetes cluster local config. **\--k8s_api_key** _K8S_API_KEY_:
+GPU requirements. **\--k8s_api_host** _K8S_API_HOST_: GPU requirements.
+**\--k8s_verify_ssl** _K8S_VERIFY_SSL_: GPU requirements. **\--k8s_ssl_ca_cert**
+_K8S_SSL_CA_CERT_: GPU requirements. **\--k8s_cluster_name** _K8S_CLUSTER_NAME_:
+Name of the Kubernetes cluster. **\--k8s_context_name** _K8S_CONTEXT_NAME_: Name
+of the kubeconfig context. **\--k8s_namespace** _K8S_NAMESPACE_: Kubernetes
+namespace. **\--k8s_labels** _K8S_LABELS_: Labels for Kubernetes resources, as a
+JSON string. **\--k8s_annotations** _K8S_ANNOTATIONS_: Annotations for
+Kubernetes resources, as a JSON string. **\--k8s_port** _K8S_PORT_: Port to run
+the spout on as a service. **\--k8s_target_port** _K8S_TARGET_PORT_: Port to
+expose the spout on as a service. **\--k8s_schedule** _K8S_SCHEDULE_: Schedule
+to run the spout on as a cron job. **\--args** _\..._: Additional keyword
+arguments to pass to the spout.
 
-**--output_s3_bucket** _OUTPUT_S3_BUCKET_: Provide the name of the S3 bucket for
-output storage.
+## Command: genius TestSpoutCtlSpout help
 
-**--output_s3_folder** _OUTPUT_S3_FOLDER_: Indicate the S3 folder for output
-storage.
+Usage: genius TestSpoutCtlSpout help \[-h\] method
 
-**--redis_host** _REDIS_HOST_: Enter the host address for the Redis server.
+**method**
 
-**--redis_port** _REDIS_PORT_: Enter the port number for the Redis server.
+: The method to execute.
 
-**--redis_db** _REDIS_DB_: Specify the Redis database to be used.
+# Bolt
 
-**--postgres_host** _POSTGRES_HOST_: Enter the host address for the PostgreSQL
-server.
+## Command: genius TestBoltCtlBolt
 
-**--postgres_port** _POSTGRES_PORT_: Enter the port number for the PostgreSQL
-server.
+Usage: genius TestBoltCtlBolt \[-h\] {rise,deploy,help} \...
 
-**--postgres_user** _POSTGRES_USER_: Provide the username for the PostgreSQL
-server.
+**POSITIONAL ARGUMENTS _genius TestBoltCtlBolt_**
 
-**--postgres_password** _POSTGRES_PASSWORD_: Provide the password for the
-PostgreSQL server.
+**genius TestBoltCtlBolt** _rise_
 
-**--postgres_database** _POSTGRES_DATABASE_: Specify the PostgreSQL database to
-be used.
+: Run a bolt locally.
 
-**--postgres_table** _POSTGRES_TABLE_: Specify the PostgreSQL table to be used.
+**genius TestBoltCtlBolt** _deploy_
 
-**--dynamodb_table_name** _DYNAMODB_TABLE_NAME_: Provide the name of the
-DynamoDB table.
+: Run a spout remotely.
 
-**--dynamodb_region_name** _DYNAMODB_REGION_NAME_: Specify the AWS region for
-DynamoDB.
+**genius TestBoltCtlBolt** _help_
 
-**--prometheus_gateway** _PROMETHEUS_GATEWAY_: Specify the prometheus gateway
-URL.
+: Print help for the bolt.
 
-**--k8s_kind** _{deployment,service,job,cron_job}_: Choose the type of
-kubernetes resource.
+## Command: genius TestBoltCtlBolt rise
 
-**--k8s_name** _K8S_NAME_: Name of the Kubernetes resource.
-
-**--k8s_image** _K8S_IMAGE_: Docker image for the Kubernetes resource.
-
-**--k8s_replicas** _K8S_REPLICAS_: Number of replicas.
-
-**--k8s_env_vars** _K8S_ENV_VARS_: Environment variables as a JSON string.
-
-**--k8s_cpu** _K8S_CPU_: CPU requirements.
-
-**--k8s_memory** _K8S_MEMORY_: Memory requirements.
-
-**--k8s_storage** _K8S_STORAGE_: Storage requirements.
-
-**--k8s_gpu** _K8S_GPU_: GPU requirements.
-
-**--k8s_kube_config_path** _K8S_KUBE_CONFIG_PATH_: Name of the Kubernetes
-cluster local config.
-
-**--k8s_api_key** _K8S_API_KEY_: GPU requirements.
-
-**--k8s_api_host** _K8S_API_HOST_: GPU requirements.
-
-**--k8s_verify_ssl** _K8S_VERIFY_SSL_: GPU requirements.
-
-**--k8s_ssl_ca_cert** _K8S_SSL_CA_CERT_: GPU requirements.
-
-**--k8s_cluster_name** _K8S_CLUSTER_NAME_: Name of the Kubernetes cluster.
-
-**--k8s_context_name** _K8S_CONTEXT_NAME_: Name of the kubeconfig context.
-
-**--k8s_namespace** _K8S_NAMESPACE_: Kubernetes namespace.
-
-**--k8s_labels** _K8S_LABELS_: Labels for Kubernetes resources, as a JSON
-string.
-
-**--k8s_annotations** _K8S_ANNOTATIONS_: Annotations for Kubernetes resources,
-as a JSON string.
-
-**--k8s_port** _K8S_PORT_: Port to run the spout on as a service.
-
-**--k8s_target_port** _K8S_TARGET_PORT_: Port to expose the spout on as a
-service.
-
-**--k8s_schedule** _K8S_SCHEDULE_: Schedule to run the spout on as a cron job.
-
-**--args** _\..._: Additional keyword arguments to pass to the spout.
-
-# COMMAND `genius TestSpoutCtlSpout help`
-
-Usage: genius TestSpoutCtlSpout help [-h] method
-
-**method**: The method to execute.
-
-# COMMAND `genius TestBoltCtlBolt`
-
-Usage: genius TestBoltCtlBolt [-h] {rise,deploy,help} \...
-
-# POSITIONAL ARGUMENTS _`genius TestBoltCtlBolt`_
-
-**genius TestBoltCtlBolt** _rise_: Run a bolt locally.
-
-**genius TestBoltCtlBolt** _deploy_: Run a spout remotely.
-
-**genius TestBoltCtlBolt** _help_: Print help for the bolt.
-
-# COMMAND `genius TestBoltCtlBolt rise`
-
-Usage: genius TestBoltCtlBolt rise [-h] [--buffer_size BUFFER_SIZE]
-[--input_folder INPUT_FOLDER] [--input_kafka_topic INPUT_KAFKA_TOPIC]
-[--input_kafka_cluster_connection_string INPUT_KAFKA_CLUSTER_CONNECTION_STRING]
-[--input_kafka_consumer_group_id INPUT_KAFKA_CONSUMER_GROUP_ID]
-[--input_s3_bucket INPUT_S3_BUCKET] [--input_s3_folder INPUT_S3_FOLDER]
-[--output_folder OUTPUT_FOLDER] [--output_kafka_topic OUTPUT_KAFKA_TOPIC]
-[--output_kafka_cluster_connection_string
-OUTPUT_KAFKA_CLUSTER_CONNECTION_STRING] [--output_s3_bucket OUTPUT_S3_BUCKET]
-[--output_s3_folder OUTPUT_S3_FOLDER] [--redis_host REDIS_HOST] [--redis_port
-REDIS_PORT] [--redis_db REDIS_DB] [--postgres_host POSTGRES_HOST]
-[--postgres_port POSTGRES_PORT] [--postgres_user POSTGRES_USER]
-[--postgres_password POSTGRES_PASSWORD] [--postgres_database POSTGRES_DATABASE]
-[--postgres_table POSTGRES_TABLE] [--dynamodb_table_name DYNAMODB_TABLE_NAME]
-[--dynamodb_region_name DYNAMODB_REGION_NAME] [--prometheus_gateway
-PROMETHEUS_GATEWAY] [--args \...]
-{batch,streaming,batch_to_stream,stream_to_batch}
+Usage: genius TestBoltCtlBolt rise \[-h\] \[\--buffer_size BUFFER_SIZE\]
+\[\--input_folder INPUT_FOLDER\] \[\--input_kafka_topic INPUT_KAFKA_TOPIC\]
+\[\--input_kafka_cluster_connection_string
+INPUT_KAFKA_CLUSTER_CONNECTION_STRING\] \[\--input_kafka_consumer_group_id
+INPUT_KAFKA_CONSUMER_GROUP_ID\] \[\--input_s3_bucket INPUT_S3_BUCKET\]
+\[\--input_s3_folder INPUT_S3_FOLDER\] \[\--output_folder OUTPUT_FOLDER\]
+\[\--output_kafka_topic OUTPUT_KAFKA_TOPIC\]
+\[\--output_kafka_cluster_connection_string
+OUTPUT_KAFKA_CLUSTER_CONNECTION_STRING\] \[\--output_s3_bucket
+OUTPUT_S3_BUCKET\] \[\--output_s3_folder OUTPUT_S3_FOLDER\] \[\--redis_host
+REDIS_HOST\] \[\--redis_port REDIS_PORT\] \[\--redis_db REDIS_DB\]
+\[\--postgres_host POSTGRES_HOST\] \[\--postgres_port POSTGRES_PORT\]
+\[\--postgres_user POSTGRES_USER\] \[\--postgres_password POSTGRES_PASSWORD\]
+\[\--postgres_database POSTGRES_DATABASE\] \[\--postgres_table POSTGRES_TABLE\]
+\[\--dynamodb_table_name DYNAMODB_TABLE_NAME\] \[\--dynamodb_region_name
+DYNAMODB_REGION_NAME\] \[\--prometheus_gateway PROMETHEUS_GATEWAY\] \[\--args
+\...\] {batch,streaming,batch_to_stream,stream_to_batch}
 {batch,streaming,stream_to_batch} {none,redis,postgres,dynamodb,prometheus}
 method_name
 
-**{batch,streaming,batch_to_stream,stream_to_batch}**: Choose the type of input
-data: batch or streaming.
+**{batch,streaming,batch_to_stream,stream_to_batch}**
 
-**{batch,streaming,stream_to_batch}**: Choose the type of output data: batch or
-streaming.
+: Choose the type of input data: batch or streaming.
 
-**{none,redis,postgres,dynamodb,prometheus}**: Select the type of state manager:
-none, redis, postgres, or dynamodb.
+**{batch,streaming,stream_to_batch}**
 
-**method_name**: The name of the method to execute on the bolt.
+: Choose the type of output data: batch or streaming.
 
-# OPTIONS `genius TestBoltCtlBolt rise`
+**{none,redis,postgres,dynamodb,prometheus}**
 
-**--buffer_size** _BUFFER_SIZE_: Specify the size of the buffer.
+: Select the type of state manager: none, redis, postgres, or dynamodb.
 
-**--input_folder** _INPUT_FOLDER_: Specify the directory where output files
-should be stored temporarily.
+**method_name**
 
-**--input_kafka_topic** _INPUT_KAFKA_TOPIC_: Kafka output topic for streaming
-spouts.
+: The name of the method to execute on the bolt.
 
-**--input_kafka_cluster_connection_string**
+**Options genius TestBoltCtlBolt rise**
+
+**\--buffer_size** _BUFFER_SIZE_: Specify the size of the buffer.
+**\--input_folder** _INPUT_FOLDER_: Specify the directory where output files
+should be stored temporarily
+
+**\--input_kafka_topic** _INPUT_KAFKA_TOPIC_: Kafka output topic for streaming
+spouts. **\--input_kafka_cluster_connection_string**
 _INPUT_KAFKA_CLUSTER_CONNECTION_STRING_: Kafka connection string for streaming
-spouts.
+spouts. **\--input_kafka_consumer_group_id** _INPUT_KAFKA_CONSUMER_GROUP_ID_:
+Kafka consumer group id to use. **\--input_s3_bucket** _INPUT_S3_BUCKET_:
+Provide the name of the S3 bucket for output storage. **\--input_s3_folder**
+_INPUT_S3_FOLDER_: Indicate the S3 folder for output storage.
+**\--output_folder** _OUTPUT_FOLDER_: Specify the directory where output files
+should be stored temporarily
 
-**--input_kafka_consumer_group_id** _INPUT_KAFKA_CONSUMER_GROUP_ID_: Kafka
-consumer group id to use.
-
-**--input_s3_bucket** _INPUT_S3_BUCKET_: Provide the name of the S3 bucket for
-output storage.
-
-**--input_s3_folder** _INPUT_S3_FOLDER_: Indicate the S3 folder for output
-storage.
-
-**--output_folder** _OUTPUT_FOLDER_: Specify the directory where output files
-should be stored temporarily.
-
-**--output_kafka_topic** _OUTPUT_KAFKA_TOPIC_: Kafka output topic for streaming
-spouts.
-
-**--output_kafka_cluster_connection_string**
+**\--output_kafka_topic** _OUTPUT_KAFKA_TOPIC_: Kafka output topic for streaming
+spouts. **\--output_kafka_cluster_connection_string**
 _OUTPUT_KAFKA_CLUSTER_CONNECTION_STRING_: Kafka connection string for streaming
-spouts.
+spouts. **\--output_s3_bucket** _OUTPUT_S3_BUCKET_: Provide the name of the S3
+bucket for output storage. **\--output_s3_folder** _OUTPUT_S3_FOLDER_: Indicate
+the S3 folder for output storage. **\--redis_host** _REDIS_HOST_: Enter the host
+address for the Redis server. **\--redis_port** _REDIS_PORT_: Enter the port
+number for the Redis server. **\--redis_db** _REDIS_DB_: Specify the Redis
+database to be used. **\--postgres_host** _POSTGRES_HOST_: Enter the host
+address for the PostgreSQL server. **\--postgres_port** _POSTGRES_PORT_: Enter
+the port number for the PostgreSQL server. **\--postgres_user** _POSTGRES_USER_:
+Provide the username for the PostgreSQL server. **\--postgres_password**
+_POSTGRES_PASSWORD_: Provide the password for the PostgreSQL server.
+**\--postgres_database** _POSTGRES_DATABASE_: Specify the PostgreSQL database to
+be used. **\--postgres_table** _POSTGRES_TABLE_: Specify the PostgreSQL table to
+be used. **\--dynamodb_table_name** _DYNAMODB_TABLE_NAME_: Provide the name of
+the DynamoDB table. **\--dynamodb_region_name** _DYNAMODB_REGION_NAME_: Specify
+the AWS region for DynamoDB. **\--prometheus_gateway** _PROMETHEUS_GATEWAY_:
+Specify the prometheus gateway URL. **\--args** _\..._: Additional keyword
+arguments to pass to the bolt.
 
-**--output_s3_bucket** _OUTPUT_S3_BUCKET_: Provide the name of the S3 bucket for
-output storage.
+## Command: genius TestBoltCtlBolt deploy
 
-**--output_s3_folder** _OUTPUT_S3_FOLDER_: Indicate the S3 folder for output
-storage.
+Usage: genius TestBoltCtlBolt deploy \[-h\] \[\--buffer_size BUFFER_SIZE\]
+\[\--input_folder INPUT_FOLDER\] \[\--input_kafka_topic INPUT_KAFKA_TOPIC\]
+\[\--input_kafka_cluster_connection_string
+INPUT_KAFKA_CLUSTER_CONNECTION_STRING\] \[\--input_kafka_consumer_group_id
+INPUT_KAFKA_CONSUMER_GROUP_ID\] \[\--input_s3_bucket INPUT_S3_BUCKET\]
+\[\--input_s3_folder INPUT_S3_FOLDER\] \[\--output_folder OUTPUT_FOLDER\]
+\[\--output_kafka_topic OUTPUT_KAFKA_TOPIC\]
+\[\--output_kafka_cluster_connection_string
+OUTPUT_KAFKA_CLUSTER_CONNECTION_STRING\] \[\--output_s3_bucket
+OUTPUT_S3_BUCKET\] \[\--output_s3_folder OUTPUT_S3_FOLDER\] \[\--redis_host
+REDIS_HOST\] \[\--redis_port REDIS_PORT\] \[\--redis_db REDIS_DB\]
+\[\--postgres_host POSTGRES_HOST\] \[\--postgres_port POSTGRES_PORT\]
+\[\--postgres_user POSTGRES_USER\] \[\--postgres_password POSTGRES_PASSWORD\]
+\[\--postgres_database POSTGRES_DATABASE\] \[\--postgres_table POSTGRES_TABLE\]
+\[\--dynamodb_table_name DYNAMODB_TABLE_NAME\] \[\--dynamodb_region_name
+DYNAMODB_REGION_NAME\] \[\--prometheus_gateway PROMETHEUS_GATEWAY\]
+\[\--k8s_kind {deployment,service,job,cron_job}\] \[\--k8s_name K8S_NAME\]
+\[\--k8s_image K8S_IMAGE\] \[\--k8s_replicas K8S_REPLICAS\] \[\--k8s_env_vars
+K8S_ENV_VARS\] \[\--k8s_cpu K8S_CPU\] \[\--k8s_memory K8S_MEMORY\]
+\[\--k8s_storage K8S_STORAGE\] \[\--k8s_gpu K8S_GPU\] \[\--k8s_kube_config_path
+K8S_KUBE_CONFIG_PATH\] \[\--k8s_api_key K8S_API_KEY\] \[\--k8s_api_host
+K8S_API_HOST\] \[\--k8s_verify_ssl K8S_VERIFY_SSL\] \[\--k8s_ssl_ca_cert
+K8S_SSL_CA_CERT\] \[\--k8s_cluster_name K8S_CLUSTER_NAME\] \[\--k8s_context_name
+K8S_CONTEXT_NAME\] \[\--k8s_namespace K8S_NAMESPACE\] \[\--k8s_labels
+K8S_LABELS\] \[\--k8s_annotations K8S_ANNOTATIONS\] \[\--k8s_port K8S_PORT\]
+\[\--k8s_target_port K8S_TARGET_PORT\] \[\--k8s_schedule K8S_SCHEDULE\]
+\[\--args \...\] {batch,streaming,batch_to_stream,stream_to_batch}
+{batch,streaming,stream_to_batch} {none,redis,postgres,dynamodb,prometheus}
+{k8s} method_name
 
-**--redis_host** _REDIS_HOST_: Enter the host address for the Redis server.
+**{batch,streaming,batch_to_stream,stream_to_batch}**
 
-**--redis_port** _REDIS_PORT_: Enter the port number for the Redis server.
+: Choose the type of input data: batch or streaming.
 
-**--redis_db** _REDIS_DB_: Specify the Redis database to be used.
+**{batch,streaming,stream_to_batch}**
 
-**--postgres_host** _POSTGRES_HOST_: Enter the host address for the PostgreSQL
-server.
+: Choose the type of output data: batch or streaming.
 
-**--postgres_port** _POSTGRES_PORT_: Enter the port number for the PostgreSQL
-server.
+**{none,redis,postgres,dynamodb,prometheus}**
 
-**--postgres_user** _POSTGRES_USER_: Provide the username for the PostgreSQL
-server.
+: Select the type of state manager: none, redis, postgres, or dynamodb.
 
-**--postgres_password** _POSTGRES_PASSWORD_: Provide the password for the
-PostgreSQL server.
+**{k8s}**
 
-**--postgres_database** _POSTGRES_DATABASE_: Specify the PostgreSQL database to
-be used.
+: Choose the type of deployment.
 
-**--postgres_table** _POSTGRES_TABLE_: Specify the PostgreSQL table to be used.
+**method_name**
 
-**--dynamodb_table_name** _DYNAMODB_TABLE_NAME_: Provide the name of the
-DynamoDB table.
+: The name of the method to execute on the spout.
 
-**--dynamodb_region_name** _DYNAMODB_REGION_NAME_: Specify the AWS region for
-DynamoDB.
+**Options genius TestBoltCtlBolt deploy**
 
-**--prometheus_gateway** _PROMETHEUS_GATEWAY_: Specify the prometheus gateway
-URL.
+**\--buffer_size** _BUFFER_SIZE_: Specify the size of the buffer.
+**\--input_folder** _INPUT_FOLDER_: Specify the directory where output files
+should be stored temporarily
 
-**--args** _\..._: Additional keyword arguments to pass to the bolt.
-
-# COMMAND `genius TestBoltCtlBolt deploy`
-
-Usage: genius TestBoltCtlBolt deploy [-h] [--buffer_size BUFFER_SIZE]
-[--input_folder INPUT_FOLDER] [--input_kafka_topic INPUT_KAFKA_TOPIC]
-[--input_kafka_cluster_connection_string INPUT_KAFKA_CLUSTER_CONNECTION_STRING]
-[--input_kafka_consumer_group_id INPUT_KAFKA_CONSUMER_GROUP_ID]
-[--input_s3_bucket INPUT_S3_BUCKET] [--input_s3_folder INPUT_S3_FOLDER]
-[--output_folder OUTPUT_FOLDER] [--output_kafka_topic OUTPUT_KAFKA_TOPIC]
-[--output_kafka_cluster_connection_string
-OUTPUT_KAFKA_CLUSTER_CONNECTION_STRING] [--output_s3_bucket OUTPUT_S3_BUCKET]
-[--output_s3_folder OUTPUT_S3_FOLDER] [--redis_host REDIS_HOST] [--redis_port
-REDIS_PORT] [--redis_db REDIS_DB] [--postgres_host POSTGRES_HOST]
-[--postgres_port POSTGRES_PORT] [--postgres_user POSTGRES_USER]
-[--postgres_password POSTGRES_PASSWORD] [--postgres_database POSTGRES_DATABASE]
-[--postgres_table POSTGRES_TABLE] [--dynamodb_table_name DYNAMODB_TABLE_NAME]
-[--dynamodb_region_name DYNAMODB_REGION_NAME] [--prometheus_gateway
-PROMETHEUS_GATEWAY] [--k8s_kind {deployment,service,job,cron_job}] [--k8s_name
-K8S_NAME] [--k8s_image K8S_IMAGE] [--k8s_replicas K8S_REPLICAS] [--k8s_env_vars
-K8S_ENV_VARS] [--k8s_cpu K8S_CPU] [--k8s_memory K8S_MEMORY] [--k8s_storage
-K8S_STORAGE] [--k8s_gpu K8S_GPU] [--k8s_kube_config_path K8S_KUBE_CONFIG_PATH]
-[--k8s_api_key K8S_API_KEY] [--k8s_api_host K8S_API_HOST] [--k8s_verify_ssl
-K8S_VERIFY_SSL] [--k8s_ssl_ca_cert K8S_SSL_CA_CERT] [--k8s_cluster_name
-K8S_CLUSTER_NAME] [--k8s_context_name K8S_CONTEXT_NAME] [--k8s_namespace
-K8S_NAMESPACE] [--k8s_labels K8S_LABELS] [--k8s_annotations K8S_ANNOTATIONS]
-[--k8s_port K8S_PORT] [--k8s_target_port K8S_TARGET_PORT] [--k8s_schedule
-K8S_SCHEDULE] [--args \...] {batch,streaming,stream_to_batch}
-{none,redis,postgres,dynamodb,prometheus} {k8s} method_name
-
-**{batch,streaming,stream_to_batch}**: Choose the type of output data: batch or
-streaming.
-
-**{none,redis,postgres,dynamodb,prometheus}**: Select the type of state manager:
-none, redis, postgres, or dynamodb.
-
-**{k8s}**: Choose the type of deployment.
-
-**method_name**: The name of the method to execute on the spout.
-
-# OPTIONS `genius TestBoltCtlBolt deploy`
-
-**--buffer_size** _BUFFER_SIZE_: Specify the size of the buffer.
-
-**--input_folder** _INPUT_FOLDER_: Specify the directory where output files
-should be stored temporarily.
-
-**--input_kafka_topic** _INPUT_KAFKA_TOPIC_: Kafka output topic for streaming
-spouts.
-
-**--input_kafka_cluster_connection_string**
+**\--input_kafka_topic** _INPUT_KAFKA_TOPIC_: Kafka output topic for streaming
+spouts. **\--input_kafka_cluster_connection_string**
 _INPUT_KAFKA_CLUSTER_CONNECTION_STRING_: Kafka connection string for streaming
-spouts.
+spouts. **\--input_kafka_consumer_group_id** _INPUT_KAFKA_CONSUMER_GROUP_ID_:
+Kafka consumer group id to use. **\--input_s3_bucket** _INPUT_S3_BUCKET_:
+Provide the name of the S3 bucket for output storage. **\--input_s3_folder**
+_INPUT_S3_FOLDER_: Indicate the S3 folder for output storage.
+**\--output_folder** _OUTPUT_FOLDER_: Specify the directory where output files
+should be stored temporarily
 
-**--input_kafka_consumer_group_id** _INPUT_KAFKA_CONSUMER_GROUP_ID_: Kafka
-consumer group id to use.
-
-**--input_s3_bucket** _INPUT_S3_BUCKET_: Provide the name of the S3 bucket for
-output storage.
-
-**--input_s3_folder** _INPUT_S3_FOLDER_: Indicate the S3 folder for output
-storage.
-
-**--output_folder** _OUTPUT_FOLDER_: Specify the directory where output files
-should be stored temporarily.
-
-**--output_kafka_topic** _OUTPUT_KAFKA_TOPIC_: Kafka output topic for streaming
-spouts.
-
-**--output_kafka_cluster_connection_string**
+**\--output_kafka_topic** _OUTPUT_KAFKA_TOPIC_: Kafka output topic for streaming
+spouts. **\--output_kafka_cluster_connection_string**
 _OUTPUT_KAFKA_CLUSTER_CONNECTION_STRING_: Kafka connection string for streaming
-spouts.
+spouts. **\--output_s3_bucket** _OUTPUT_S3_BUCKET_: Provide the name of the S3
+bucket for output storage. **\--output_s3_folder** _OUTPUT_S3_FOLDER_: Indicate
+the S3 folder for output storage. **\--redis_host** _REDIS_HOST_: Enter the host
+address for the Redis server. **\--redis_port** _REDIS_PORT_: Enter the port
+number for the Redis server. **\--redis_db** _REDIS_DB_: Specify the Redis
+database to be used. **\--postgres_host** _POSTGRES_HOST_: Enter the host
+address for the PostgreSQL server. **\--postgres_port** _POSTGRES_PORT_: Enter
+the port number for the PostgreSQL server. **\--postgres_user** _POSTGRES_USER_:
+Provide the username for the PostgreSQL server. **\--postgres_password**
+_POSTGRES_PASSWORD_: Provide the password for the PostgreSQL server.
+**\--postgres_database** _POSTGRES_DATABASE_: Specify the PostgreSQL database to
+be used. **\--postgres_table** _POSTGRES_TABLE_: Specify the PostgreSQL table to
+be used. **\--dynamodb_table_name** _DYNAMODB_TABLE_NAME_: Provide the name of
+the DynamoDB table. **\--dynamodb_region_name** _DYNAMODB_REGION_NAME_: Specify
+the AWS region for DynamoDB. **\--prometheus_gateway** _PROMETHEUS_GATEWAY_:
+Specify the prometheus gateway URL. **\--k8s_kind**
+_{deployment,service,job,cron_job}_: Choose the type of kubernetes resource.
+**\--k8s_name** _K8S_NAME_: Name of the Kubernetes resource. **\--k8s_image**
+_K8S_IMAGE_: Docker image for the Kubernetes resource. **\--k8s_replicas**
+_K8S_REPLICAS_: Number of replicas. **\--k8s_env_vars** _K8S_ENV_VARS_:
+Environment variables as a JSON string. **\--k8s_cpu** _K8S_CPU_: CPU
+requirements. **\--k8s_memory** _K8S_MEMORY_: Memory requirements.
+**\--k8s_storage** _K8S_STORAGE_: Storage requirements. **\--k8s_gpu**
+_K8S_GPU_: GPU requirements. **\--k8s_kube_config_path** _K8S_KUBE_CONFIG_PATH_:
+Name of the Kubernetes cluster local config. **\--k8s_api_key** _K8S_API_KEY_:
+GPU requirements. **\--k8s_api_host** _K8S_API_HOST_: GPU requirements.
+**\--k8s_verify_ssl** _K8S_VERIFY_SSL_: GPU requirements. **\--k8s_ssl_ca_cert**
+_K8S_SSL_CA_CERT_: GPU requirements. **\--k8s_cluster_name** _K8S_CLUSTER_NAME_:
+Name of the Kubernetes cluster. **\--k8s_context_name** _K8S_CONTEXT_NAME_: Name
+of the kubeconfig context. **\--k8s_namespace** _K8S_NAMESPACE_: Kubernetes
+namespace. **\--k8s_labels** _K8S_LABELS_: Labels for Kubernetes resources, as a
+JSON string. **\--k8s_annotations** _K8S_ANNOTATIONS_: Annotations for
+Kubernetes resources, as a JSON string. **\--k8s_port** _K8S_PORT_: Port to run
+the spout on as a service. **\--k8s_target_port** _K8S_TARGET_PORT_: Port to
+expose the spout on as a service. **\--k8s_schedule** _K8S_SCHEDULE_: Schedule
+to run the spout on as a cron job. **\--args** _\..._: Additional keyword
+arguments to pass to the spout.
 
-**--output_s3_bucket** _OUTPUT_S3_BUCKET_: Provide the name of the S3 bucket for
-output storage.
+## Command: genius TestBoltCtlBolt help
 
-**--output_s3_folder** _OUTPUT_S3_FOLDER_: Indicate the S3 folder for output
-storage.
+Usage: genius TestBoltCtlBolt help \[-h\] method
 
-**--redis_host** _REDIS_HOST_: Enter the host address for the Redis server.
+**method**
 
-**--redis_port** _REDIS_PORT_: Enter the port number for the Redis server.
+: The method to execute.
 
-**--redis_db** _REDIS_DB_: Specify the Redis database to be used.
+# Deployment
 
-**--postgres_host** _POSTGRES_HOST_: Enter the host address for the PostgreSQL
-server.
+## Command: genius rise
 
-**--postgres_port** _POSTGRES_PORT_: Enter the port number for the PostgreSQL
-server.
+Usage: genius rise \[-h\] \[\--spout SPOUT\] \[\--bolt BOLT\] \[\--file FILE\]
+{up} \...
 
-**--postgres_user** _POSTGRES_USER_: Provide the username for the PostgreSQL
-server.
+**POSITIONAL ARGUMENTS _genius rise_**
 
-**--postgres_password** _POSTGRES_PASSWORD_: Provide the password for the
-PostgreSQL server.
+**genius rise** _up_
 
-**--postgres_database** _POSTGRES_DATABASE_: Specify the PostgreSQL database to
-be used.
+: Deploy according to the genius.yml file.
 
-**--postgres_table** _POSTGRES_TABLE_: Specify the PostgreSQL table to be used.
+## Command: genius rise up
 
-**--dynamodb_table_name** _DYNAMODB_TABLE_NAME_: Provide the name of the
-DynamoDB table.
+Usage: genius rise up \[-h\] \[\--spout SPOUT\] \[\--bolt BOLT\] \[\--file
+FILE\]
 
-**--dynamodb_region_name** _DYNAMODB_REGION_NAME_: Specify the AWS region for
-DynamoDB.
+**Options genius rise up**
 
-**--prometheus_gateway** _PROMETHEUS_GATEWAY_: Specify the prometheus gateway
-URL.
+**\--spout** _SPOUT_: Name of the specific spout to run. **\--bolt** _BOLT_:
+Name of the specific bolt to run. **\--file** _FILE_: Path of the genius.yml
+file, default to .
 
-**--k8s_kind** _{deployment,service,job,cron_job}_: Choose the type of
-kubernetes resource.
+**Options genius rise**
 
-**--k8s_name** _K8S_NAME_: Name of the Kubernetes resource.
+**\--spout** _SPOUT_: Name of the specific spout to run. **\--bolt** _BOLT_:
+Name of the specific bolt to run. **\--file** _FILE_: Path of the genius.yml
+file, default to .
 
-**--k8s_image** _K8S_IMAGE_: Docker image for the Kubernetes resource.
+# Kubernetes Pods
 
-**--k8s_replicas** _K8S_REPLICAS_: Number of replicas.
+## Command: genius pod
 
-**--k8s_env_vars** _K8S_ENV_VARS_: Environment variables as a JSON string.
+usage: genius pod \[-h\] {status,show,describe,logs} \...
 
-**--k8s_cpu** _K8S_CPU_: CPU requirements.
+**POSITIONAL ARGUMENTS _genius pod_**
 
-**--k8s_memory** _K8S_MEMORY_: Memory requirements.
+**genius pod** _status_
 
-**--k8s_storage** _K8S_STORAGE_: Storage requirements.
+: Get the status of the Kubernetes pod.
 
-**--k8s_gpu** _K8S_GPU_: GPU requirements.
+**genius pod** _show_
 
-**--k8s_kube_config_path** _K8S_KUBE_CONFIG_PATH_: Name of the Kubernetes
-cluster local config.
+: List all pods.
 
-**--k8s_api_key** _K8S_API_KEY_: GPU requirements.
+**genius pod** _describe_
 
-**--k8s_api_host** _K8S_API_HOST_: GPU requirements.
+: Describe a pod.
 
-**--k8s_verify_ssl** _K8S_VERIFY_SSL_: GPU requirements.
+**genius pod** _logs_
 
-**--k8s_ssl_ca_cert** _K8S_SSL_CA_CERT_: GPU requirements.
+: Get the logs of a pod.
 
-**--k8s_cluster_name** _K8S_CLUSTER_NAME_: Name of the Kubernetes cluster.
+## Command: genius pod status
+
+usage: genius pod status \[-h\] \[\--kube_config_path KUBE_CONFIG_PATH\]
+\[\--cluster_name CLUSTER_NAME\] \[\--context_name CONTEXT_NAME\] \[\--namespace
+NAMESPACE\] \[\--labels LABELS\] \[\--annotations ANNOTATIONS\] \[\--api_key
+API_KEY\] \[\--api_host API_HOST\] \[\--verify_ssl VERIFY_SSL\] \[\--ssl_ca_cert
+SSL_CA_CERT\] name
 
-**--k8s_context_name** _K8S_CONTEXT_NAME_: Name of the kubeconfig context.
+**name**
 
-**--k8s_namespace** _K8S_NAMESPACE_: Kubernetes namespace.
+: Name of the Kubernetes pod.
 
-**--k8s_labels** _K8S_LABELS_: Labels for Kubernetes resources, as a JSON
-string.
+**Options genius pod status**
 
-**--k8s_annotations** _K8S_ANNOTATIONS_: Annotations for Kubernetes resources,
-as a JSON string.
+**\--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+**\--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+**\--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+**\--namespace** _NAMESPACE_: Kubernetes namespace. **\--labels** _LABELS_:
+Labels for Kubernetes resources, as a JSON string. **\--annotations**
+_ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON string.
+**\--api_key** _API_KEY_: API key for Kubernetes cluster. **\--api_host**
+_API_HOST_: API host for Kubernetes cluster. **\--verify_ssl** _VERIFY_SSL_:
+Whether to verify SSL certificates. **\--ssl_ca_cert** _SSL_CA_CERT_: Path to
+the SSL CA certificate.
 
-**--k8s_port** _K8S_PORT_: Port to run the spout on as a service.
+## Command: genius pod show
 
-**--k8s_target_port** _K8S_TARGET_PORT_: Port to expose the spout on as a
-service.
+usage: genius pod show \[-h\] \[\--kube_config_path KUBE_CONFIG_PATH\]
+\[\--cluster_name CLUSTER_NAME\] \[\--context_name CONTEXT_NAME\] \[\--namespace
+NAMESPACE\] \[\--labels LABELS\] \[\--annotations ANNOTATIONS\] \[\--api_key
+API_KEY\] \[\--api_host API_HOST\] \[\--verify_ssl VERIFY_SSL\] \[\--ssl_ca_cert
+SSL_CA_CERT\]
 
-**--k8s_schedule** _K8S_SCHEDULE_: Schedule to run the spout on as a cron job.
+**Options genius pod show**
 
-**--args** _\..._: Additional keyword arguments to pass to the spout.
+**\--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+**\--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+**\--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+**\--namespace** _NAMESPACE_: Kubernetes namespace. **\--labels** _LABELS_:
+Labels for Kubernetes resources, as a JSON string. **\--annotations**
+_ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON string.
+**\--api_key** _API_KEY_: API key for Kubernetes cluster. **\--api_host**
+_API_HOST_: API host for Kubernetes cluster. **\--verify_ssl** _VERIFY_SSL_:
+Whether to verify SSL certificates. **\--ssl_ca_cert** _SSL_CA_CERT_: Path to
+the SSL CA certificate.
 
-# COMMAND `genius TestBoltCtlBolt help`
+## Command: genius pod describe
 
-Usage: genius TestBoltCtlBolt help [-h] method
+usage: genius pod describe \[-h\] \[\--kube_config_path KUBE_CONFIG_PATH\]
+\[\--cluster_name CLUSTER_NAME\] \[\--context_name CONTEXT_NAME\] \[\--namespace
+NAMESPACE\] \[\--labels LABELS\] \[\--annotations ANNOTATIONS\] \[\--api_key
+API_KEY\] \[\--api_host API_HOST\] \[\--verify_ssl VERIFY_SSL\] \[\--ssl_ca_cert
+SSL_CA_CERT\] name
 
-**method**: The method to execute.
+**name**
 
-# COMMAND `genius rise`
+: Name of the pod.
 
-Usage: genius rise [-h] [--spout SPOUT] [--bolt BOLT] [--file FILE]
+**Options genius pod describe**
 
-# OPTIONS `genius rise`
+**\--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+**\--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+**\--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+**\--namespace** _NAMESPACE_: Kubernetes namespace. **\--labels** _LABELS_:
+Labels for Kubernetes resources, as a JSON string. **\--annotations**
+_ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON string.
+**\--api_key** _API_KEY_: API key for Kubernetes cluster. **\--api_host**
+_API_HOST_: API host for Kubernetes cluster. **\--verify_ssl** _VERIFY_SSL_:
+Whether to verify SSL certificates. **\--ssl_ca_cert** _SSL_CA_CERT_: Path to
+the SSL CA certificate.
 
-**--spout** _SPOUT_: Name of the specific spout to run.
+## Command: genius pod logs
 
-**--bolt** _BOLT_: Name of the specific bolt to run.
+usage: genius pod logs \[-h\] \[\--follow FOLLOW\] \[\--tail TAIL\]
+\[\--kube_config_path KUBE_CONFIG_PATH\] \[\--cluster_name CLUSTER_NAME\]
+\[\--context_name CONTEXT_NAME\] \[\--namespace NAMESPACE\] \[\--labels LABELS\]
+\[\--annotations ANNOTATIONS\] \[\--api_key API_KEY\] \[\--api_host API_HOST\]
+\[\--verify_ssl VERIFY_SSL\] \[\--ssl_ca_cert SSL_CA_CERT\] name
 
-**--file** _FILE_: Path of the genius.yml file, default to .
+**name**
 
-# COMMAND `genius docker`
+: Name of the pod.
 
-usage: genius docker [-h] {package} \...
+**Options genius pod logs**
 
-# POSITIONAL ARGUMENTS _`genius docker`_
+**\--follow** _FOLLOW_: Whether to follow the logs. **\--tail** _TAIL_: Number
+of lines to show from the end of the logs. **\--kube_config_path**
+_KUBE_CONFIG_PATH_: Path to the kubeconfig file. **\--cluster_name**
+_CLUSTER_NAME_: Name of the Kubernetes cluster. **\--context_name**
+_CONTEXT_NAME_: Name of the kubeconfig context. **\--namespace** _NAMESPACE_:
+Kubernetes namespace. **\--labels** _LABELS_: Labels for Kubernetes resources,
+as a JSON string. **\--annotations** _ANNOTATIONS_: Annotations for Kubernetes
+resources, as a JSON string. **\--api_key** _API_KEY_: API key for Kubernetes
+cluster. **\--api_host** _API_HOST_: API host for Kubernetes cluster.
+**\--verify_ssl** _VERIFY_SSL_: Whether to verify SSL certificates.
+**\--ssl_ca_cert** _SSL_CA_CERT_: Path to the SSL CA certificate.
 
-**genius docker** _package_: Build and upload a Docker image.
+# Kubernetes Deployment
 
-# COMMAND `genius docker package`
+## Command: genius deployment
 
-Usage: genius docker package [-h] [--auth AUTH] [--base_image BASE_IMAGE]
-[--workdir WORKDIR] [--local_dir LOCAL_DIR] [--packages [PACKAGES \...]]
-[--os_packages [OS_PACKAGES \...]] [--env_vars ENV_VARS] image_name repository
+usage: genius deployment \[-h\] {create,scale,describe,show,delete,status} \...
 
-**image_name**: Name of the Docker image.
+**POSITIONAL ARGUMENTS _genius deployment_**
 
-**repository**: Container repository to upload to.
+**genius deployment** _create_
 
-# OPTIONS `genius docker package`
+: Create a new deployment.
 
-**--auth** _AUTH_: Authentication credentials as a JSON string.
+**genius deployment** _scale_
 
-**--base_image** _BASE_IMAGE_: The base image to use for the Docker container.
+: Scale a deployment.
 
-**--workdir** _WORKDIR_: The working directory in the Docker container.
+**genius deployment** _describe_
 
-**--local_dir** _LOCAL_DIR_: The local directory to copy into the Docker
-container.
+: Describe a deployment.
 
-**--packages** _[PACKAGES \...]_: List of Python packages to install in the
-Docker container.
+**genius deployment** _show_
 
-**--os_packages** _[OS_PACKAGES \...]_: List of OS packages to install in the
-Docker container.
+: List all deployments.
 
-**--env_vars** _ENV_VARS_: Environment variables to set in the Docker container.
+**genius deployment** _delete_
 
-# COMMAND `genius pod`
+: Delete a deployment.
 
-usage: genius pod [-h] {status,show,describe,logs} \...
+**genius deployment** _status_
 
-# POSITIONAL ARGUMENTS _`genius pod`_
+: Get the status of a deployment.
 
-**genius pod** _status_: Get the status of the Kubernetes pod.
+## Command: genius deployment create
 
-**genius pod** _show_: List all pods.
+usage: genius deployment create \[-h\] \[\--replicas REPLICAS\] \[\--env_vars
+ENV_VARS\] \[\--cpu CPU\] \[\--memory MEMORY\] \[\--storage STORAGE\] \[\--gpu
+GPU\] \[\--kube_config_path KUBE_CONFIG_PATH\] \[\--cluster_name CLUSTER_NAME\]
+\[\--context_name CONTEXT_NAME\] \[\--namespace NAMESPACE\] \[\--labels LABELS\]
+\[\--annotations ANNOTATIONS\] \[\--api_key API_KEY\] \[\--api_host API_HOST\]
+\[\--verify_ssl VERIFY_SSL\] \[\--ssl_ca_cert SSL_CA_CERT\] name image command
 
-**genius pod** _describe_: Describe a pod.
+**name**
 
-**genius pod** _logs_: Get the logs of a pod.
+: Name of the deployment.
 
-# COMMAND `genius pod status`
+**image**
 
-usage: genius pod status [-h] [--kube_config_path KUBE_CONFIG_PATH]
-[--cluster_name CLUSTER_NAME] [--context_name CONTEXT_NAME] [--namespace
-NAMESPACE] [--labels LABELS] [--annotations ANNOTATIONS] [--api_key API_KEY]
-[--api_host API_HOST] [--verify_ssl VERIFY_SSL] [--ssl_ca_cert SSL_CA_CERT] name
+: Docker image for the deployment.
 
-**name**: Name of the Kubernetes pod.
+**command**
 
-# OPTIONS `genius pod status`
+: Command to run in the container.
 
-**--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+**Options genius deployment create**
 
-**--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+**\--replicas** _REPLICAS_: Number of replicas. **\--env_vars** _ENV_VARS_:
+Environment variables as a JSON string. **\--cpu** _CPU_: CPU requirements.
+**\--memory** _MEMORY_: Memory requirements. **\--storage** _STORAGE_: Storage
+requirements. **\--gpu** _GPU_: GPU requirements. **\--kube_config_path**
+_KUBE_CONFIG_PATH_: Path to the kubeconfig file. **\--cluster_name**
+_CLUSTER_NAME_: Name of the Kubernetes cluster. **\--context_name**
+_CONTEXT_NAME_: Name of the kubeconfig context. **\--namespace** _NAMESPACE_:
+Kubernetes namespace. **\--labels** _LABELS_: Labels for Kubernetes resources,
+as a JSON string. **\--annotations** _ANNOTATIONS_: Annotations for Kubernetes
+resources, as a JSON string. **\--api_key** _API_KEY_: API key for Kubernetes
+cluster. **\--api_host** _API_HOST_: API host for Kubernetes cluster.
+**\--verify_ssl** _VERIFY_SSL_: Whether to verify SSL certificates.
+**\--ssl_ca_cert** _SSL_CA_CERT_: Path to the SSL CA certificate.
 
-**--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+## Command: genius deployment scale
 
-**--namespace** _NAMESPACE_: Kubernetes namespace.
+usage: genius deployment scale \[-h\] \[\--kube_config_path KUBE_CONFIG_PATH\]
+\[\--cluster_name CLUSTER_NAME\] \[\--context_name CONTEXT_NAME\] \[\--namespace
+NAMESPACE\] \[\--labels LABELS\] \[\--annotations ANNOTATIONS\] \[\--api_key
+API_KEY\] \[\--api_host API_HOST\] \[\--verify_ssl VERIFY_SSL\] \[\--ssl_ca_cert
+SSL_CA_CERT\] name replicas
 
-**--labels** _LABELS_: Labels for Kubernetes resources, as a JSON string.
+**name**
 
-**--annotations** _ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON
-string.
+: Name of the deployment.
 
-**--api_key** _API_KEY_: API key for Kubernetes cluster.
+**replicas**
 
-**--api_host** _API_HOST_: API host for Kubernetes cluster.
+: Number of replicas.
 
-**--verify_ssl** _VERIFY_SSL_: Whether to verify SSL certificates.
+**Options genius deployment scale**
 
-**--ssl_ca_cert** _SSL_CA_CERT_: Path to the SSL CA certificate.
+**\--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+**\--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+**\--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+**\--namespace** _NAMESPACE_: Kubernetes namespace. **\--labels** _LABELS_:
+Labels for Kubernetes resources, as a JSON string. **\--annotations**
+_ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON string.
+**\--api_key** _API_KEY_: API key for Kubernetes cluster. **\--api_host**
+_API_HOST_: API host for Kubernetes cluster. **\--verify_ssl** _VERIFY_SSL_:
+Whether to verify SSL certificates. **\--ssl_ca_cert** _SSL_CA_CERT_: Path to
+the SSL CA certificate.
 
-# COMMAND `genius pod show`
+## Command: genius deployment describe
 
-usage: genius pod show [-h] [--kube_config_path KUBE_CONFIG_PATH]
-[--cluster_name CLUSTER_NAME] [--context_name CONTEXT_NAME] [--namespace
-NAMESPACE] [--labels LABELS] [--annotations ANNOTATIONS] [--api_key API_KEY]
-[--api_host API_HOST] [--verify_ssl VERIFY_SSL] [--ssl_ca_cert SSL_CA_CERT]
+usage: genius deployment describe \[-h\] \[\--kube_config_path
+KUBE_CONFIG_PATH\] \[\--cluster_name CLUSTER_NAME\] \[\--context_name
+CONTEXT_NAME\] \[\--namespace NAMESPACE\] \[\--labels LABELS\] \[\--annotations
+ANNOTATIONS\] \[\--api_key API_KEY\] \[\--api_host API_HOST\] \[\--verify_ssl
+VERIFY_SSL\] \[\--ssl_ca_cert SSL_CA_CERT\] name
 
-# OPTIONS `genius pod show`
+**name**
 
-**--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+: Name of the deployment.
 
-**--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+**Options genius deployment describe**
 
-**--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+**\--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+**\--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+**\--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+**\--namespace** _NAMESPACE_: Kubernetes namespace. **\--labels** _LABELS_:
+Labels for Kubernetes resources, as a JSON string. **\--annotations**
+_ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON string.
+**\--api_key** _API_KEY_: API key for Kubernetes cluster. **\--api_host**
+_API_HOST_: API host for Kubernetes cluster. **\--verify_ssl** _VERIFY_SSL_:
+Whether to verify SSL certificates. **\--ssl_ca_cert** _SSL_CA_CERT_: Path to
+the SSL CA certificate.
 
-**--namespace** _NAMESPACE_: Kubernetes namespace.
+## Command: genius deployment show
 
-**--labels** _LABELS_: Labels for Kubernetes resources, as a JSON string.
+usage: genius deployment show \[-h\] \[\--kube_config_path KUBE_CONFIG_PATH\]
+\[\--cluster_name CLUSTER_NAME\] \[\--context_name CONTEXT_NAME\] \[\--namespace
+NAMESPACE\] \[\--labels LABELS\] \[\--annotations ANNOTATIONS\] \[\--api_key
+API_KEY\] \[\--api_host API_HOST\] \[\--verify_ssl VERIFY_SSL\] \[\--ssl_ca_cert
+SSL_CA_CERT\]
 
-**--annotations** _ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON
-string.
+**Options genius deployment show**
 
-**--api_key** _API_KEY_: API key for Kubernetes cluster.
+**\--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+**\--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+**\--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+**\--namespace** _NAMESPACE_: Kubernetes namespace. **\--labels** _LABELS_:
+Labels for Kubernetes resources, as a JSON string. **\--annotations**
+_ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON string.
+**\--api_key** _API_KEY_: API key for Kubernetes cluster. **\--api_host**
+_API_HOST_: API host for Kubernetes cluster. **\--verify_ssl** _VERIFY_SSL_:
+Whether to verify SSL certificates. **\--ssl_ca_cert** _SSL_CA_CERT_: Path to
+the SSL CA certificate.
 
-**--api_host** _API_HOST_: API host for Kubernetes cluster.
+## Command: genius deployment delete
 
-**--verify_ssl** _VERIFY_SSL_: Whether to verify SSL certificates.
+usage: genius deployment delete \[-h\] \[\--kube_config_path KUBE_CONFIG_PATH\]
+\[\--cluster_name CLUSTER_NAME\] \[\--context_name CONTEXT_NAME\] \[\--namespace
+NAMESPACE\] \[\--labels LABELS\] \[\--annotations ANNOTATIONS\] \[\--api_key
+API_KEY\] \[\--api_host API_HOST\] \[\--verify_ssl VERIFY_SSL\] \[\--ssl_ca_cert
+SSL_CA_CERT\] name
 
-**--ssl_ca_cert** _SSL_CA_CERT_: Path to the SSL CA certificate.
+**name**
 
-# COMMAND `genius pod describe`
+: Name of the deployment.
 
-usage: genius pod describe [-h] [--kube_config_path KUBE_CONFIG_PATH]
-[--cluster_name CLUSTER_NAME] [--context_name CONTEXT_NAME] [--namespace
-NAMESPACE] [--labels LABELS] [--annotations ANNOTATIONS] [--api_key API_KEY]
-[--api_host API_HOST] [--verify_ssl VERIFY_SSL] [--ssl_ca_cert SSL_CA_CERT] name
+**Options genius deployment delete**
 
-**name**: Name of the pod.
+**\--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+**\--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+**\--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+**\--namespace** _NAMESPACE_: Kubernetes namespace. **\--labels** _LABELS_:
+Labels for Kubernetes resources, as a JSON string. **\--annotations**
+_ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON string.
+**\--api_key** _API_KEY_: API key for Kubernetes cluster. **\--api_host**
+_API_HOST_: API host for Kubernetes cluster. **\--verify_ssl** _VERIFY_SSL_:
+Whether to verify SSL certificates. **\--ssl_ca_cert** _SSL_CA_CERT_: Path to
+the SSL CA certificate.
 
-# OPTIONS `genius pod describe`
+## Command: genius deployment status
 
-**--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+usage: genius deployment status \[-h\] \[\--kube_config_path KUBE_CONFIG_PATH\]
+\[\--cluster_name CLUSTER_NAME\] \[\--context_name CONTEXT_NAME\] \[\--namespace
+NAMESPACE\] \[\--labels LABELS\] \[\--annotations ANNOTATIONS\] \[\--api_key
+API_KEY\] \[\--api_host API_HOST\] \[\--verify_ssl VERIFY_SSL\] \[\--ssl_ca_cert
+SSL_CA_CERT\] name
 
-**--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+**name**
 
-**--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+: Name of the deployment.
 
-**--namespace** _NAMESPACE_: Kubernetes namespace.
+**Options genius deployment status**
 
-**--labels** _LABELS_: Labels for Kubernetes resources, as a JSON string.
+**\--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+**\--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+**\--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+**\--namespace** _NAMESPACE_: Kubernetes namespace. **\--labels** _LABELS_:
+Labels for Kubernetes resources, as a JSON string. **\--annotations**
+_ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON string.
+**\--api_key** _API_KEY_: API key for Kubernetes cluster. **\--api_host**
+_API_HOST_: API host for Kubernetes cluster. **\--verify_ssl** _VERIFY_SSL_:
+Whether to verify SSL certificates. **\--ssl_ca_cert** _SSL_CA_CERT_: Path to
+the SSL CA certificate.
 
-**--annotations** _ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON
-string.
+# Kubernetes Services
 
-**--api_key** _API_KEY_: API key for Kubernetes cluster.
+## Command: genius service
 
-**--api_host** _API_HOST_: API host for Kubernetes cluster.
+usage: genius service \[-h\] {create,delete,describe,show} \...
 
-**--verify_ssl** _VERIFY_SSL_: Whether to verify SSL certificates.
+**POSITIONAL ARGUMENTS _genius service_**
 
-**--ssl_ca_cert** _SSL_CA_CERT_: Path to the SSL CA certificate.
+**genius service** _create_
 
-# COMMAND `genius pod logs`
+: Create a new service.
 
-usage: genius pod logs [-h] [--follow FOLLOW] [--tail TAIL] [--kube_config_path
-KUBE_CONFIG_PATH] [--cluster_name CLUSTER_NAME] [--context_name CONTEXT_NAME]
-[--namespace NAMESPACE] [--labels LABELS] [--annotations ANNOTATIONS] [--api_key
-API_KEY] [--api_host API_HOST] [--verify_ssl VERIFY_SSL] [--ssl_ca_cert
-SSL_CA_CERT] name
+**genius service** _delete_
 
-**name**: Name of the pod.
+: Delete a service.
 
-# OPTIONS `genius pod logs`
+**genius service** _describe_
 
-**--follow** _FOLLOW_: Whether to follow the logs.
+: Describe a service.
 
-**--tail** _TAIL_: Number of lines to show from the end of the logs.
+**genius service** _show_
 
-**--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+: List all services.
 
-**--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+## Command: genius service create
 
-**--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+usage: genius service create \[-h\] \[\--replicas REPLICAS\] \[\--port PORT\]
+\[\--target_port TARGET_PORT\] \[\--env_vars ENV_VARS\] \[\--cpu CPU\]
+\[\--memory MEMORY\] \[\--storage STORAGE\] \[\--gpu GPU\] \[\--kube_config_path
+KUBE_CONFIG_PATH\] \[\--cluster_name CLUSTER_NAME\] \[\--context_name
+CONTEXT_NAME\] \[\--namespace NAMESPACE\] \[\--labels LABELS\] \[\--annotations
+ANNOTATIONS\] \[\--api_key API_KEY\] \[\--api_host API_HOST\] \[\--verify_ssl
+VERIFY_SSL\] \[\--ssl_ca_cert SSL_CA_CERT\] name image command
 
-**--namespace** _NAMESPACE_: Kubernetes namespace.
+**name**
 
-**--labels** _LABELS_: Labels for Kubernetes resources, as a JSON string.
+: Name of the service.
 
-**--annotations** _ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON
-string.
+**image**
 
-**--api_key** _API_KEY_: API key for Kubernetes cluster.
+: Docker image for the service.
 
-**--api_host** _API_HOST_: API host for Kubernetes cluster.
+**command**
 
-**--verify_ssl** _VERIFY_SSL_: Whether to verify SSL certificates.
+: Command to run in the container.
 
-**--ssl_ca_cert** _SSL_CA_CERT_: Path to the SSL CA certificate.
+**Options genius service create**
 
-# COMMAND `genius deployment`
+**\--replicas** _REPLICAS_: Number of replicas. **\--port** _PORT_: Service
+port. **\--target_port** _TARGET_PORT_: Container target port. **\--env_vars**
+_ENV_VARS_: Environment variables as a JSON string. **\--cpu** _CPU_: CPU
+requirements. **\--memory** _MEMORY_: Memory requirements. **\--storage**
+_STORAGE_: Storage requirements. **\--gpu** _GPU_: GPU requirements.
+**\--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+**\--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+**\--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+**\--namespace** _NAMESPACE_: Kubernetes namespace. **\--labels** _LABELS_:
+Labels for Kubernetes resources, as a JSON string. **\--annotations**
+_ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON string.
+**\--api_key** _API_KEY_: API key for Kubernetes cluster. **\--api_host**
+_API_HOST_: API host for Kubernetes cluster. **\--verify_ssl** _VERIFY_SSL_:
+Whether to verify SSL certificates. **\--ssl_ca_cert** _SSL_CA_CERT_: Path to
+the SSL CA certificate.
 
-usage: genius deployment [-h] {create,scale,describe,show,delete,status} \...
+## Command: genius service delete
 
-# POSITIONAL ARGUMENTS _`genius deployment`_
+usage: genius service delete \[-h\] \[\--kube_config_path KUBE_CONFIG_PATH\]
+\[\--cluster_name CLUSTER_NAME\] \[\--context_name CONTEXT_NAME\] \[\--namespace
+NAMESPACE\] \[\--labels LABELS\] \[\--annotations ANNOTATIONS\] \[\--api_key
+API_KEY\] \[\--api_host API_HOST\] \[\--verify_ssl VERIFY_SSL\] \[\--ssl_ca_cert
+SSL_CA_CERT\] name
 
-**genius deployment** _create_: Create a new deployment.
+**name**
 
-**genius deployment** _scale_: Scale a deployment.
+: Name of the service.
 
-**genius deployment** _describe_: Describe a deployment.
+**Options genius service delete**
 
-**genius deployment** _show_: List all deployments.
+**\--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+**\--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+**\--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+**\--namespace** _NAMESPACE_: Kubernetes namespace. **\--labels** _LABELS_:
+Labels for Kubernetes resources, as a JSON string. **\--annotations**
+_ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON string.
+**\--api_key** _API_KEY_: API key for Kubernetes cluster. **\--api_host**
+_API_HOST_: API host for Kubernetes cluster. **\--verify_ssl** _VERIFY_SSL_:
+Whether to verify SSL certificates. **\--ssl_ca_cert** _SSL_CA_CERT_: Path to
+the SSL CA certificate.
 
-**genius deployment** _delete_: Delete a deployment.
+## Command: genius service describe
 
-**genius deployment** _status_: Get the status of a deployment.
+usage: genius service describe \[-h\] \[\--kube_config_path KUBE_CONFIG_PATH\]
+\[\--cluster_name CLUSTER_NAME\] \[\--context_name CONTEXT_NAME\] \[\--namespace
+NAMESPACE\] \[\--labels LABELS\] \[\--annotations ANNOTATIONS\] \[\--api_key
+API_KEY\] \[\--api_host API_HOST\] \[\--verify_ssl VERIFY_SSL\] \[\--ssl_ca_cert
+SSL_CA_CERT\] name
 
-# COMMAND `genius deployment create`
+**name**
 
-usage: genius deployment create [-h] [--replicas REPLICAS] [--env_vars ENV_VARS]
-[--cpu CPU] [--memory MEMORY] [--storage STORAGE] [--gpu GPU]
-[--kube_config_path KUBE_CONFIG_PATH] [--cluster_name CLUSTER_NAME]
-[--context_name CONTEXT_NAME] [--namespace NAMESPACE] [--labels LABELS]
-[--annotations ANNOTATIONS] [--api_key API_KEY] [--api_host API_HOST]
-[--verify_ssl VERIFY_SSL] [--ssl_ca_cert SSL_CA_CERT] name image command
+: Name of the service.
 
-**name**: Name of the deployment.
+**Options genius service describe**
 
-**image**: Docker image for the deployment.
+**\--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+**\--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+**\--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+**\--namespace** _NAMESPACE_: Kubernetes namespace. **\--labels** _LABELS_:
+Labels for Kubernetes resources, as a JSON string. **\--annotations**
+_ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON string.
+**\--api_key** _API_KEY_: API key for Kubernetes cluster. **\--api_host**
+_API_HOST_: API host for Kubernetes cluster. **\--verify_ssl** _VERIFY_SSL_:
+Whether to verify SSL certificates. **\--ssl_ca_cert** _SSL_CA_CERT_: Path to
+the SSL CA certificate.
 
-**command**: Command to run in the container.
+## Command: genius service show
 
-# OPTIONS `genius deployment create`
+usage: genius service show \[-h\] \[\--kube_config_path KUBE_CONFIG_PATH\]
+\[\--cluster_name CLUSTER_NAME\] \[\--context_name CONTEXT_NAME\] \[\--namespace
+NAMESPACE\] \[\--labels LABELS\] \[\--annotations ANNOTATIONS\] \[\--api_key
+API_KEY\] \[\--api_host API_HOST\] \[\--verify_ssl VERIFY_SSL\] \[\--ssl_ca_cert
+SSL_CA_CERT\]
 
-**--replicas** _REPLICAS_: Number of replicas.
+**Options genius service show**
 
-**--env_vars** _ENV_VARS_: Environment variables as a JSON string.
+**\--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+**\--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+**\--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+**\--namespace** _NAMESPACE_: Kubernetes namespace. **\--labels** _LABELS_:
+Labels for Kubernetes resources, as a JSON string. **\--annotations**
+_ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON string.
+**\--api_key** _API_KEY_: API key for Kubernetes cluster. **\--api_host**
+_API_HOST_: API host for Kubernetes cluster. **\--verify_ssl** _VERIFY_SSL_:
+Whether to verify SSL certificates. **\--ssl_ca_cert** _SSL_CA_CERT_: Path to
+the SSL CA certificate.
 
-**--cpu** _CPU_: CPU requirements.
+# Kubernetes Jobs
 
-**--memory** _MEMORY_: Memory requirements.
+## Command: genius job
 
-**--storage** _STORAGE_: Storage requirements.
+usage: genius job \[-h\] {create,delete,status} \...
 
-**--gpu** _GPU_: GPU requirements.
+**POSITIONAL ARGUMENTS _genius job_**
 
-**--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+**genius job** _create_
 
-**--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+: Create a new job.
 
-**--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+**genius job** _delete_
 
-**--namespace** _NAMESPACE_: Kubernetes namespace.
+: Delete a job.
 
-**--labels** _LABELS_: Labels for Kubernetes resources, as a JSON string.
+**genius job** _status_
 
-**--annotations** _ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON
-string.
+: Get the status of a job.
 
-**--api_key** _API_KEY_: API key for Kubernetes cluster.
+## Command: genius job create
 
-**--api_host** _API_HOST_: API host for Kubernetes cluster.
+usage: genius job create \[-h\] \[\--env_vars ENV_VARS\] \[\--cpu CPU\]
+\[\--memory MEMORY\] \[\--storage STORAGE\] \[\--gpu GPU\] \[\--kube_config_path
+KUBE_CONFIG_PATH\] \[\--cluster_name CLUSTER_NAME\] \[\--context_name
+CONTEXT_NAME\] \[\--namespace NAMESPACE\] \[\--labels LABELS\] \[\--annotations
+ANNOTATIONS\] \[\--api_key API_KEY\] \[\--api_host API_HOST\] \[\--verify_ssl
+VERIFY_SSL\] \[\--ssl_ca_cert SSL_CA_CERT\] name image command
 
-**--verify_ssl** _VERIFY_SSL_: Whether to verify SSL certificates.
+**name**
 
-**--ssl_ca_cert** _SSL_CA_CERT_: Path to the SSL CA certificate.
+: Name of the job.
 
-# COMMAND `genius deployment scale`
+**image**
 
-usage: genius deployment scale [-h] [--kube_config_path KUBE_CONFIG_PATH]
-[--cluster_name CLUSTER_NAME] [--context_name CONTEXT_NAME] [--namespace
-NAMESPACE] [--labels LABELS] [--annotations ANNOTATIONS] [--api_key API_KEY]
-[--api_host API_HOST] [--verify_ssl VERIFY_SSL] [--ssl_ca_cert SSL_CA_CERT] name
-replicas
+: Docker image for the job.
 
-**name**: Name of the deployment.
+**command**
 
-**replicas**: Number of replicas.
+: Command to run in the container.
 
-# OPTIONS `genius deployment scale`
+**Options genius job create**
 
-**--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+**\--env_vars** _ENV_VARS_: Environment variables as a JSON string. **\--cpu**
+_CPU_: CPU requirements. **\--memory** _MEMORY_: Memory requirements.
+**\--storage** _STORAGE_: Storage requirements. **\--gpu** _GPU_: GPU
+requirements. **\--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig
+file. **\--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+**\--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+**\--namespace** _NAMESPACE_: Kubernetes namespace. **\--labels** _LABELS_:
+Labels for Kubernetes resources, as a JSON string. **\--annotations**
+_ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON string.
+**\--api_key** _API_KEY_: API key for Kubernetes cluster. **\--api_host**
+_API_HOST_: API host for Kubernetes cluster. **\--verify_ssl** _VERIFY_SSL_:
+Whether to verify SSL certificates. **\--ssl_ca_cert** _SSL_CA_CERT_: Path to
+the SSL CA certificate.
 
-**--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+## Command: genius job delete
 
-**--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+usage: genius job delete \[-h\] \[\--kube_config_path KUBE_CONFIG_PATH\]
+\[\--cluster_name CLUSTER_NAME\] \[\--context_name CONTEXT_NAME\] \[\--namespace
+NAMESPACE\] \[\--labels LABELS\] \[\--annotations ANNOTATIONS\] \[\--api_key
+API_KEY\] \[\--api_host API_HOST\] \[\--verify_ssl VERIFY_SSL\] \[\--ssl_ca_cert
+SSL_CA_CERT\] name
 
-**--namespace** _NAMESPACE_: Kubernetes namespace.
+**name**
 
-**--labels** _LABELS_: Labels for Kubernetes resources, as a JSON string.
+: Name of the job.
 
-**--annotations** _ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON
-string.
+**Options genius job delete**
 
-**--api_key** _API_KEY_: API key for Kubernetes cluster.
+**\--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+**\--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+**\--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+**\--namespace** _NAMESPACE_: Kubernetes namespace. **\--labels** _LABELS_:
+Labels for Kubernetes resources, as a JSON string. **\--annotations**
+_ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON string.
+**\--api_key** _API_KEY_: API key for Kubernetes cluster. **\--api_host**
+_API_HOST_: API host for Kubernetes cluster. **\--verify_ssl** _VERIFY_SSL_:
+Whether to verify SSL certificates. **\--ssl_ca_cert** _SSL_CA_CERT_: Path to
+the SSL CA certificate.
 
-**--api_host** _API_HOST_: API host for Kubernetes cluster.
+## Command: genius job status
 
-**--verify_ssl** _VERIFY_SSL_: Whether to verify SSL certificates.
+usage: genius job status \[-h\] \[\--kube_config_path KUBE_CONFIG_PATH\]
+\[\--cluster_name CLUSTER_NAME\] \[\--context_name CONTEXT_NAME\] \[\--namespace
+NAMESPACE\] \[\--labels LABELS\] \[\--annotations ANNOTATIONS\] \[\--api_key
+API_KEY\] \[\--api_host API_HOST\] \[\--verify_ssl VERIFY_SSL\] \[\--ssl_ca_cert
+SSL_CA_CERT\] name
 
-**--ssl_ca_cert** _SSL_CA_CERT_: Path to the SSL CA certificate.
+**name**
 
-# COMMAND `genius deployment describe`
+: Name of the job.
 
-usage: genius deployment describe [-h] [--kube_config_path KUBE_CONFIG_PATH]
-[--cluster_name CLUSTER_NAME] [--context_name CONTEXT_NAME] [--namespace
-NAMESPACE] [--labels LABELS] [--annotations ANNOTATIONS] [--api_key API_KEY]
-[--api_host API_HOST] [--verify_ssl VERIFY_SSL] [--ssl_ca_cert SSL_CA_CERT] name
+**Options genius job status**
 
-**name**: Name of the deployment.
+**\--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+**\--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+**\--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+**\--namespace** _NAMESPACE_: Kubernetes namespace. **\--labels** _LABELS_:
+Labels for Kubernetes resources, as a JSON string. **\--annotations**
+_ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON string.
+**\--api_key** _API_KEY_: API key for Kubernetes cluster. **\--api_host**
+_API_HOST_: API host for Kubernetes cluster. **\--verify_ssl** _VERIFY_SSL_:
+Whether to verify SSL certificates. **\--ssl_ca_cert** _SSL_CA_CERT_: Path to
+the SSL CA certificate.
 
-# OPTIONS `genius deployment describe`
+## Kubernetes Cron Jobs
 
-**--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+## Command: genius cron_job
 
-**--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
-
-**--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
-
-**--namespace** _NAMESPACE_: Kubernetes namespace.
-
-**--labels** _LABELS_: Labels for Kubernetes resources, as a JSON string.
-
-**--annotations** _ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON
-string.
-
-**--api_key** _API_KEY_: API key for Kubernetes cluster.
-
-**--api_host** _API_HOST_: API host for Kubernetes cluster.
-
-**--verify_ssl** _VERIFY_SSL_: Whether to verify SSL certificates.
-
-**--ssl_ca_cert** _SSL_CA_CERT_: Path to the SSL CA certificate.
-
-# COMMAND `genius deployment show`
-
-usage: genius deployment show [-h] [--kube_config_path KUBE_CONFIG_PATH]
-[--cluster_name CLUSTER_NAME] [--context_name CONTEXT_NAME] [--namespace
-NAMESPACE] [--labels LABELS] [--annotations ANNOTATIONS] [--api_key API_KEY]
-[--api_host API_HOST] [--verify_ssl VERIFY_SSL] [--ssl_ca_cert SSL_CA_CERT]
-
-# OPTIONS `genius deployment show`
-
-**--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
-
-**--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
-
-**--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
-
-**--namespace** _NAMESPACE_: Kubernetes namespace.
-
-**--labels** _LABELS_: Labels for Kubernetes resources, as a JSON string.
-
-**--annotations** _ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON
-string.
-
-**--api_key** _API_KEY_: API key for Kubernetes cluster.
-
-**--api_host** _API_HOST_: API host for Kubernetes cluster.
-
-**--verify_ssl** _VERIFY_SSL_: Whether to verify SSL certificates.
-
-**--ssl_ca_cert** _SSL_CA_CERT_: Path to the SSL CA certificate.
-
-# COMMAND `genius deployment delete`
-
-usage: genius deployment delete [-h] [--kube_config_path KUBE_CONFIG_PATH]
-[--cluster_name CLUSTER_NAME] [--context_name CONTEXT_NAME] [--namespace
-NAMESPACE] [--labels LABELS] [--annotations ANNOTATIONS] [--api_key API_KEY]
-[--api_host API_HOST] [--verify_ssl VERIFY_SSL] [--ssl_ca_cert SSL_CA_CERT] name
-
-**name**: Name of the deployment.
-
-# OPTIONS `genius deployment delete`
-
-**--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
-
-**--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
-
-**--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
-
-**--namespace** _NAMESPACE_: Kubernetes namespace.
-
-**--labels** _LABELS_: Labels for Kubernetes resources, as a JSON string.
-
-**--annotations** _ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON
-string.
-
-**--api_key** _API_KEY_: API key for Kubernetes cluster.
-
-**--api_host** _API_HOST_: API host for Kubernetes cluster.
-
-**--verify_ssl** _VERIFY_SSL_: Whether to verify SSL certificates.
-
-**--ssl_ca_cert** _SSL_CA_CERT_: Path to the SSL CA certificate.
-
-# COMMAND `genius deployment status`
-
-usage: genius deployment status [-h] [--kube_config_path KUBE_CONFIG_PATH]
-[--cluster_name CLUSTER_NAME] [--context_name CONTEXT_NAME] [--namespace
-NAMESPACE] [--labels LABELS] [--annotations ANNOTATIONS] [--api_key API_KEY]
-[--api_host API_HOST] [--verify_ssl VERIFY_SSL] [--ssl_ca_cert SSL_CA_CERT] name
-
-**name**: Name of the deployment.
-
-# OPTIONS `genius deployment status`
-
-**--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
-
-**--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
-
-**--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
-
-**--namespace** _NAMESPACE_: Kubernetes namespace.
-
-**--labels** _LABELS_: Labels for Kubernetes resources, as a JSON string.
-
-**--annotations** _ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON
-string.
-
-**--api_key** _API_KEY_: API key for Kubernetes cluster.
-
-**--api_host** _API_HOST_: API host for Kubernetes cluster.
-
-**--verify_ssl** _VERIFY_SSL_: Whether to verify SSL certificates.
-
-**--ssl_ca_cert** _SSL_CA_CERT_: Path to the SSL CA certificate.
-
-# COMMAND `genius service`
-
-usage: genius service [-h] {create,delete,describe,show} \...
-
-# POSITIONAL ARGUMENTS _`genius service`_
-
-**genius service** _create_: Create a new service.
-
-**genius service** _delete_: Delete a service.
-
-**genius service** _describe_: Describe a service.
-
-**genius service** _show_: List all services.
-
-# COMMAND `genius service create`
-
-usage: genius service create [-h] [--replicas REPLICAS] [--port PORT]
-[--target_port TARGET_PORT] [--env_vars ENV_VARS] [--cpu CPU] [--memory MEMORY]
-[--storage STORAGE] [--gpu GPU] [--kube_config_path KUBE_CONFIG_PATH]
-[--cluster_name CLUSTER_NAME] [--context_name CONTEXT_NAME] [--namespace
-NAMESPACE] [--labels LABELS] [--annotations ANNOTATIONS] [--api_key API_KEY]
-[--api_host API_HOST] [--verify_ssl VERIFY_SSL] [--ssl_ca_cert SSL_CA_CERT] name
-image command
-
-**name**: Name of the service.
-
-**image**: Docker image for the service.
-
-**command**: Command to run in the container.
-
-# OPTIONS `genius service create`
-
-**--replicas** _REPLICAS_: Number of replicas.
-
-**--port** _PORT_: Service port.
-
-**--target_port** _TARGET_PORT_: Container target port.
-
-**--env_vars** _ENV_VARS_: Environment variables as a JSON string.
-
-**--cpu** _CPU_: CPU requirements.
-
-**--memory** _MEMORY_: Memory requirements.
-
-**--storage** _STORAGE_: Storage requirements.
-
-**--gpu** _GPU_: GPU requirements.
-
-**--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
-
-**--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
-
-**--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
-
-**--namespace** _NAMESPACE_: Kubernetes namespace.
-
-**--labels** _LABELS_: Labels for Kubernetes resources, as a JSON string.
-
-**--annotations** _ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON
-string.
-
-**--api_key** _API_KEY_: API key for Kubernetes cluster.
-
-**--api_host** _API_HOST_: API host for Kubernetes cluster.
-
-**--verify_ssl** _VERIFY_SSL_: Whether to verify SSL certificates.
-
-**--ssl_ca_cert** _SSL_CA_CERT_: Path to the SSL CA certificate.
-
-# COMMAND `genius service delete`
-
-usage: genius service delete [-h] [--kube_config_path KUBE_CONFIG_PATH]
-[--cluster_name CLUSTER_NAME] [--context_name CONTEXT_NAME] [--namespace
-NAMESPACE] [--labels LABELS] [--annotations ANNOTATIONS] [--api_key API_KEY]
-[--api_host API_HOST] [--verify_ssl VERIFY_SSL] [--ssl_ca_cert SSL_CA_CERT] name
-
-**name**: Name of the service.
-
-# OPTIONS `genius service delete`
-
-**--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
-
-**--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
-
-**--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
-
-**--namespace** _NAMESPACE_: Kubernetes namespace.
-
-**--labels** _LABELS_: Labels for Kubernetes resources, as a JSON string.
-
-**--annotations** _ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON
-string.
-
-**--api_key** _API_KEY_: API key for Kubernetes cluster.
-
-**--api_host** _API_HOST_: API host for Kubernetes cluster.
-
-**--verify_ssl** _VERIFY_SSL_: Whether to verify SSL certificates.
-
-**--ssl_ca_cert** _SSL_CA_CERT_: Path to the SSL CA certificate.
-
-# COMMAND `genius service describe`
-
-usage: genius service describe [-h] [--kube_config_path KUBE_CONFIG_PATH]
-[--cluster_name CLUSTER_NAME] [--context_name CONTEXT_NAME] [--namespace
-NAMESPACE] [--labels LABELS] [--annotations ANNOTATIONS] [--api_key API_KEY]
-[--api_host API_HOST] [--verify_ssl VERIFY_SSL] [--ssl_ca_cert SSL_CA_CERT] name
-
-**name**: Name of the service.
-
-# OPTIONS `genius service describe`
-
-**--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
-
-**--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
-
-**--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
-
-**--namespace** _NAMESPACE_: Kubernetes namespace.
-
-**--labels** _LABELS_: Labels for Kubernetes resources, as a JSON string.
-
-**--annotations** _ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON
-string.
-
-**--api_key** _API_KEY_: API key for Kubernetes cluster.
-
-**--api_host** _API_HOST_: API host for Kubernetes cluster.
-
-**--verify_ssl** _VERIFY_SSL_: Whether to verify SSL certificates.
-
-**--ssl_ca_cert** _SSL_CA_CERT_: Path to the SSL CA certificate.
-
-# COMMAND `genius service show`
-
-usage: genius service show [-h] [--kube_config_path KUBE_CONFIG_PATH]
-[--cluster_name CLUSTER_NAME] [--context_name CONTEXT_NAME] [--namespace
-NAMESPACE] [--labels LABELS] [--annotations ANNOTATIONS] [--api_key API_KEY]
-[--api_host API_HOST] [--verify_ssl VERIFY_SSL] [--ssl_ca_cert SSL_CA_CERT]
-
-# OPTIONS `genius service show`
-
-**--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
-
-**--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
-
-**--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
-
-**--namespace** _NAMESPACE_: Kubernetes namespace.
-
-**--labels** _LABELS_: Labels for Kubernetes resources, as a JSON string.
-
-**--annotations** _ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON
-string.
-
-**--api_key** _API_KEY_: API key for Kubernetes cluster.
-
-**--api_host** _API_HOST_: API host for Kubernetes cluster.
-
-**--verify_ssl** _VERIFY_SSL_: Whether to verify SSL certificates.
-
-**--ssl_ca_cert** _SSL_CA_CERT_: Path to the SSL CA certificate.
-
-# COMMAND `genius job`
-
-usage: genius job [-h] {create,delete,status} \...
-
-# POSITIONAL ARGUMENTS _`genius job`_
-
-**genius job** _create_: Create a new job.
-
-**genius job** _delete_: Delete a job.
-
-**genius job** _status_: Get the status of a job.
-
-# COMMAND `genius job create`
-
-usage: genius job create [-h] [--env_vars ENV_VARS] [--cpu CPU] [--memory
-MEMORY] [--storage STORAGE] [--gpu GPU] [--kube_config_path KUBE_CONFIG_PATH]
-[--cluster_name CLUSTER_NAME] [--context_name CONTEXT_NAME] [--namespace
-NAMESPACE] [--labels LABELS] [--annotations ANNOTATIONS] [--api_key API_KEY]
-[--api_host API_HOST] [--verify_ssl VERIFY_SSL] [--ssl_ca_cert SSL_CA_CERT] name
-image command
-
-**name**: Name of the job.
-
-**image**: Docker image for the job.
-
-**command**: Command to run in the container.
-
-# OPTIONS `genius job create`
-
-**--env_vars** _ENV_VARS_: Environment variables as a JSON string.
-
-**--cpu** _CPU_: CPU requirements.
-
-**--memory** _MEMORY_: Memory requirements.
-
-**--storage** _STORAGE_: Storage requirements.
-
-**--gpu** _GPU_: GPU requirements.
-
-**--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
-
-**--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
-
-**--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
-
-**--namespace** _NAMESPACE_: Kubernetes namespace.
-
-**--labels** _LABELS_: Labels for Kubernetes resources, as a JSON string.
-
-**--annotations** _ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON
-string.
-
-**--api_key** _API_KEY_: API key for Kubernetes cluster.
-
-**--api_host** _API_HOST_: API host for Kubernetes cluster.
-
-**--verify_ssl** _VERIFY_SSL_: Whether to verify SSL certificates.
-
-**--ssl_ca_cert** _SSL_CA_CERT_: Path to the SSL CA certificate.
-
-# COMMAND `genius job delete`
-
-usage: genius job delete [-h] [--kube_config_path KUBE_CONFIG_PATH]
-[--cluster_name CLUSTER_NAME] [--context_name CONTEXT_NAME] [--namespace
-NAMESPACE] [--labels LABELS] [--annotations ANNOTATIONS] [--api_key API_KEY]
-[--api_host API_HOST] [--verify_ssl VERIFY_SSL] [--ssl_ca_cert SSL_CA_CERT] name
-
-**name**: Name of the job.
-
-# OPTIONS `genius job delete`
-
-**--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
-
-**--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
-
-**--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
-
-**--namespace** _NAMESPACE_: Kubernetes namespace.
-
-**--labels** _LABELS_: Labels for Kubernetes resources, as a JSON string.
-
-**--annotations** _ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON
-string.
-
-**--api_key** _API_KEY_: API key for Kubernetes cluster.
-
-**--api_host** _API_HOST_: API host for Kubernetes cluster.
-
-**--verify_ssl** _VERIFY_SSL_: Whether to verify SSL certificates.
-
-**--ssl_ca_cert** _SSL_CA_CERT_: Path to the SSL CA certificate.
-
-# COMMAND `genius job status`
-
-usage: genius job status [-h] [--kube_config_path KUBE_CONFIG_PATH]
-[--cluster_name CLUSTER_NAME] [--context_name CONTEXT_NAME] [--namespace
-NAMESPACE] [--labels LABELS] [--annotations ANNOTATIONS] [--api_key API_KEY]
-[--api_host API_HOST] [--verify_ssl VERIFY_SSL] [--ssl_ca_cert SSL_CA_CERT] name
-
-**name**: Name of the job.
-
-# OPTIONS `genius job status`
-
-**--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
-
-**--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
-
-**--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
-
-**--namespace** _NAMESPACE_: Kubernetes namespace.
-
-**--labels** _LABELS_: Labels for Kubernetes resources, as a JSON string.
-
-**--annotations** _ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON
-string.
-
-**--api_key** _API_KEY_: API key for Kubernetes cluster.
-
-**--api_host** _API_HOST_: API host for Kubernetes cluster.
-
-**--verify_ssl** _VERIFY_SSL_: Whether to verify SSL certificates.
-
-**--ssl_ca_cert** _SSL_CA_CERT_: Path to the SSL CA certificate.
-
-# COMMAND `genius cron_job`
-
-usage: genius cron_job [-h] {create_cronjob,delete_cronjob,get_cronjob_status}
+usage: genius cron_job \[-h\] {create_cronjob,delete_cronjob,get_cronjob_status}
 \...
 
-# POSITIONAL ARGUMENTS _`genius cron_job`_
+**POSITIONAL ARGUMENTS _genius cron_job_**
 
-**genius cron_job** _create_cronjob_: Create a new cronjob.
+**genius cron_job** _create_cronjob_
 
-**genius cron_job** _delete_cronjob_: Delete a cronjob.
+: Create a new cronjob.
 
-**genius cron_job** _get_cronjob_status_: Get the status of a cronjob.
+**genius cron_job** _delete_cronjob_
 
-# COMMAND `genius cron_job create_cronjob`
+: Delete a cronjob.
 
-usage: genius cron_job create_cronjob [-h] [--env_vars ENV_VARS] [--cpu CPU]
-[--memory MEMORY] [--storage STORAGE] [--gpu GPU] [--kube_config_path
-KUBE_CONFIG_PATH] [--cluster_name CLUSTER_NAME] [--context_name CONTEXT_NAME]
-[--namespace NAMESPACE] [--labels LABELS] [--annotations ANNOTATIONS] [--api_key
-API_KEY] [--api_host API_HOST] [--verify_ssl VERIFY_SSL] [--ssl_ca_cert
-SSL_CA_CERT] name image command schedule
+**genius cron_job** _get_cronjob_status_
 
-**name**: Name of the cronjob.
+: Get the status of a cronjob.
 
-**image**: Docker image for the cronjob.
+## Command: genius cron_job create_cronjob
 
-**command**: Command to run in the container.
+usage: genius cron_job create_cronjob \[-h\] \[\--env_vars ENV_VARS\] \[\--cpu
+CPU\] \[\--memory MEMORY\] \[\--storage STORAGE\] \[\--gpu GPU\]
+\[\--kube_config_path KUBE_CONFIG_PATH\] \[\--cluster_name CLUSTER_NAME\]
+\[\--context_name CONTEXT_NAME\] \[\--namespace NAMESPACE\] \[\--labels LABELS\]
+\[\--annotations ANNOTATIONS\] \[\--api_key API_KEY\] \[\--api_host API_HOST\]
+\[\--verify_ssl VERIFY_SSL\] \[\--ssl_ca_cert SSL_CA_CERT\] name image command
+schedule
 
-**schedule**: Cron schedule.
+**name**
 
-# OPTIONS `genius cron_job create_cronjob`
+: Name of the cronjob.
 
-**--env_vars** _ENV_VARS_: Environment variables as a JSON string.
+**image**
 
-**--cpu** _CPU_: CPU requirements.
+: Docker image for the cronjob.
 
-**--memory** _MEMORY_: Memory requirements.
+**command**
 
-**--storage** _STORAGE_: Storage requirements.
+: Command to run in the container.
 
-**--gpu** _GPU_: GPU requirements.
+**schedule**
 
-**--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+: Cron schedule.
 
-**--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+**Options genius cron_job create_cronjob**
 
-**--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+**\--env_vars** _ENV_VARS_: Environment variables as a JSON string. **\--cpu**
+_CPU_: CPU requirements. **\--memory** _MEMORY_: Memory requirements.
+**\--storage** _STORAGE_: Storage requirements. **\--gpu** _GPU_: GPU
+requirements. **\--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig
+file. **\--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+**\--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+**\--namespace** _NAMESPACE_: Kubernetes namespace. **\--labels** _LABELS_:
+Labels for Kubernetes resources, as a JSON string. **\--annotations**
+_ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON string.
+**\--api_key** _API_KEY_: API key for Kubernetes cluster. **\--api_host**
+_API_HOST_: API host for Kubernetes cluster. **\--verify_ssl** _VERIFY_SSL_:
+Whether to verify SSL certificates. **\--ssl_ca_cert** _SSL_CA_CERT_: Path to
+the SSL CA certificate.
 
-**--namespace** _NAMESPACE_: Kubernetes namespace.
+## Command: genius cron_job delete_cronjob
 
-**--labels** _LABELS_: Labels for Kubernetes resources, as a JSON string.
+usage: genius cron_job delete_cronjob \[-h\] \[\--kube_config_path
+KUBE_CONFIG_PATH\] \[\--cluster_name CLUSTER_NAME\] \[\--context_name
+CONTEXT_NAME\] \[\--namespace NAMESPACE\] \[\--labels LABELS\] \[\--annotations
+ANNOTATIONS\] \[\--api_key API_KEY\] \[\--api_host API_HOST\] \[\--verify_ssl
+VERIFY_SSL\] \[\--ssl_ca_cert SSL_CA_CERT\] name
 
-**--annotations** _ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON
-string.
+**name**
 
-**--api_key** _API_KEY_: API key for Kubernetes cluster.
+: Name of the cronjob.
 
-**--api_host** _API_HOST_: API host for Kubernetes cluster.
+**Options genius cron_job delete_cronjob**
 
-**--verify_ssl** _VERIFY_SSL_: Whether to verify SSL certificates.
+**\--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+**\--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+**\--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+**\--namespace** _NAMESPACE_: Kubernetes namespace. **\--labels** _LABELS_:
+Labels for Kubernetes resources, as a JSON string. **\--annotations**
+_ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON string.
+**\--api_key** _API_KEY_: API key for Kubernetes cluster. **\--api_host**
+_API_HOST_: API host for Kubernetes cluster. **\--verify_ssl** _VERIFY_SSL_:
+Whether to verify SSL certificates. **\--ssl_ca_cert** _SSL_CA_CERT_: Path to
+the SSL CA certificate.
 
-**--ssl_ca_cert** _SSL_CA_CERT_: Path to the SSL CA certificate.
+## Command: genius cron_job get_cronjob_status
 
-# COMMAND `genius cron_job delete_cronjob`
+usage: genius cron_job get_cronjob_status \[-h\] \[\--kube_config_path
+KUBE_CONFIG_PATH\] \[\--cluster_name CLUSTER_NAME\] \[\--context_name
+CONTEXT_NAME\] \[\--namespace NAMESPACE\] \[\--labels LABELS\] \[\--annotations
+ANNOTATIONS\] \[\--api_key API_KEY\] \[\--api_host API_HOST\] \[\--verify_ssl
+VERIFY_SSL\] \[\--ssl_ca_cert SSL_CA_CERT\] name
 
-usage: genius cron_job delete_cronjob [-h] [--kube_config_path KUBE_CONFIG_PATH]
-[--cluster_name CLUSTER_NAME] [--context_name CONTEXT_NAME] [--namespace
-NAMESPACE] [--labels LABELS] [--annotations ANNOTATIONS] [--api_key API_KEY]
-[--api_host API_HOST] [--verify_ssl VERIFY_SSL] [--ssl_ca_cert SSL_CA_CERT] name
+**name**
 
-**name**: Name of the cronjob.
+: Name of the cronjob.
 
-# OPTIONS `genius cron_job delete_cronjob`
+**Options genius cron_job get_cronjob_status**
 
-**--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+**\--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+**\--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+**\--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+**\--namespace** _NAMESPACE_: Kubernetes namespace. **\--labels** _LABELS_:
+Labels for Kubernetes resources, as a JSON string. **\--annotations**
+_ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON string.
+**\--api_key** _API_KEY_: API key for Kubernetes cluster. **\--api_host**
+_API_HOST_: API host for Kubernetes cluster. **\--verify_ssl** _VERIFY_SSL_:
+Whether to verify SSL certificates. **\--ssl_ca_cert** _SSL_CA_CERT_: Path to
+the SSL CA certificate.
 
-**--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+# Packaging
 
-**--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+## Command: genius docker package
 
-**--namespace** _NAMESPACE_: Kubernetes namespace.
+Usage: genius docker package \[-h\] \[\--auth AUTH\] \[\--base_image
+BASE_IMAGE\] \[\--workdir WORKDIR\] \[\--local_dir LOCAL_DIR\] \[\--packages
+\[PACKAGES \...\]\] \[\--os_packages \[OS_PACKAGES \...\]\] \[\--env_vars
+ENV_VARS\] image_name repository
 
-**--labels** _LABELS_: Labels for Kubernetes resources, as a JSON string.
+**image_name**
 
-**--annotations** _ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON
-string.
+: Name of the Docker image.
 
-**--api_key** _API_KEY_: API key for Kubernetes cluster.
+**repository**
 
-**--api_host** _API_HOST_: API host for Kubernetes cluster.
+: Container repository to upload to.
 
-**--verify_ssl** _VERIFY_SSL_: Whether to verify SSL certificates.
+**Options genius docker package**
 
-**--ssl_ca_cert** _SSL_CA_CERT_: Path to the SSL CA certificate.
+**\--auth** _AUTH_: Authentication credentials as a JSON string.
+**\--base_image** _BASE_IMAGE_: The base image to use for the Docker container.
+**\--workdir** _WORKDIR_: The working directory in the Docker container.
+**\--local_dir** _LOCAL_DIR_: The local directory to copy into the Docker
+container. **\--packages** _\[PACKAGES \...\]_: List of Python packages to
+install in the Docker container. **\--os_packages** _\[OS_PACKAGES \...\]_: List
+of OS packages to install in the Docker container. **\--env_vars** _ENV_VARS_:
+Environment variables to set in the Docker container.
 
-# COMMAND `genius cron_job get_cronjob_status`
+# Miscellaneous
 
-usage: genius cron_job get_cronjob_status [-h] [--kube_config_path
-KUBE_CONFIG_PATH] [--cluster_name CLUSTER_NAME] [--context_name CONTEXT_NAME]
-[--namespace NAMESPACE] [--labels LABELS] [--annotations ANNOTATIONS] [--api_key
-API_KEY] [--api_host API_HOST] [--verify_ssl VERIFY_SSL] [--ssl_ca_cert
-SSL_CA_CERT] name
+## Command: genius plugins
 
-**name**: Name of the cronjob.
+Usage: genius plugins \[-h\] \[spout_or_bolt\]
 
-# OPTIONS `genius cron_job get_cronjob_status`
+**spout_or_bolt**
 
-**--kube_config_path** _KUBE_CONFIG_PATH_: Path to the kubeconfig file.
+: The spout or bolt to print help for.
 
-**--cluster_name** _CLUSTER_NAME_: Name of the Kubernetes cluster.
+## Command: genius list
 
-**--context_name** _CONTEXT_NAME_: Name of the kubeconfig context.
+Usage: genius list \[-h\] \[\--verbose\]
 
-**--namespace** _NAMESPACE_: Kubernetes namespace.
+**Options genius list**
 
-**--labels** _LABELS_: Labels for Kubernetes resources, as a JSON string.
-
-**--annotations** _ANNOTATIONS_: Annotations for Kubernetes resources, as a JSON
-string.
-
-**--api_key** _API_KEY_: API key for Kubernetes cluster.
-
-**--api_host** _API_HOST_: API host for Kubernetes cluster.
-
-**--verify_ssl** _VERIFY_SSL_: Whether to verify SSL certificates.
-
-**--ssl_ca_cert** _SSL_CA_CERT_: Path to the SSL CA certificate.
-
-# COMMAND `genius plugins`
-
-Usage: genius plugins [-h] [spout_or_bolt]
-
-**spout_or_bolt**: The spout or bolt to print help for.
-
-# COMMAND `genius list`
-
-Usage: genius list [-h] [--verbose]
-
-# OPTIONS `genius list`
-
-**--verbose**: Print verbose output.
+**\--verbose**: Print verbose output.
