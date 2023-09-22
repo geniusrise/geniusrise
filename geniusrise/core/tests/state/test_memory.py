@@ -34,7 +34,7 @@ def test_in_memory_state_manager_init(in_memory_state_manager):
 def test_in_memory_state_manager_get_state(in_memory_state_manager):
     # First, set some state
     key = "test_key"
-    value = {"test": "data"}
+    value = {"test": "buffer"}
     in_memory_state_manager.set_state(key, value)
 
     # Then, get the state and check that it's correct
@@ -44,7 +44,7 @@ def test_in_memory_state_manager_get_state(in_memory_state_manager):
 # Test that the InMemoryState can set state
 def test_in_memory_state_manager_set_state(in_memory_state_manager):
     key = "test_key"
-    value = {"test": "data"}
+    value = {"test": "buffer"}
     in_memory_state_manager.set_state(key, value)
 
     # Check that the state was set correctly

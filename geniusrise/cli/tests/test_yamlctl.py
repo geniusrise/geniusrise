@@ -60,23 +60,14 @@ spouts:
         dynamodb_region_name: "ap-south-1"
         prometheus_gateway: "http://localhost:9091"
     deploy:
-      type: "k8s"
+      type: k8s
       args:
-        kube_config_path: ""
-        cluster_name: "geniusrise"
-        context_name: "eks"
-        namespace: "geniusrise_k8s_test"
-        labels: {"tag1": "lol", "tag2": "lel"}
-        annotations: {"tag1": "lol", "tag2": "lel"}
-        api_key:
-        api_host: localhost
-        verify_ssl: true
-        ssl_ca_cert:
-        cpu:
-        memory:
-        storage:
-        gpu:
-        env_vars:
+        kind: deployment
+        name: my_fine_tuner
+        context_name: arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+        namespace: geniusrise
+        image: geniusrise/geniusrise
+        kube_config_path: ~/.kube/config
     output:
       type: "{output_type}"
       args:
@@ -110,12 +101,14 @@ bolts:
         dynamodb_region_name: "ap-south-1"
         prometheus_gateway: "http://localhost:9091"
     deploy:
-      type: "k8s"
+      type: k8s
       args:
-        name: "sample_bolt_deploy"
-        namespace: "default"
-        image: "sample_bolt_image"
-        replicas: 1
+        kind: deployment
+        name: my_fine_tuner
+        context_name: arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+        namespace: geniusrise
+        image: geniusrise/geniusrise
+        kube_config_path: ~/.kube/config
     input:
       type: "{input_type}"
       args:

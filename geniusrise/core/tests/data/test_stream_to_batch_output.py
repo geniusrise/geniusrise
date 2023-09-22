@@ -68,7 +68,7 @@ def test_stream_to_batch_output_init(stream_to_batch_output_config):
 
 
 def test_stream_to_batch_output_save(stream_to_batch_output_config):
-    data = {"test": "data"}
+    data = {"test": "buffer"}
     for _ in range(BUFFER_SIZE):
         stream_to_batch_output_config.save(data)
 
@@ -77,7 +77,7 @@ def test_stream_to_batch_output_save(stream_to_batch_output_config):
 
 
 def test_stream_to_batch_output_flush(stream_to_batch_output_config):
-    data = {"test": "data"}
+    data = {"test": "buffer"}
     for _ in range(BUFFER_SIZE - 1):
         stream_to_batch_output_config.save(data)
 

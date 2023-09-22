@@ -24,7 +24,7 @@ from geniusrise.core.data import StreamToBatchInput
 
 # Constants
 KAFKA_CLUSTER_CONNECTION_STRING = "localhost:9094"
-GROUP_ID = "test_group_1"
+GROUP_ID = "geniusrise"
 INPUT_TOPIC = "test_topic"
 BUFFER_SIZE = 10
 BUCKET = "geniusrise-test-bucket"
