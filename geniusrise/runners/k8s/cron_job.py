@@ -25,11 +25,87 @@ from .job import Job
 
 
 class CronJob(Job):
+    r"""
+    🚀 The CronJob class is responsible for managing Kubernetes CronJobs. It extends the Job class
+    and provides additional functionalities specific to Kubernetes CronJobs.
+
+    CLI Usage:
+        genius cronjob [sub-command] [options]
+        Examples:
+            ```bash
+            genius cronjob create_cronjob --name example-cronjob --image example-image --command "echo hello" --schedule "*/5 * * * *"
+            ```
+
+            ```bash
+            genius cronjob delete_cronjob --name example-cronjob
+            ```
+
+            ```bash
+            genius cronjob get_cronjob_status --name example-cronjob
+            ```
+
+    YAML Configuration:
+    ```yaml
+        version: "1.0"
+        cronjobs:
+          - name: "example-cronjob"
+            image: "example-image"
+            command: "example-command"
+            schedule: "*/5 * * * *"
+            env_vars:
+              KEY: "value"
+            cpu: "100m"
+            memory: "256Mi"
+            storage: "1Gi"
+            gpu: "1"
+    ```
+
+    Extended CLI Examples:
+        ```bash
+        genius cronjob create_cronjob \
+          --k8s_kind cronjob \
+          --k8s_namespace geniusrise \
+          --k8s_context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev \
+          --k8s_name example-cronjob \
+          --k8s_image "genius-dev.dkr.ecr.ap-south-1.amazonaws.com/geniusrise" \
+          --k8s_schedule "*/5 * * * *" \
+          --k8s_env_vars '{"AWS_DEFAULT_REGION": "ap-south-1", "AWS_SECRET_ACCESS_KEY": "", "AWS_ACCESS_KEY_ID": ""}' \
+          --k8s_cpu "100m" \
+          --k8s_memory "256Mi"
+        ```
+
+        ```bash
+        genius cronjob delete_cronjob \
+          example-cronjob \
+          --namespace geniusrise \
+          --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+        ```
+
+        ```bash
+        genius cronjob get_cronjob_status \
+          example-cronjob \
+          --namespace geniusrise \
+          --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+        ```
+    """
+
     def __init__(self):
+        """
+        🚀 Initialize the CronJob class for managing Kubernetes Cron Jobs.
+        """
         super().__init__()
         self.batch_api_instance: BatchV1Api = None  # type: ignore
 
     def create_parser(self, parser: ArgumentParser) -> ArgumentParser:
+        """
+        🎛 Create a parser for CLI commands related to Cron Job functionalities.
+
+        Args:
+            parser (ArgumentParser): The main parser.
+
+        Returns:
+            ArgumentParser: The parser with subparsers for each command.
+        """
         subparsers = parser.add_subparsers(dest="command")
 
         # Parser for create_cronjob

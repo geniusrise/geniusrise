@@ -25,11 +25,86 @@ from .deployment import Deployment
 
 
 class Job(Deployment):
+    r"""
+    🚀 The Job class is responsible for managing Kubernetes Jobs. It extends the Deployment class
+    and provides additional functionalities specific to Kubernetes Jobs.
+
+    CLI Usage:
+        genius job [sub-command] [options]
+        Examples:
+            ```bash
+            genius job create --name example-job --image example-image --command "echo hello" --cpu "100m" --memory "256Mi"
+            ```
+
+            ```bash
+            genius job delete --name example-job
+            ```
+
+            ```bash
+            genius job status --name example-job
+            ```
+
+    YAML Configuration:
+    ```yaml
+        version: "1.0"
+        jobs:
+          - name: "example-job"
+            image: "example-image"
+            command: "example-command"
+            env_vars:
+              KEY: "value"
+            cpu: "100m"
+            memory: "256Mi"
+            storage: "1Gi"
+            gpu: "1"
+    ```
+
+    Extended CLI Examples:
+
+    ```bash
+        genius job create \
+          --k8s_kind job \
+          --k8s_namespace geniusrise \
+          --k8s_context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev \
+          --k8s_name example-job \
+          --k8s_image "genius-dev.dkr.ecr.ap-south-1.amazonaws.com/geniusrise" \
+          --k8s_env_vars '{"AWS_DEFAULT_REGION": "ap-south-1", "AWS_SECRET_ACCESS_KEY": "", "AWS_ACCESS_KEY_ID": ""}' \
+          --k8s_cpu "100m" \
+          --k8s_memory "256Mi"
+    ```
+
+    ```bash
+        genius job delete \
+          example-job \
+          --namespace geniusrise \
+          --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+    ```
+
+    ```yaml
+        genius job status \
+          example-job \
+          --namespace geniusrise \
+          --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+    ```
+    """
+
     def __init__(self):
+        """
+        🚀 Initialize the Job class for managing Kubernetes Jobs.
+        """
         super().__init__()
         self.batch_api_instance: BatchV1Api = None  # type: ignore
 
     def create_parser(self, parser: ArgumentParser) -> ArgumentParser:
+        """
+        🎛 Create a parser for CLI commands related to Job functionalities.
+
+        Args:
+            parser (ArgumentParser): The main parser.
+
+        Returns:
+            ArgumentParser: The parser with subparsers for each command.
+        """
         subparsers = parser.add_subparsers(dest="job")
 
         # Parser for create

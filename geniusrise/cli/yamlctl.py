@@ -32,25 +32,204 @@ from geniusrise.cli.spoutctl import SpoutCtl
 
 
 class YamlCtl:
-    """
+    r"""
     Command-line interface for managing spouts and bolts based on a YAML configuration.
 
     The YamlCtl class provides methods to run specific or all spouts and bolts defined in a YAML file.
     The YAML file's structure is defined by the Geniusfile schema.
 
-    Example YAML structure:
-    ```
-    version: "1"
+    Example YAML structures:
+
+    ```yaml
+    version: 1
+
     spouts:
-      spout_name1:
-        name: "spout1"
-        method: "method_name"
-        ...
+    http_listener:
+        name: WebhookListener
+        method: listen
+        args:
+        port: 8081
+        state:
+        type: redis
+        args:
+            redis_host: "127.0.0.1"
+            redis_port: 6379
+            redis_db: 0
+        output:
+        type: batch
+        args:
+            bucket: geniusrise-test
+            folder: train
+        deploy:
+        type: k8s
+        args:
+            kind: deployment
+            name: webhook-listener
+            context_name: arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+            namespace: geniusrise
+            image: geniusrise/geniusrise
+            kube_config_path: ~/.kube/config
+
     bolts:
-      bolt_name1:
-        name: "bolt1"
-        method: "method_name"
-        ...
+    text_classifier:
+        name: TextClassifier
+        method: classify
+        args:
+        model_name: bert-base-uncased
+        state:
+        type: none
+        input:
+        type: batch
+        args:
+            bucket: geniusrise-test
+            folder: train
+        output:
+        type: batch
+        args:
+            bucket: geniusrise-test
+            folder: model
+        deploy:
+        type: k8s
+        args:
+            kind: deployment
+            name: text-classifier
+            context_name: arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+            namespace: geniusrise
+            image: geniusrise/geniusrise
+            kube_config_path: ~/.kube/config
+    ```
+
+    ```yaml
+    version: 1
+
+    spouts:
+    twitter_stream:
+        name: TwitterStream
+        method: stream
+        args:
+        api_key: "your_twitter_api_key"
+        hashtags: ["#AI", "#ML"]
+        state:
+        type: postgres
+        args:
+            postgres_host: "127.0.0.1"
+            postgres_port: 5432
+            postgres_user: "postgres"
+            postgres_password: "postgres"
+            postgres_database: "geniusrise"
+            postgres_table: "twitter_data"
+        output:
+        type: streaming
+        args:
+            output_topic: twitter_topic
+            kafka_servers: "localhost:9092"
+        deploy:
+        type: k8s
+        args:
+            kind: deployment
+            name: twitter-stream
+            context_name: arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+            namespace: geniusrise
+            image: geniusrise/geniusrise
+            kube_config_path: ~/.kube/config
+
+    bolts:
+    sentiment_analyzer:
+        name: SentimentAnalyzer
+        method: analyze
+        args:
+        model_name: "sentiment-model"
+        state:
+        type: dynamodb
+        args:
+            dynamodb_table_name: "SentimentAnalysis"
+            dynamodb_region_name: "us-east-1"
+        input:
+        type: streaming
+        args:
+            input_topic: twitter_topic
+            kafka_servers: "localhost:9092"
+            group_id: "sentiment-group"
+        output:
+        type: batch
+        args:
+            bucket: geniusrise-test
+            folder: sentiment_results
+        deploy:
+        type: k8s
+        args:
+            kind: deployment
+            name: sentiment-analyzer
+            context_name: arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+            namespace: geniusrise
+            image: geniusrise/geniusrise
+            kube_config_path: ~/.kube/config
+    ```
+
+
+    ```yaml
+    version: 1
+
+    spouts:
+    http_listener:
+        name: Webhook
+        method: listen
+        args:
+        port: 8080
+        state:
+        type: none
+        output:
+        type: stream_to_batch
+        args:
+            bucket: geniusrise-test
+            folder: train
+        deploy:
+        type: k8s
+        args:
+            kind: deployment
+            name: webhook
+            context_name: arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+            namespace: geniusrise
+            image: geniusrise/geniusrise
+            kube_config_path: ~/.kube/config
+    bolts:
+    http_classifier:
+        name: HuggingFaceClassificationFineTuner
+        method: fine_tune
+        args:
+        model_name: bert-base-uncased
+        tokenizer_name: bert-base-uncased
+        num_train_epochs: 2
+        per_device_train_batch_size: 2
+        model_class: BertForSequenceClassification
+        tokenizer_class: BertTokenizer
+        data_masked: true
+        data_extractor_lambda: "lambda x: x['data']"
+        hf_repo_id: ixaxaar/geniusrise-api-status-code-prediction
+        hf_commit_message: initial local testing
+        hf_create_pr: true
+        hf_token: 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
+        state:
+        type: none
+        input:
+        type: batch
+        args:
+            bucket: geniusrise-test
+            folder: train
+        output:
+        type: batch
+        args:
+            bucket: geniusrise-test
+            folder: model
+        deploy:
+        type: k8s
+        args:
+            kind: deployment
+            name: classifier
+            context_name: arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+            namespace: geniusrise
+            image: geniusrise/geniusrise
+            kube_config_path: ~/.kube/config
     ```
 
     Attributes:
