@@ -64,7 +64,7 @@ def test_postgres_state_manager_init(postgres_state_manager):
 def test_postgres_state_manager_get_state(postgres_state_manager):
     # First, set some state
     key = KEY
-    value = {"test": "data"}
+    value = {"test": "buffer"}
     postgres_state_manager.set_state(key, value)
 
     # Then, get the state and check that it's correct
@@ -74,7 +74,7 @@ def test_postgres_state_manager_get_state(postgres_state_manager):
 # Test that the PostgresState can set state
 def test_postgres_state_manager_set_state(postgres_state_manager):
     key = str(uuid.uuid4())
-    value = {"test": "data"}
+    value = {"test": "buffer"}
     postgres_state_manager.set_state(key, value)
 
     # Check that the state was set correctly

@@ -280,7 +280,7 @@ class YamlCtl:
         with open(args.file, "r") as file:
             self.geniusfile = Geniusfile.model_validate(yaml.safe_load(file), strict=True)
 
-        if args.deploy == "up":
+        if hasattr(args, "deploy") and args.deploy == "up":
             if args.spout == "all":
                 self.deploy_spouts()
             elif args.bolt == "all":

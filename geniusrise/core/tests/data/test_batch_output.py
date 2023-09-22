@@ -40,7 +40,7 @@ def test_batch_output_config_init(batch_output_config):
 
 # Test that the BatchOutput can save data to a file
 def test_batch_output_config_save(batch_output_config):
-    data = {"test": "data"}
+    data = {"test": "buffer"}
     filename = "test_file.json"
     batch_output_config.save(data, filename)
 
@@ -51,7 +51,7 @@ def test_batch_output_config_save(batch_output_config):
 # Test that the BatchOutput can copy files to the S3 bucket
 def test_batch_output_config_copy_to_remote(batch_output_config):
     # First, save a file to the output folder
-    data = {"test": "data"}
+    data = {"test": "buffer"}
     filename = "test_file.json"
     batch_output_config.save(data, filename)
 
@@ -67,7 +67,7 @@ def test_batch_output_config_copy_to_remote(batch_output_config):
 # Test that the BatchOutput can flush the output folder to the S3 bucket
 def test_batch_output_config_flush(batch_output_config):
     # First, save a file to the output folder
-    data = {"test": "data"}
+    data = {"test": "buffer"}
     filename = "test_file.json"
     batch_output_config.save(data, filename)
 
@@ -103,7 +103,7 @@ def file_exists_in_s3(bucket, key):
 # Test that the BatchOutput can list files in the output folder
 def test_batch_output_config_list_files(batch_output_config):
     # First, save a file to the output folder
-    data = {"test": "data"}
+    data = {"test": "buffer"}
     filename = "test_file.json"
     batch_output_config.save(data, filename)
 
@@ -117,7 +117,7 @@ def test_batch_output_config_list_files(batch_output_config):
 # Test that the BatchOutput can read a file from the output folder
 def test_batch_output_config_read_file(batch_output_config):
     # First, save a file to the output folder
-    data = {"test": "data"}
+    data = {"test": "buffer"}
     filename = "test_file.json"
     batch_output_config.save(data, filename)
 
@@ -131,7 +131,7 @@ def test_batch_output_config_read_file(batch_output_config):
 # Test that the BatchOutput can delete a file from the output folder
 def test_batch_output_config_delete_file(batch_output_config):
     # First, save a file to the output folder
-    data = {"test": "data"}
+    data = {"test": "buffer"}
     filename = "test_file.json"
     batch_output_config.save(data, filename)
 
@@ -145,7 +145,7 @@ def test_batch_output_config_delete_file(batch_output_config):
 # Test that the BatchOutput can copy a specific file to the S3 bucket
 def test_batch_output_config_copy_file_to_remote(batch_output_config):
     # First, save a file to the output folder
-    data = {"test": "data"}
+    data = {"test": "buffer"}
     filename = "test_file.json"
     batch_output_config.save(data, filename)
 
