@@ -25,6 +25,70 @@ from .deployment import Deployment
 
 
 class Service(Deployment):
+    r"""
+    🚀 Initialize the Service class for managing Kubernetes Services.
+
+    CLI Usage:
+        genius service [sub-command] [options]
+        Examples:
+
+        ```bash
+        genius service create --name example-service --image example-image --command "echo hello" --port 8080 --target_port 8080
+        ```
+
+        ```bash
+        genius service delete --name example-service
+        ```
+
+        ```bash
+        genius service describe --name example-service
+        ```
+
+        ```bash
+        genius service show
+        ```
+
+    YAML Configuration:
+
+    ```yaml
+    version: "1.0"
+    services:
+        - name: "example-service"
+        image: "example-image"
+        command: "example-command"
+        replicas: 3
+        port: 8080
+        target_port: 8080
+        env_vars:
+            KEY: "value"
+        cpu: "100m"
+        memory: "256Mi"
+        storage: "1Gi"
+        gpu: "1"
+    ```
+
+    Extended CLI Examples:
+
+        ```bash
+            genius service deploy \
+            --k8s_kind service \
+            --k8s_namespace geniusrise \
+            --k8s_context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev \
+            --k8s_name webhook \
+            --k8s_image "genius-dev.dkr.ecr.ap-south-1.amazonaws.com/geniusrise" \
+            --k8s_env_vars '{"AWS_DEFAULT_REGION": "ap-south-1", "AWS_SECRET_ACCESS_KEY": "", "AWS_ACCESS_KEY_ID": ""}' \
+            --k8s_port 8080 \
+            --k8s_target_port 8080
+        ```
+
+        ```bash
+            genius service delete \
+            webhook \
+            --namespace geniusrise \
+            --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+        ```
+    """
+
     def __init__(self):
         """
         🚀 Initialize the Service class for managing Kubernetes Services.

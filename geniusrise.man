@@ -1,4 +1,4 @@
-.TH GENIUSCTL.PY "1" "2023\-09\-21" "geniusctl.py" "Generated Python Manual"
+.TH GENIUSCTL.PY "1" "2023\-09\-22" "geniusctl.py" "Generated Python Manual"
 .SH NAME
 geniusctl.py
 .SH SYNOPSIS
@@ -616,9 +616,14 @@ Usage: geniusctl.py TestBoltCtlBolt deploy [\-h] [\-\-buffer_size BUFFER_SIZE]
                                            [\-\-k8s_target_port K8S_TARGET_PORT]
                                            [\-\-k8s_schedule K8S_SCHEDULE]
                                            [\-\-args ...]
+                                           {batch,streaming,batch_to_stream,stream_to_batch}
                                            {batch,streaming,stream_to_batch}
                                            {none,redis,postgres,dynamodb,prometheus}
                                            {k8s} method_name
+
+.TP
+\fB{batch,streaming,batch_to_stream,stream_to_batch}\fR
+Choose the type of input data: batch or streaming.
 
 .TP
 \fB{batch,streaming,stream_to_batch}\fR
@@ -834,6 +839,29 @@ The method to execute.
 
 .SH COMMAND \fI\,'geniusctl.py rise'\/\fR
 Usage: geniusctl.py rise [\-h] [\-\-spout SPOUT] [\-\-bolt BOLT] [\-\-file FILE]
+                         {up} ...
+
+.SH
+POSITIONAL ARGUMENTS \fI\,'geniusctl.py rise'\/\fR
+.TP
+\fBgeniusctl.py rise\fR \fI\,up\/\fR
+Deploy according to the genius.yml file.
+
+.SH COMMAND \fI\,'geniusctl.py rise up'\/\fR
+Usage: geniusctl.py rise up [\-h] [\-\-spout SPOUT] [\-\-bolt BOLT] [\-\-file FILE]
+
+.SH OPTIONS \fI\,'geniusctl.py rise up'\/\fR
+.TP
+\fB\-\-spout\fR \fI\,SPOUT\/\fR
+Name of the specific spout to run.
+
+.TP
+\fB\-\-bolt\fR \fI\,BOLT\/\fR
+Name of the specific bolt to run.
+
+.TP
+\fB\-\-file\fR \fI\,FILE\/\fR
+Path of the genius.yml file, default to .
 
 .SH OPTIONS \fI\,'geniusctl.py rise'\/\fR
 .TP

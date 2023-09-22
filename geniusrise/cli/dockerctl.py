@@ -1,3 +1,19 @@
+# 🧠 Geniusrise
+# Copyright (C) 2023  geniusrise.ai
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 import os
 import subprocess
 import logging
@@ -55,6 +71,21 @@ class DockerCtl:
 
     ```bash
     genius docker package geniusrise dockerhub --auth '{"dockerhub_username": "username", "dockerhub_password": "password"}'
+    ```
+
+    This is how we upload to dockerhub:
+
+    ```bash
+    export DOCKERHUB_USERNAME=
+    export DOCKERHUB_PASSWORD=
+
+    genius docker package geniusrise dockerhub \
+        --packages geniusrise-listeners geniusrise-databases geniusrise-huggingface geniusrise-openai \
+        --os_packages libmysqlclient-dev libldap2-dev libsasl2-dev libssl-dev
+    ```
+
+    ```bash
+    genius docker package geniusrise-core dockerhub
     ```
 
     #### Uploading to ACR (Azure Container Registry)
@@ -366,6 +397,9 @@ class DockerCtl:
         dockerhub_password = auth.get("dockerhub_password") if auth else os.environ.get("DOCKERHUB_PASSWORD")
 
         try:
+            tag_command = f"docker tag {image_name} {dockerhub_username}/{image_name}"
+            subprocess.run(tag_command, shell=True, check=True)
+
             # Authenticate Docker with DockerHub and Push the image in a single shell session
             combined_command = f"""echo {dockerhub_password} | docker login --username {dockerhub_username} --password-stdin &&
                                 docker push {dockerhub_username}/{image_name}"""
