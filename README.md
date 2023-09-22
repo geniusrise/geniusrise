@@ -1,10 +1,9 @@
-<p align="center">
-  <img src="./assets/grace-hopper.jpg" alt="Grace Hopper" width="900"/>
-</p>
-
 <h1 align="center">
-  🧠 <span style="color:#f34960">Geniusrise</span>
+  <img src="./assets/logo_with_text.png" alt="Grace Hopper" width="900"/>
 </h1>
+<h2 align="center">
+  <a style="color:#f34960" href="https://docs.geniusrise.ai">Documentation</a>
+</h2>
 
 <p align="center">
   <img src="https://img.shields.io/github/actions/workflow/status/geniusrise/geniusrise/pytest.yml?branch=master" alt="GitHub Workflow Status"/>
@@ -26,7 +25,7 @@ It seamlessly integrates tasks, state management, data handling, and model
 versioning, all while supporting diverse infrastructures and user expertise
 levels. With its plug-and-play architecture,
 <span style="color:#e4e48c">Geniusrise</span> empowers teams to build, share,
-and deploy AI agent workflows across various platforms efficiently.
+and deploy AI agent workflows across various platforms.
 
 ## <span style="color:#e667aa">TLDR 🙄</span>
 
@@ -42,56 +41,56 @@ pip install geniusrise-huggingface
 ```yaml
 version: '1'
 bolts:
-  HuggingFaceInstructionTuningBolt:
-    name: 'hf-fine-tune-my-shit'
+  http_classifier:
+    name: HuggingFaceClassificationFineTuner
     method: fine_tune
     args:
       model_name: bert-base-uncased
       tokenizer_name: bert-base-uncased
-      batches: 2
-      hf_repo_id: my/repo
-      token: 'hf_woohoo'
-      commit_message: say hello to genius!
+      num_train_epochs: 2
+      per_device_train_batch_size: 2
+      model_class: BertForSequenceClassification
+      tokenizer_class: BertTokenizer
+      data_masked: true
+      hf_repo_id: your/hf_model_repo
+      hf_commit_message: 'say hello to geniusrise!'
+      hf_create_pr: true
+      hf_token: hf_mykey
+    state:
+      type: none
     input:
       type: batch
       args:
-        bucket: geniusrise-test
-        folder: my-shit
+        bucket: my-s3-bucket
+        folder: training_data
     output:
       type: batch
       args:
-        bucket: geniusrise-test
-        folder: my-model
+        bucket: my-s3-bucket
+        folder: model
     deploy:
-      type: 'k8s'
+      type: k8s
       args:
-        cluster_name: my-cluster
-        namespace: geniusrise-huggingface
-        labels: { 'needs': 'gpu' }
+        kind: deployment
+        name: classifier
+        context_name: arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+        namespace: geniusrise
+        image: geniusrise/geniusrise
+        kube_config_path: ~/.kube/config
+
         cpu: 16
         memory: 50G
         storage: 250Gb
         gpu: 1
 ```
 
-### 3. Copy data to s3
+### 3. Deploy
 
 ```bash
-cat > data.jsonl <<- EOM
-{"instruction": "instruction1", "output":"output1"}
-{"instruction": "instruction2", "output":"output2"}
-EOM
-
-aws s3 cp data.jsonl s3://geniusrise-test/my-shit/
+genius rise up
 ```
 
-### 4. Fine tune
-
-```bash
-genius --yaml genius.yaml deploy
-```
-
-🙄 This was not even crux of the iceberg. Please see docs.
+🙄 This was not even tip of the iceberg. Please see docs.
 
 ## <span style="color:#e667aa">Links</span>
 
