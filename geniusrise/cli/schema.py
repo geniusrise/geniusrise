@@ -209,20 +209,21 @@ class DeployArgs(BaseModel):
     """
 
     # k8s
-    kind: Optional[str] = None
+    kind: Optional[str] = "deployment"
     name: Optional[str] = None
-    cluster_name: Optional[str] = None
-    context_name: Optional[str] = None
-    namespace: Optional[str] = None
-    replicas: Optional[int] = None
-    labels: Optional[str] = None
-    annotations: Optional[str] = None
+    replicas: Optional[str] = None
+    storage: Optional[str] = None
+    gpu: Optional[str] = None
+    kube_config_path: Optional[str] = "~/.kube/config"
     api_key: Optional[str] = None
     api_host: Optional[str] = None
     verify_ssl: Optional[str] = None
     ssl_ca_cert: Optional[str] = None
-    storage: Optional[str] = None
-    gpu: Optional[str] = None
+    cluster_name: Optional[str] = None
+    context_name: Optional[str] = None
+    namespace: Optional[str] = None
+    labels: Optional[str] = '{"created_by": "geniusrise"}'
+    annotations: Optional[str] = '{"created_by": "geniusrise"}'
     port: Optional[str] = None
     target_port: Optional[str] = None
     schedule: Optional[str] = None
@@ -235,8 +236,7 @@ class DeployArgs(BaseModel):
     log_group: Optional[str] = None
 
     # common
-    image: Optional[str] = None
-    command: Optional[str] = None
+    image: Optional[str] = "geniusrise/geniusrise:latest"
     cpu: Optional[int] = None
     memory: Optional[int] = None
     env_vars: Optional[str] = None
@@ -283,11 +283,9 @@ class Deploy(BaseModel):
                 required_fields = [
                     "kind",
                     "name",
-                    "cluster_name",
                     "context_name",
                     "namespace",
                     "image",
-                    "command",
                 ]
                 for field in required_fields:
                     if not v or field not in v or not v[field]:

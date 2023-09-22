@@ -24,7 +24,7 @@ from typing import Dict, List
 import emoji  # type: ignore
 import yaml  # type: ignore
 from concurrent.futures import ThreadPoolExecutor, wait
-
+from rich_argparse import RichHelpFormatter
 
 from geniusrise.cli.boltctl import BoltCtl
 from geniusrise.cli.schema import Bolt, Geniusfile, Spout
@@ -75,14 +75,18 @@ class YamlCtl:
         """
         Create and return the command-line parser for managing spouts and bolts.
         """
+        # fmt: off
+        subparsers = parser.add_subparsers(dest="deploy")
+        up_parser = subparsers.add_parser("up", help="Deploy according to the genius.yml file.", formatter_class=RichHelpFormatter)
+        up_parser.add_argument("--spout", type=str, help="Name of the specific spout to run.")
+        up_parser.add_argument("--bolt", type=str, help="Name of the specific bolt to run.")
+        up_parser.add_argument("--file", default="genius.yml", type=str, help="Path of the genius.yml file, default to .")
+
         parser.add_argument("--spout", type=str, help="Name of the specific spout to run.")
         parser.add_argument("--bolt", type=str, help="Name of the specific bolt to run.")
-        parser.add_argument(
-            "--file",
-            default="genius.yml",
-            type=str,
-            help="Path of the genius.yml file, default to .",
-        )
+        parser.add_argument("--file", default="genius.yml", type=str, help="Path of the genius.yml file, default to .")
+        # fmt: on
+
         return parser
 
     def run(self, args):
@@ -96,7 +100,20 @@ class YamlCtl:
         """
         with open(args.file, "r") as file:
             self.geniusfile = Geniusfile.model_validate(yaml.safe_load(file), strict=True)
-        if args.spout == "all":
+
+        if args.deploy == "up":
+            if args.spout == "all":
+                self.deploy_spouts()
+            elif args.bolt == "all":
+                self.deploy_bolts()
+            elif args.spout:
+                self.deploy_spout(args.spout)
+            elif args.bolt:
+                self.deploy_bolt(args.bolt)
+            else:
+                self.deploy_spouts()
+                self.deploy_bolts()
+        elif args.spout == "all":
             with ThreadPoolExecutor(max_workers=len(self.geniusfile.spouts)) as executor:
                 futures = self.run_spouts(executor)
             wait(futures)
@@ -126,6 +143,15 @@ class YamlCtl:
 
         return futures
 
+    def deploy_spouts(self):
+        """Deploy all spouts defined in the YAML configuration."""
+        self.log.info(emoji.emojize(":rocket: Running all spouts..."))
+
+        for spout_name, _ in self.geniusfile.spouts.items():
+            self.log.debug(f"Deploying spout {spout_name}...")
+            self.deploy_spout(spout_name)
+            self.log.debug(f"Deployed {spout_name}...")
+
     def run_bolts(self, executor):
         """Run all bolts defined in the YAML configuration."""
         self.log.info(emoji.emojize(":rocket: Running all bolts..."))
@@ -135,6 +161,18 @@ class YamlCtl:
             self.log.debug(f"Starting bolt {bolt_name}...")
             futures.append(executor.submit(self.run_bolt, bolt_name))
             self.log.debug(f"Running {bolt_name}...")
+
+        return futures
+
+    def deploy_bolts(self):
+        """Deploy all bolts defined in the YAML configuration."""
+        self.log.info(emoji.emojize(":rocket: Running all bolts..."))
+
+        futures = []
+        for bolt_name, _ in self.geniusfile.bolts.items():
+            self.log.debug(f"Deploying bolt {bolt_name}...")
+            self.deploy_bolt(bolt_name)
+            self.log.debug(f"Deployed {bolt_name}...")
 
         return futures
 
@@ -162,6 +200,44 @@ class YamlCtl:
             spout.state.type,
             spout.method,
         ] + self._convert_spout(spout)
+
+        parser = argparse.ArgumentParser()
+        self.spout_ctls[spout.name].create_parser(parser)
+        try:
+            namespace_args = parser.parse_args(flat_args)
+            spout_ctl.run(namespace_args)
+        except Exception as e:
+            self.log.exception(f"Could not execute: {e}")
+
+    def deploy_spout(self, spout_name: str):
+        """
+        Deploy a specific spout based on its name.
+
+        Args:
+            spout_name (str): Name of the spout to deploy.
+        """
+        spout = self.geniusfile.spouts.get(spout_name)
+        if not spout:
+            self.log.error(emoji.emojize(f":x: Spout {spout_name} not found."))
+            return
+
+        spout_ctl = self.spout_ctls.get(spout.name)
+        if not spout_ctl:
+            self.log.error(emoji.emojize(f":x: SpoutCtl for {spout_name} - {spout.name} not found."))
+            return
+
+        self.log.info(emoji.emojize(f":rocket: Deploying spout {spout_name}..."))
+        flat_args = (
+            [
+                "deploy",
+                spout.output.type,
+                spout.state.type,
+                spout.deploy.type,
+                spout.method,
+            ]
+            + self._convert_deployment(spout)
+            + self._convert_spout(spout)
+        )
 
         parser = argparse.ArgumentParser()
         self.spout_ctls[spout.name].create_parser(parser)
@@ -213,6 +289,56 @@ class YamlCtl:
         parser = argparse.ArgumentParser()
         self.bolt_ctls[bolt.name].create_parser(parser)
         namespace_args = parser.parse_args(flat_args)
+        bolt_ctl.run(namespace_args)
+
+    def deploy_bolt(self, bolt_name: str):
+        """
+        Deploy a specific bolt based on its name.
+
+        Args:
+            bolt_name (str): Name of the bolt to run.
+        """
+        bolt = self.geniusfile.bolts.get(bolt_name)
+        if not bolt:
+            self.log.error(emoji.emojize(f":x: Bolt {bolt_name} not found."))
+            return
+
+        # Resolve reference if input type is "spout" or "bolt"
+        if bolt.input.type in ["spout", "bolt"]:
+            if not bolt.input.args or not bolt.input.args.name:
+                raise ValueError(emoji.emojize(f"Need referenced spouts or bolt to be mentioned here {bolt.input}"))
+            ref_name = bolt.input.args.name
+            resolved_output = self.resolve_reference(bolt.input.type, ref_name)
+            if not resolved_output:
+                self.log.error(emoji.emojize(f":x: Failed to resolve reference for bolt {bolt_name}."))
+                return
+            bolt.input.type = resolved_output.type  # Set the resolved output type as the bolt's input type
+            bolt.input.args = resolved_output.args  # Set the resolved output args as the bolt's input args
+
+        bolt_ctl = self.bolt_ctls.get(bolt.name)
+        if not bolt_ctl:
+            self.log.error(emoji.emojize(f":x: BoltCtl for {bolt_name} = {bolt.name} not found."))
+            return
+
+        self.log.info(emoji.emojize(f":rocket: Running bolt {bolt_name}..."))
+        flat_args = (
+            [
+                "deploy",
+                bolt.input.type,
+                bolt.output.type,
+                bolt.state.type,
+                bolt.deploy.type,
+                bolt.method,
+            ]
+            + self._convert_deployment(bolt)
+            + self._convert_bolt(bolt)
+        )
+
+        # TODO: choosing this weird approach helps us build validations at argparser
+        parser = argparse.ArgumentParser()
+        self.bolt_ctls[bolt.name].create_parser(parser)
+        namespace_args = parser.parse_args(flat_args)
+
         bolt_ctl.run(namespace_args)
 
     def resolve_reference(self, input_type: str, ref_name: str):
@@ -349,3 +475,60 @@ class YamlCtl:
             bolt_args += method_args
 
         return bolt_args
+
+    def _convert_deployment(self, entity: Spout | Bolt) -> List[str]:
+        deploy_args = []
+
+        if entity.deploy and entity.deploy.type == "k8s":
+            if entity.deploy and entity.deploy.args and entity.deploy.args.kind:
+                deploy_args.append(f"--k8s_kind={entity.deploy.args.kind}")
+            if entity.deploy and entity.deploy.args and entity.deploy.args.name:
+                deploy_args.append(f"--k8s_name={entity.deploy.args.name}")
+            if entity.deploy and entity.deploy.args and entity.deploy.args.image:
+                deploy_args.append(f"--k8s_image={entity.deploy.args.image}")
+            if entity.deploy and entity.deploy.args and entity.deploy.args.replicas:
+                deploy_args.append(f"--k8s_replicas={entity.deploy.args.replicas}")
+            if entity.deploy and entity.deploy.args and entity.deploy.args.env_vars:
+                deploy_args.append(f"--k8s_env_vars={entity.deploy.args.env_vars}")
+            if entity.deploy and entity.deploy.args and entity.deploy.args.cpu:
+                deploy_args.append(f"--k8s_cpu={entity.deploy.args.cpu}")
+            if entity.deploy and entity.deploy.args and entity.deploy.args.memory:
+                deploy_args.append(f"--k8s_memory={entity.deploy.args.memory}")
+            if entity.deploy and entity.deploy.args and entity.deploy.args.storage:
+                deploy_args.append(f"--k8s_storage={entity.deploy.args.storage}")
+            if entity.deploy and entity.deploy.args and entity.deploy.args.gpu:
+                deploy_args.append(f"--k8s_gpu={entity.deploy.args.gpu}")
+            if entity.deploy and entity.deploy.args and entity.deploy.args.kube_config_path:
+                deploy_args.append(f"--k8s_kube_config_path={entity.deploy.args.kube_config_path}")
+            else:
+                deploy_args.append("--k8s_kube_config_path=~/.kube/config")
+            if entity.deploy and entity.deploy.args and entity.deploy.args.api_key:
+                deploy_args.append(f"--k8s_api_key={entity.deploy.args.api_key}")
+            if entity.deploy and entity.deploy.args and entity.deploy.args.api_host:
+                deploy_args.append(f"--k8s_api_host={entity.deploy.args.api_host}")
+            if entity.deploy and entity.deploy.args and entity.deploy.args.verify_ssl:
+                deploy_args.append(f"--k8s_verify_ssl={entity.deploy.args.verify_ssl}")
+            if entity.deploy and entity.deploy.args and entity.deploy.args.ssl_ca_cert:
+                deploy_args.append(f"--k8s_ssl_ca_cert={entity.deploy.args.ssl_ca_cert}")
+            if entity.deploy and entity.deploy.args and entity.deploy.args.cluster_name:
+                deploy_args.append(f"--k8s_cluster_name={entity.deploy.args.cluster_name}")
+            if entity.deploy and entity.deploy.args and entity.deploy.args.context_name:
+                deploy_args.append(f"--k8s_context_name={entity.deploy.args.context_name}")
+            if entity.deploy and entity.deploy.args and entity.deploy.args.namespace:
+                deploy_args.append(f"--k8s_namespace={entity.deploy.args.namespace}")
+            if entity.deploy and entity.deploy.args and entity.deploy.args.labels:
+                deploy_args.append(f"--k8s_labels={entity.deploy.args.labels}")
+            else:
+                deploy_args.append("--k8s_labels=" + '{"created_by": "geniusrise"}')
+            if entity.deploy and entity.deploy.args and entity.deploy.args.annotations:
+                deploy_args.append(f"--k8s_annotations={entity.deploy.args.annotations}")
+            else:
+                deploy_args.append("--k8s_annotations=" + '{"created_by": "geniusrise"}')
+            if entity.deploy and entity.deploy.args and entity.deploy.args.port:
+                deploy_args.append(f"--k8s_port={entity.deploy.args.port}")
+            if entity.deploy and entity.deploy.args and entity.deploy.args.target_port:
+                deploy_args.append(f"--k8s_target_port={entity.deploy.args.target_port}")
+            if entity.deploy and entity.deploy.args and entity.deploy.args.schedule:
+                deploy_args.append(f"--k8s_schedule={entity.deploy.args.schedule}")
+
+        return deploy_args

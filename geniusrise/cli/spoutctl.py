@@ -310,6 +310,29 @@ class SpoutCtl:
                     - dynamodb_region_name (str): The AWS region for DynamoDB.
                     Prometheus state manager config:
                     - prometheus_gateway (str): The push gateway for Prometheus metrics.
+                    Deployment
+                    - k8s_kind (str): Kind opf kubernetes resource to be deployed as, choices are "deployment", "service", "job", "cron_job"
+                    - k8s_name (str): Name of the Kubernetes resource.
+                    - k8s_image (str): Docker image for the Kubernetes resource.
+                    - k8s_replicas (int): Number of replicas.
+                    - k8s_env_vars (json): Environment variables as a JSON string.
+                    - k8s_cpu (str): CPU requirements.
+                    - k8s_memory (str): Memory requirements.
+                    - k8s_storage (str): Storage requirements.
+                    - k8s_gpu (str): GPU requirements.
+                    - k8s_kube_config_path (str): Name of the Kubernetes cluster local config.
+                    - k8s_api_key (str): GPU requirements.
+                    - k8s_api_host (str): GPU requirements.
+                    - k8s_verify_ssl (str): GPU requirements.
+                    - k8s_ssl_ca_cert (str): GPU requirements.
+                    - k8s_cluster_name (str): Name of the Kubernetes cluster.
+                    - k8s_context_name (str): Name of the kubeconfig context.
+                    - k8s_namespace (str): Kubernetes namespace.", default="default
+                    - k8s_labels (json): Labels for Kubernetes resources, as a JSON string.
+                    - k8s_annotations (json): Annotations for Kubernetes resources, as a JSON string.
+                    - k8s_port (int): Port to run the spout on as a service.
+                    - k8s_target_port (int): Port to expose the spout on as a service.
+                    - k8s_schedule (str): Schedule to run the spout on as a cron job.
                 ```
         """
         if args.deployment_type == "k8s":
@@ -327,6 +350,7 @@ class SpoutCtl:
             else:
                 raise ValueError(f"Invalid kind: {kind}")
 
+            self.log.debug(f"Deploying {kind} {args.k8s_name} with args {args}")
             resource.connect(
                 kube_config_path=args.k8s_kube_config_path if args.k8s_kube_config_path else None,
                 cluster_name=args.k8s_cluster_name if args.k8s_cluster_name else None,
