@@ -18,6 +18,7 @@ import argparse
 import json
 import logging
 import tempfile
+from typing import Any
 
 import emoji  # type: ignore
 from rich_argparse import RichHelpFormatter
@@ -110,19 +111,24 @@ class SpoutCtl:
         deploy_parser.add_argument("--k8s_name", help="Name of the Kubernetes resource.", type=str)
         deploy_parser.add_argument("--k8s_image", help="Docker image for the Kubernetes resource.", type=str)
         deploy_parser.add_argument("--k8s_replicas", help="Number of replicas.", default=1, type=int)
-        deploy_parser.add_argument("--k8s_env_vars", help="Environment variables as a JSON string.", type=str, default="{}")
+        deploy_parser.add_argument("--k8s_env_vars", help="Environment variables as a JSON string.", type=json.loads, default="{}")
         deploy_parser.add_argument("--k8s_cpu", help="CPU requirements.", type=str)
         deploy_parser.add_argument("--k8s_memory", help="Memory requirements.", type=str)
         deploy_parser.add_argument("--k8s_storage", help="Storage requirements.", type=str)
         deploy_parser.add_argument("--k8s_gpu", help="GPU requirements.", type=str)
+        deploy_parser.add_argument("--k8s_kube_config_path", help="Name of the Kubernetes cluster local config.", type=str, default="~/.kube/config")
+        deploy_parser.add_argument("--k8s_api_key", help="GPU requirements.", type=str)
+        deploy_parser.add_argument("--k8s_api_host", help="GPU requirements.", type=str)
+        deploy_parser.add_argument("--k8s_verify_ssl", help="GPU requirements.", type=str)
+        deploy_parser.add_argument("--k8s_ssl_ca_cert", help="GPU requirements.", type=str)
         deploy_parser.add_argument("--k8s_cluster_name", help="Name of the Kubernetes cluster.", type=str)
         deploy_parser.add_argument("--k8s_context_name", help="Name of the kubeconfig context.", type=str)
         deploy_parser.add_argument("--k8s_namespace", help="Kubernetes namespace.", default="default", type=str)
-        deploy_parser.add_argument("--k8s_labels", help="Labels for Kubernetes resources, as a JSON string.", type=str, default='{"created_by": "geniusrise"}')
-        deploy_parser.add_argument("--k8s_annotations", help="Annotations for Kubernetes resources, as a JSON string.", type=str)
-        deploy_parser.add_argument("--port", help="Port to run the spout on as a service.", type=int)
-        deploy_parser.add_argument("--target_port", help="Port to expose the spout on as a service.", type=int)
-        deploy_parser.add_argument("--schedule", help="Schedule to run the spout on as a cron job.", type=str)
+        deploy_parser.add_argument("--k8s_labels", help="Labels for Kubernetes resources, as a JSON string.", type=json.loads, default='{"created_by": "geniusrise"}')
+        deploy_parser.add_argument("--k8s_annotations", help="Annotations for Kubernetes resources, as a JSON string.", type=json.loads, default='{"created_by": "geniusrise"}')
+        deploy_parser.add_argument("--k8s_port", help="Port to run the spout on as a service.", type=int)
+        deploy_parser.add_argument("--k8s_target_port", help="Port to expose the spout on as a service.", type=int)
+        deploy_parser.add_argument("--k8s_schedule", help="Schedule to run the spout on as a cron job.", type=str)
         # function
         deploy_parser.add_argument("method_name", help="The name of the method to execute on the spout.", type=str)
         deploy_parser.add_argument("--args", nargs=argparse.REMAINDER, help="Additional keyword arguments to pass to the spout.")
@@ -333,29 +339,66 @@ class SpoutCtl:
                 verify_ssl=args.k8s_verify_ssl if args.k8s_verify_ssl else None,
                 ssl_ca_cert=args.k8s_ssl_ca_cert if args.k8s_ssl_ca_cert else None,
             )
-            k8s_kwargs = {k: v for k, v in vars(args).items() if v is not None and "k8s_" in k}
+            k8s_kwargs = {k.replace("k8s_", ""): v for k, v in vars(args).items() if v is not None and "k8s_" in k}
 
-            # create the command to run remotely
-            spout_kwargs = {
-                k: v
-                for k, v in vars(args).items()
-                if v is not None
-                and "k8s_" not in k
-                and k not in ["output_type", "state_type", "args", "method_name", "deployment_type"]
-            }
+            output: dict[str, Any] = {}
+            if args.output_type == "batch":
+                output = {
+                    "output_s3_bucket": args.output_s3_bucket,
+                    "output_s3_folder": args.output_s3_folder,
+                }
+            elif args.output_type == "streaming":
+                output = {
+                    "output_kafka_topic": args.output_kafka_topic,
+                    "output_kafka_cluster_connection_string": args.output_kafka_cluster_connection_string,
+                }
+            elif args.output_type == "stream_to_batch":
+                output = {
+                    "output_s3_bucket": args.output_s3_bucket,
+                    "output_s3_folder": args.output_s3_folder,
+                    "buffer_size": args.buffer_size,
+                }
+            else:
+                raise ValueError(f"Invalid output type: {args.output_type}")
+
+            # Create the state manager
+            state: dict[str, Any] = {}
+            if args.state_type == "none":
+                state = {}
+            elif args.state_type == "redis":
+                state = {
+                    "redis_host": args.redis_host,
+                    "redis_port": args.redis_port,
+                    "redis_db": args.redis_db,
+                }
+            elif args.state_type == "postgres":
+                state = {
+                    "postgres_host": args.postgres_host,
+                    "postgres_port": args.postgres_port,
+                    "postgres_user": args.postgres_user,
+                    "postgres_password": args.postgres_password,
+                    "postgres_database": args.postgres_database,
+                    "postgres_table": args.postgres_table,
+                }
+            elif args.state_type == "dynamodb":
+                state = {
+                    "dyanmodb_table_name": args.dynamodb_table_name,
+                    "dyanmodb_region_name": args.dynamodb_region_name,
+                }
+            elif args.state_type == "prometheus":
+                state = {
+                    "gateway": args.prometheus_gateway,
+                }
+            else:
+                raise ValueError(f"Invalid state type: {args.state_type}")
+
             command = [
                 "genius",
-                self.__class__.__name__,
+                self.discovered_spout.name,
                 "rise",
-                "output_type",
                 args.output_type,
-                "state_type",
                 args.state_type,
-                "method_name",
                 args.method_name,
-            ] + [y for x in [[f"--{k}", v] for k, v in spout_kwargs.items()] for y in x]
+            ] + [y for x in [[f"--{k}", str(v)] for k, v in ({**output, **state}).items()] for y in x]
 
-            print(command)
-            print(k8s_kwargs)
-
-            # resource.create(command=command, **k8s_kwargs)
+            resource.create(command=command, **k8s_kwargs)

@@ -31,7 +31,9 @@ from geniusrise.cli.boltctl import BoltCtl
 from geniusrise.cli.discover import Discover, DiscoveredBolt, DiscoveredSpout
 from geniusrise.cli.spoutctl import SpoutCtl
 from geniusrise.cli.yamlctl import YamlCtl
+from geniusrise.cli.dockerctl import DockerCtl
 from geniusrise.logging import setup_logger
+from geniusrise.runners.k8s import Deployment, Service, Job, CronJob, K8sResourceManager
 
 
 class GeniusCtl:
@@ -115,6 +117,31 @@ class GeniusCtl:
         self.yaml_ctl = YamlCtl(self.spout_ctls, self.bolt_ctls)
         self.yaml_ctl.create_parser(yaml_parser)
 
+        docker_parser = subparsers.add_parser("docker", help="Package this application into a Docker image.")
+        self.docker_ctl = DockerCtl()
+        self.docker_ctl.create_parser(docker_parser)
+
+        # Connect to kubernetes runner
+        pod_parser = subparsers.add_parser("pod", help="Manage spouts and bolts as kubernetes pod")
+        self.k8s_pod = K8sResourceManager()
+        self.k8s_pod.create_parser(pod_parser)
+
+        deployment_parser = subparsers.add_parser("deployment", help="Manage spouts and bolts as kubernetes deployment")
+        self.k8s_deployment = Deployment()
+        self.k8s_deployment.create_parser(deployment_parser)
+
+        service_parser = subparsers.add_parser("service", help="Manage spouts and bolts as kubernetes service")
+        self.k8s_service = Service()
+        self.k8s_service.create_parser(service_parser)
+
+        job_parser = subparsers.add_parser("job", help="Manage spouts and bolts as kubernetes job")
+        self.k8s_job = Job()
+        self.k8s_job.create_parser(job_parser)
+
+        cron_job_parser = subparsers.add_parser("cron_job", help="Manage spouts and bolts as kubernetes cron_job")
+        self.k8s_cron_job = CronJob()
+        self.k8s_cron_job.create_parser(cron_job_parser)
+
         # Add a 'help' command to print help for all spouts and bolts
         help_parser = subparsers.add_parser(
             "plugins",
@@ -163,6 +190,18 @@ class GeniusCtl:
             self.bolt_ctls[args.top_level_command].run(args)
         elif args.top_level_command == "rise":
             self.yaml_ctl.run(args)
+        elif args.top_level_command == "docker":
+            self.docker_ctl.run(args)
+        elif args.top_level_command == "pod":
+            self.k8s_pod.run(args)
+        elif args.top_level_command == "deployment":
+            self.k8s_deployment.run(args)
+        elif args.top_level_command == "service":
+            self.k8s_service.run(args)
+        elif args.top_level_command == "job":
+            self.k8s_job.run(args)
+        elif args.top_level_command == "cron_job":
+            self.k8s_cron_job.run(args)
         elif args.top_level_command == "plugins":
             if args.spout_or_bolt in self.spouts:
                 self.spout_ctls[args.spout_or_bolt].run(args)
@@ -251,3 +290,8 @@ def main():
 if __name__ == "__main__":
     genius_ctl = GeniusCtl()
     genius_ctl.cli()
+
+
+def create_parser():
+    genius_ctl = GeniusCtl()
+    return genius_ctl.create_parser()

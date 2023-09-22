@@ -57,6 +57,26 @@ class Job(Deployment):
         return parser
 
     def run(self, args: Namespace) -> None:
+        """
+        🚀 Run the Job manager.
+
+        Args:
+            args (Namespace): The parsed command line arguments.
+        """
+
+        self.connect(
+            kube_config_path=args.kube_config_path if args.kube_config_path else None,
+            cluster_name=args.cluster_name if args.cluster_name else None,
+            context_name=args.context_name if args.context_name else None,
+            namespace=args.namespace if args.namespace else None,
+            labels=json.loads(args.labels) if args.labels else {"created_by": "geniusrise"},
+            annotations=args.annotations if args.annotations else None,
+            api_key=args.api_key if args.api_key else None,
+            api_host=args.api_host if args.api_host else None,
+            verify_ssl=args.verify_ssl if args.verify_ssl else None,
+            ssl_ca_cert=args.ssl_ca_cert if args.ssl_ca_cert else None,
+        )
+
         if args.job == "create":
             self.create(
                 args.name,
@@ -197,4 +217,16 @@ class Job(Deployment):
             dict: Status of the Job.
         """
         job = self.batch_api_instance.read_namespaced_job(name, self.namespace)
+        self.log.info(f"📊 Job {name} status: {job.status}")
+        self.log.info(f"📊 Job {name} status details: {job.status.details}")
+        self.log.info(f"📊 Job {name} status message: {job.status.message}")
+        self.log.info(f"📊 Job {name} status reason: {job.status.reason}")
+        self.log.info(f"📊 Job {name} status status: {job.status.status}")
+        self.log.info(f"📊 Job {name} status type: {job.status.type}")
+        self.log.info(f"📊 Job {name} status uid: {job.status.uid}")
+        self.log.info(f"📊 Job {name} status updated_at: {job.status.updated_at}")
+        self.log.info(f"📊 Job {name} status conditions: {job.status.conditions}")
+        self.log.info(f"📊 Job {name} status active: {job.status.active}")
+        self.log.info(f"📊 Job {name} status completion_time: {job.status.completion_time}")
+
         return {"job_status": job.status}
