@@ -33,19 +33,23 @@ class Service(Deployment):
         Examples:
 
         ```bash
-        genius service create --name example-service --image example-image --command "echo hello" --port 8080 --target_port 8080
+        genius service create --name example-service --image example-image --command "echo hello" --port 8080 --target_port 8080 --namespace geniusrise \
+            --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
         ```
 
         ```bash
-        genius service delete --name example-service
+        genius service delete --name example-service --namespace geniusrise \
+            --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
         ```
 
         ```bash
-        genius service describe --name example-service
+        genius service describe --name example-service --namespace geniusrise \
+            --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
         ```
 
         ```bash
-        genius service show
+        genius service show --namespace geniusrise \
+            --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
         ```
 
     YAML Configuration:

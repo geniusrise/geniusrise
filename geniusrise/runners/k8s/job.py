@@ -33,15 +33,18 @@ class Job(Deployment):
         genius job [sub-command] [options]
         Examples:
             ```bash
-            genius job create --name example-job --image example-image --command "echo hello" --cpu "100m" --memory "256Mi"
+            genius job create --name example-job --image example-image --command "echo hello" --cpu "100m" --memory "256Mi" --namespace geniusrise \
+                --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
             ```
 
             ```bash
-            genius job delete --name example-job
+            genius job delete --name example-job --namespace geniusrise \
+                --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
             ```
 
             ```bash
-            genius job status --name example-job
+            genius job status --name example-job --namespace geniusrise \
+                --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
             ```
 
     YAML Configuration:
