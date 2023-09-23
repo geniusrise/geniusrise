@@ -33,15 +33,18 @@ class CronJob(Job):
         genius cronjob [sub-command] [options]
         Examples:
             ```bash
-            genius cronjob create_cronjob --name example-cronjob --image example-image --command "echo hello" --schedule "*/5 * * * *"
+            genius cronjob create_cronjob --name example-cronjob --image example-image --command "echo hello" --schedule "*/5 * * * *" --namespace geniusrise \
+                --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
             ```
 
             ```bash
-            genius cronjob delete_cronjob --name example-cronjob
+            genius cronjob delete_cronjob --name example-cronjob --namespace geniusrise \
+                --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
             ```
 
             ```bash
-            genius cronjob get_cronjob_status --name example-cronjob
+            genius cronjob get_cronjob_status --name example-cronjob --namespace geniusrise \
+                --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
             ```
 
     YAML Configuration:
