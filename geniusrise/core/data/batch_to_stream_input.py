@@ -23,16 +23,15 @@ from queue import Queue
 from threading import Thread
 from typing import AsyncIterator, Union
 
-import pyspark
-from pyspark.sql import SparkSession
-from pyspark.sql import Row
-from streamz import Stream
-from .batch_input import BatchInput
-from .streaming_input import StreamingInput
-from .batch_input import FileNotExistError
 import pyflink
-from pyflink.table import TableSchema, StreamTableEnvironment, EnvironmentSettings
+import pyspark
 from pyflink.datastream import StreamExecutionEnvironment
+from pyflink.table import EnvironmentSettings, StreamTableEnvironment, TableSchema
+from pyspark.sql import Row, SparkSession
+from streamz import Stream
+
+from .batch_input import BatchInput, FileNotExistError
+from .streaming_input import StreamingInput
 
 KafkaMessage = namedtuple("KafkaMessage", ["key", "value"])
 
