@@ -14,16 +14,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import glob
 import os
-import time
 import shutil
+import time
 from typing import Dict, Generator, Optional, Union
 
-from pyspark.sql import SparkSession, Row
-import glob
 import boto3
-from retrying import retry
 import pyspark
+from pyspark.sql import Row, SparkSession
+from retrying import retry
 
 from .input import Input  # Assuming Input is in the same package
 
@@ -57,7 +57,13 @@ class BatchInput(Input):
         partition_scheme (Optional[str]): Partitioning scheme for S3, e.g., "year/month/day".
     """
 
-    def __init__(self, input_folder: str, bucket: str, s3_folder: str, partition_scheme: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        input_folder: str,
+        bucket: str,
+        s3_folder: str,
+        partition_scheme: Optional[str] = None,
+    ) -> None:
         """Initialize a new BatchInput instance."""
         super().__init__()
         self.input_folder = input_folder

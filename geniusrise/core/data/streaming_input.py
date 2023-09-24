@@ -14,19 +14,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
 import logging
-from typing import AsyncIterator, Dict, Union, List
+from typing import AsyncIterator, Dict, List, Union
 
+import pyflink
 from kafka import KafkaConsumer, TopicPartition
-from pyspark.sql import SparkSession
-from pyspark.sql import DataFrame
+from pyflink.datastream import StreamExecutionEnvironment
+from pyflink.table import EnvironmentSettings, StreamTableEnvironment, TableSchema
+from pyspark.sql import DataFrame, SparkSession
 from streamz import Stream
 from streamz.dataframe import ZDataFrame
-import json
-import pyflink
-from pyflink.table import TableSchema
-from pyflink.table import StreamTableEnvironment, EnvironmentSettings
-from pyflink.datastream import StreamExecutionEnvironment
 
 from .input import Input
 
@@ -192,7 +190,10 @@ class StreamingInput(Input):
             df = (
                 spark.readStream.format("kafka")
                 .option("kafka.bootstrap.servers", self.kafka_cluster_connection_string)
-                .option("subscribe", self.input_topic if type(self.input_topic) is str else ",".join(self.input_topic))
+                .option(
+                    "subscribe",
+                    self.input_topic if type(self.input_topic) is str else ",".join(self.input_topic),
+                )
                 .load()
             )
 
