@@ -21,10 +21,15 @@ import time
 from collections import namedtuple
 from queue import Queue
 from threading import Thread
-from typing import AsyncIterator, Callable, Dict, Iterator, Union
+from typing import AsyncIterator, Dict, Union
 
+import pyspark
+from pyspark.sql import SparkSession
+from pyspark.sql import Row
+from streamz import Stream
 from .batch_input import BatchInput
 from .streaming_input import StreamingInput
+from .batch_input import FileNotExistError
 
 KafkaMessage = namedtuple("KafkaMessage", ["key", "value"])
 
@@ -105,18 +110,57 @@ class BatchToStreamingInput(StreamingInput, BatchInput):
             else:
                 break
 
-    def iterator(self) -> Iterator:
+    def spark_df(self, spark: SparkSession) -> pyspark.sql.DataFrame:
         """
-        🔄 Iterator method for yielding data from the Kafka consumer.
+        Get a Spark DataFrame from the input folder.
 
-        Yields:
-            Kafka message: The next message from the Kafka consumer.
+        Returns:
+            pyspark.sql.DataFrame: A Spark DataFrame where each row corresponds to a file in the input folder.
 
         Raises:
-            Exception: If no Kafka consumer is available.
+            FileNotExistError: If the input folder does not exist.
         """
-        # Use the existing iterator from StreamingInput if available
-        return self.get()
+        if not os.path.exists(self.input_folder):
+            raise FileNotExistError(f"❌ Input folder {self.input_folder} does not exist.")
+
+        def file_generator():
+            for root, _, files in os.walk(self.input_folder):
+                for file_name in files:
+                    file_path = os.path.join(root, file_name)
+                    with open(file_path, "r") as f:
+                        content = f.read()
+                    yield Row(filename=file_name, content=content)
+
+        rdd = spark.sparkContext.parallelize(file_generator())
+        df = spark.createDataFrame(rdd)
+
+        return df
+
+    def streamz_df(self):
+        """
+        Get a Streamz DataFrame from the input folder.
+
+        Returns:
+            streamz.dataframe.DataFrame: A Streamz DataFrame where each row corresponds to a file in the input folder.
+        """
+        stream = Stream()
+
+        def emit_files():
+            for root, _, files in os.walk(self.input_folder):
+                for file_name in files:
+                    file_path = os.path.join(root, file_name)
+                    with open(file_path, "r") as f:
+                        content = f.read()
+                    stream.emit({"filename": file_name, "content": content})
+
+        Thread(target=emit_files).start()
+
+        sdf = stream.to_dataframe(example={"filename": "", "content": ""})
+
+        return sdf
+
+    def compose(self, *inputs: "StreamingInput") -> Union[bool, str]:  # type: ignore
+        return False
 
     async def async_iterator(self) -> AsyncIterator[KafkaMessage]:  # type: ignore
         """
@@ -130,18 +174,6 @@ class BatchToStreamingInput(StreamingInput, BatchInput):
         """
         pass  # type: ignore
 
-    def ack(self) -> None:
-        """
-        ✅ Acknowledge the processing of a Kafka message.
-
-        Args:
-            message (KafkaMessage): The Kafka message to acknowledge.
-
-        Raises:
-            Exception: If an error occurs while acknowledging the message.
-        """
-        pass
-
     def close(self) -> None:
         """
         🚪 Close the Kafka consumer.
@@ -149,34 +181,12 @@ class BatchToStreamingInput(StreamingInput, BatchInput):
         Raises:
             Exception: If an error occurs while closing the consumer.
         """
-        pass
 
     def seek(self, target_offset: int) -> None:
         pass
 
     def commit(self) -> None:
         pass
-
-    def filter_messages(self, filter_func: Callable) -> Iterator:
-        """
-        🔍 Filter messages from the Kafka consumer based on a filter function.
-
-        Args:
-            filter_func (callable): A function that takes a Kafka message and returns a boolean.
-
-        Yields:
-            Kafka message: The next message from the Kafka consumer that passes the filter.
-
-        Raises:
-            Exception: If no Kafka consumer is available or an error occurs.
-        """
-        try:
-            for message in self.get():
-                if filter_func(message):
-                    yield message
-        except Exception as e:
-            self.log.exception(f"🚫 Failed to filter messages from Kafka consumer: {e}")
-            raise
 
     def collect_metrics(self) -> Dict[str, Union[int, float]]:
         """
