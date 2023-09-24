@@ -21,7 +21,7 @@ import time
 from collections import namedtuple
 from queue import Queue
 from threading import Thread
-from typing import AsyncIterator, Dict, Union
+from typing import AsyncIterator, Union
 
 import pyspark
 from pyspark.sql import SparkSession
@@ -30,6 +30,9 @@ from streamz import Stream
 from .batch_input import BatchInput
 from .streaming_input import StreamingInput
 from .batch_input import FileNotExistError
+import pyflink
+from pyflink.table import TableSchema, StreamTableEnvironment, EnvironmentSettings
+from pyflink.datastream import StreamExecutionEnvironment
 
 KafkaMessage = namedtuple("KafkaMessage", ["key", "value"])
 
@@ -159,6 +162,52 @@ class BatchToStreamingInput(StreamingInput, BatchInput):
 
         return sdf
 
+    def flink_table(self, table_schema: TableSchema) -> pyflink.table.Table:
+        """
+        Get a Flink Table from the input folder.
+
+        Args:
+            table_schema (TableSchema): The schema of the Flink table.
+
+        Returns:
+            pyflink.table.Table: A Flink Table where each row corresponds to a file in the input folder.
+
+        Raises:
+            FileNotExistError: If the input folder does not exist.
+        """
+        if not os.path.exists(self.input_folder):
+            raise FileNotExistError(f"❌ Input folder {self.input_folder} does not exist.")
+
+        try:
+            # Initialize Flink environment
+            env = StreamExecutionEnvironment.get_execution_environment()
+            env_settings = EnvironmentSettings.new_instance().in_streaming_mode().use_blink_planner().build()
+            table_env = StreamTableEnvironment.create(env, environment_settings=env_settings)
+
+            # Create a Flink table based on the schema
+            field_names = ",".join(table_schema.names)
+            field_types = ",".join(table_schema.types)
+
+            table_env.execute_sql(
+                f"""
+                CREATE TABLE batch_source (
+                    {field_names} {field_types}
+                ) WITH (
+                    'connector' = 'filesystem',
+                    'path' = '{self.input_folder}',
+                    'format' = 'json'
+                )
+            """
+            )
+
+            # Create the Flink table
+            flink_table = table_env.from_path("batch_source")
+
+            return flink_table
+        except Exception as e:
+            self.log.error(f"❌ Failed to create Flink Table: {e}")
+            raise
+
     def compose(self, *inputs: "StreamingInput") -> Union[bool, str]:  # type: ignore
         return False
 
@@ -187,15 +236,3 @@ class BatchToStreamingInput(StreamingInput, BatchInput):
 
     def commit(self) -> None:
         pass
-
-    def collect_metrics(self) -> Dict[str, Union[int, float]]:
-        """
-        📊 Collect metrics related to the Kafka consumer.
-
-        Returns:
-            Dict[str, Union[int, float]]: A dictionary containing metrics like latency.
-        """
-        return {
-            "request_latency_avg": 0,
-            "request_latency_max": 0,
-        }
