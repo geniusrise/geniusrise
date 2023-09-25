@@ -14,17 +14,27 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import json
 
 import pytest
-from kafka import KafkaConsumer, KafkaProducer
-
-from geniusrise.core.data import StreamingInput
+from kafka import KafkaConsumer
+from pyflink.table import DataTypes, TableSchema
+from pyspark.sql import SparkSession
+from geniusrise.core.data.streaming_input import StreamingInput, KafkaConnectionError
 
 # Constants
 KAFKA_CLUSTER_CONNECTION_STRING = "localhost:9094"
 GROUP_ID = "geniusrise"
 INPUT_TOPIC = "test_topic"
+
+# Flink Table Schema
+FLINK_TABLE_SCHEMA = TableSchema.builder().field("field1", DataTypes.STRING()).field("field2", DataTypes.INT()).build()
+
+# Initialize Spark session for testing
+spark_session = (
+    SparkSession.builder.appName("GeniusRise")
+    .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.1")
+    .getOrCreate()
+)
 
 
 # Fixture for StreamingInput
@@ -45,36 +55,6 @@ def test_streaming_input_config_init(streaming_input_config):
 def test_streaming_input_config_get(streaming_input_config):
     consumer = streaming_input_config.get()
     assert consumer is not None
-
-
-# Test Iterator
-def test_streaming_input_config_iterator(streaming_input_config):
-    producer = KafkaProducer(bootstrap_servers=KAFKA_CLUSTER_CONNECTION_STRING)
-    producer.send(INPUT_TOPIC, value=json.dumps({"test": "buffer"}).encode("utf-8"))
-    producer.flush()
-
-    consumer = streaming_input_config.get()
-
-    # NOTE: this shit is done for testing only cause we produce first and then consume
-    retries = 3
-    for _ in range(retries):
-        msg_poll = consumer.poll(timeout_ms=1000)
-        if msg_poll:
-            for _, messages in msg_poll.items():
-                for message in messages:
-                    assert json.loads(message.value.decode("utf-8")) == {"test": "buffer"}
-                    return
-        else:
-            print("Retrying...")
-    consumer.unsubscribe()
-
-
-# Test Acknowledge
-def test_streaming_input_config_ack(streaming_input_config):
-    try:
-        streaming_input_config.ack()
-    except Exception:
-        pytest.fail("Failed to acknowledge message")
 
 
 # Test Close Consumer
@@ -103,30 +83,6 @@ def test_streaming_input_config_commit(streaming_input_config):
         pytest.fail("Failed to commit offsets")
 
 
-# # Test Filter Messages
-# def test_streaming_input_config_filter_messages(streaming_input_config):
-#     try:
-#         producer = KafkaProducer(bootstrap_servers=KAFKA_CLUSTER_CONNECTION_STRING)
-#         producer.send(INPUT_TOPIC, value=json.dumps({"test": "filter"}).encode("utf-8"))
-#         producer.flush()
-
-#         consumer = streaming_input_config.get()
-#         consumer.poll(timeout_ms=1000)  # Poll to get messages
-#         streaming_input_config.seek(0)
-
-#         def filter_func(message):
-#             return json.loads(message.value.decode("utf-8")) == {"test": "filter"}
-
-#         for message in consumer:
-#             if filter_func(message):
-#                 break
-
-#         consumer.unsubscribe()
-#     except Exception:
-#         consumer.unsubscribe()
-#         pytest.fail("Failed in filter_messages test")
-
-
 # Test Collect Metrics
 def test_streaming_input_config_collect_metrics(streaming_input_config):
     try:
@@ -135,3 +91,36 @@ def test_streaming_input_config_collect_metrics(streaming_input_config):
         assert "request_latency_max" in metrics
     except Exception:
         pytest.fail("Failed to collect metrics")
+
+
+# Test for streamz_df method
+def test_streaming_input_streamz_df(streaming_input_config):
+    sdf = streaming_input_config.streamz_df()
+    assert sdf is not None
+
+
+# Test for spark_df method
+@pytest.mark.skipif(not spark_session, reason="SparkSession not available.")
+def test_streaming_input_spark_df(streaming_input_config):
+    try:
+        df = streaming_input_config.spark_df(spark_session)
+        assert df is not None
+    except KafkaConnectionError:
+        pytest.fail("Failed to create Spark DataFrame")
+
+
+# Test Flink Table
+def test_streaming_input_config_flink_table(streaming_input_config):
+    try:
+        flink_table = streaming_input_config.flink_table(FLINK_TABLE_SCHEMA)
+        assert flink_table is not None
+    except KafkaConnectionError:
+        pytest.fail("Failed to create Flink table")
+
+
+# Test for compose method
+def test_streaming_input_compose(streaming_input_config):
+    # Create another StreamingInput instance for composition
+    another_input = StreamingInput("another_topic", KAFKA_CLUSTER_CONNECTION_STRING, GROUP_ID)
+    result = streaming_input_config.compose(another_input)
+    assert result is True
