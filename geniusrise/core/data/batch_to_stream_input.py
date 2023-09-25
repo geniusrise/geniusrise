@@ -46,9 +46,8 @@ class BatchToStreamingInput(StreamingInput, BatchInput):
 
     Usage:
     ```python
-    config = BatchToStreamingInput("my_topic", "localhost:9094", "/path/to/input", "my_bucket", "s3/folder")
-    iterator = config.stream_batch("example.json")
-    for message in iterator:
+    input = BatchToStreamingInput("my_topic", "localhost:9094", "/path/to/input", "my_bucket", "s3/folder")
+    for message in input.get():
         print(message)
     ```
 

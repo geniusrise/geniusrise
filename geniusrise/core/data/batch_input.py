@@ -43,9 +43,8 @@ class BatchInput(Input):
         partition_scheme (Optional[str]): Partitioning scheme for S3, e.g., "year/month/day".
 
     Usage:
-        config = BatchInput("/path/to/input", "my_bucket", "s3/folder")
-        files = list(config.list_files())
-        content = config.read_file("example.txt")
+        input = BatchInput("/path/to/input", "my_bucket", "s3/folder")
+        folder = input.get()
 
     Raises:
         FileNotExistError: If the file does not exist.

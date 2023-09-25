@@ -46,8 +46,8 @@ class StreamingInput(Input):
         consumer (KafkaConsumer): Kafka consumer instance.
 
     Usage:
-        config = StreamingInput("my_topic", "localhost:9094")
-        for message in config.iterator():
+        input = StreamingInput("my_topic", "localhost:9094")
+        for message in input.get():
             print(message.value)
 
     Args:
