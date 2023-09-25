@@ -16,15 +16,14 @@
 
 import json
 import logging
-from typing import AsyncIterator, Dict, List, Union
+from typing import Dict, List, Union
 
 import pyflink
 from kafka import KafkaConsumer, TopicPartition
-from pyflink.datastream import StreamExecutionEnvironment
-from pyflink.table import EnvironmentSettings, StreamTableEnvironment, TableSchema
+from pyflink.table import EnvironmentSettings, TableEnvironment, TableSchema
 from pyspark.sql import DataFrame, SparkSession
 from streamz import Stream
-from streamz.dataframe import ZDataFrame
+from streamz.dataframe import DataFrame as ZDataFrame
 
 from .input import Input
 
@@ -116,26 +115,6 @@ class StreamingInput(Input):
         else:
             raise KafkaConnectionError("No Kafka consumer available.")
 
-    async def get_async(self) -> AsyncIterator[KafkaMessage]:
-        """
-        🔄 Asynchronous iterator method for yielding data from the Kafka consumer.
-
-        Yields:
-            KafkaMessage: The next message from the Kafka consumer.
-
-        Raises:
-            Exception: If no Kafka consumer is available.
-        """
-        if self.consumer:
-            try:
-                async for message in self.consumer:
-                    yield message
-            except Exception as e:
-                self.log.exception(f"🚫 Failed to iterate over Kafka consumer: {e}")
-                raise
-        else:
-            raise KafkaConnectionError("No Kafka consumer available.")
-
     def streamz_df(self) -> ZDataFrame:
         """
         Get a streamz DataFrame from the Kafka topic.
@@ -220,17 +199,18 @@ class StreamingInput(Input):
 
         try:
             # Initialize Flink environment
-            env = StreamExecutionEnvironment.get_execution_environment()
-            env_settings = EnvironmentSettings.new_instance().in_streaming_mode().use_blink_planner().build()
-            table_env = StreamTableEnvironment.create(env, environment_settings=env_settings)
+            env_settings = EnvironmentSettings.in_streaming_mode()
+            table_env = TableEnvironment.create(env_settings)
 
             # Create Flink Kafka connector
-            field_names = ",".join(table_schema.names)
-            field_types = ",".join(table_schema.types)
+            field_names = table_schema.get_field_names()
+            field_types = [str(x) for x in table_schema.get_field_data_types()]
+
+            fields_str = ",\n".join([f"{f} {t}" for f, t in zip(field_names, field_types)])
 
             kafka_connector_ddl = f"""
             CREATE TABLE kafka_source (
-                {field_names} {field_types}
+                {fields_str}
             ) WITH (
                 'connector' = 'kafka',
                 'topic' = '{self.input_topic}',
@@ -239,6 +219,7 @@ class StreamingInput(Input):
                 'format' = 'json'
             )
             """
+            print(kafka_connector_ddl)
 
             # Register the source table in Flink
             table_env.execute_sql(kafka_connector_ddl)
