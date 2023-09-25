@@ -20,6 +20,12 @@ import os
 import tempfile
 from typing import List
 
+from typing import Union
+from pyspark.sql import SparkSession, Row
+import shutil
+import glob
+import pyspark
+
 from .batch_input import BatchInput
 from .streaming_input import StreamingInput
 
@@ -40,8 +46,8 @@ class StreamToBatchInput(StreamingInput, BatchInput):
 
     Usage:
     ```python
-    config = StreamToBatchInput("my_topic", "localhost:9094", buffer_size=100)
-    temp_folder = config.get()
+    input = StreamToBatchInput("my_topic", "localhost:9094", buffer_size=100)
+    folder = input.get()
     ```
 
     Note:
@@ -89,10 +95,11 @@ class StreamToBatchInput(StreamingInput, BatchInput):
         """
         try:
             buffered_messages = []
-            for i, message in enumerate(self):
+            consumer = self.get()
+            for i, message in enumerate(consumer):
                 if i >= self.buffer_size:
                     break
-                buffered_messages.append(json.loads(message.value.decode("utf-8")))
+                buffered_messages.append(json.loads(message.value.decode("utf-8")))  # type: ignore
             return buffered_messages
         except Exception as e:
             self.log.error(f"Kafka error occurred: {e}")
@@ -131,3 +138,61 @@ class StreamToBatchInput(StreamingInput, BatchInput):
             # Additional resource cleanup logic here
         except Exception as e:
             self.log.error(f"Failed to close resources: {e}")
+
+    def compose(self, *inputs: "StreamToBatchInput") -> Union[bool, str]:  # type: ignore
+        """
+        🔄 Compose multiple StreamToBatchInput instances by merging their buffered messages.
+
+        Args:
+            inputs (StreamToBatchInput): Variable number of StreamToBatchInput instances.
+
+        Returns:
+            Union[bool, str]: True if successful, error message otherwise.
+        """
+        try:
+            # Validate that all inputs are of type StreamToBatchInput
+            for input_instance in inputs:
+                if not isinstance(input_instance, StreamToBatchInput):
+                    return f"❌ Incompatible input type: {type(input_instance).__name__}"
+
+            # Merge the buffered messages from all the StreamToBatchInput instances
+            for input_instance in inputs:
+                src_folder = input_instance.temp_folder
+                for filename in os.listdir(src_folder):
+                    src_path = os.path.join(src_folder, filename)
+                    dest_path = os.path.join(self.temp_folder, filename)
+
+                    if os.path.isfile(src_path):
+                        shutil.copy2(src_path, dest_path)
+
+            return True
+        except Exception as e:
+            self.log.error(f"❌ Error during composition: {e}")
+            return str(e)
+
+    def spark_df(self, spark: SparkSession) -> pyspark.sql.DataFrame:
+        """
+        📊 Convert the buffered messages into a Spark DataFrame.
+
+        Args:
+            spark (SparkSession): The SparkSession object.
+
+        Returns:
+            pyspark.sql.DataFrame: A Spark DataFrame representing the buffered messages.
+        """
+        try:
+
+            def file_generator():
+                files = glob.glob(f"{self.temp_folder}/*")
+                for file in files:
+                    with open(file, "r") as f:
+                        content = json.load(f)
+                    yield Row(**content)
+
+            rdd = spark.sparkContext.parallelize(file_generator())
+            df = spark.createDataFrame(rdd)
+
+            return df
+        except Exception as e:
+            self.log.error(f"❌ Failed to create Spark DataFrame: {e}")
+            raise
