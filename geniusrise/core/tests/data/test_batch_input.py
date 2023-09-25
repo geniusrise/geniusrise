@@ -15,15 +15,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-
 import boto3
 import pytest
-
-from geniusrise.core.data import BatchInput
+from pyspark.sql import SparkSession
+from geniusrise.core.data.batch_input import BatchInput, FileNotExistError
 
 # Define your S3 bucket and folder details as constants
 BUCKET = "geniusrise-test-bucket"
 S3_FOLDER = "whatever"
+
+# Initialize Spark session for testing
+spark = SparkSession.builder.master("local[1]").appName("GeniusRise").getOrCreate()
 
 
 # Define a fixture for BatchInput
@@ -44,13 +46,12 @@ def test_batch_input_config_get(batch_input_config):
     assert batch_input_config.get() == batch_input_config.input_folder
 
 
-# Test that the BatchInput can validate files
 def test_batch_input_config_validate_file(batch_input_config):
     test_file = "test_file.txt"
     with open(os.path.join(batch_input_config.input_folder, test_file), "w") as f:
         f.write("test")
-    assert batch_input_config.validate_file(test_file)
-    assert not batch_input_config.validate_file("nonexistent.txt")
+    assert batch_input_config._validate_file(test_file)  # Method is now private
+    assert not batch_input_config._validate_file("nonexistent.txt")
 
 
 # Test that the BatchInput can list files in the input folder
@@ -81,20 +82,44 @@ def test_batch_input_config_delete_file(batch_input_config):
     assert not os.path.exists(os.path.join(batch_input_config.input_folder, test_file))
 
 
-# Test that the BatchInput can copy a file to an S3 bucket
-def test_batch_input_config_copy_to_remote(batch_input_config):
-    test_file = "test_file.txt"
+# Test Spark DataFrame creation
+def test_batch_input_config_spark_df(batch_input_config):
+    test_file = "test_spark.txt"
     with open(os.path.join(batch_input_config.input_folder, test_file), "w") as f:
-        f.write("test")
-    batch_input_config.copy_to_remote(test_file, BUCKET, S3_FOLDER)
+        f.write("spark test")
+    df = batch_input_config.spark_df(spark)
+    assert df.count() == 1
+    assert df.first().content == "spark test"
 
-    # Check that the file was copied to the S3 bucket
-    s3 = boto3.resource("s3")
-    obj = s3.Object(BUCKET, os.path.join(S3_FOLDER, "test_file.txt"))
-    assert obj.get()["Body"].read().decode("utf-8") == "test"
 
-    # Clean up the file in the S3 bucket
-    obj.delete()
+# Test composing multiple BatchInput instances
+def test_batch_input_config_compose(batch_input_config, tmpdir):
+    another_input = BatchInput(str(tmpdir.mkdir("another")), BUCKET, S3_FOLDER)
+    test_file = "test_compose.txt"
+    with open(os.path.join(another_input.input_folder, test_file), "w") as f:
+        f.write("compose test")
+    assert batch_input_config.compose(another_input)
+    assert os.path.exists(os.path.join(batch_input_config.input_folder, test_file))
+
+
+# Test collecting metrics
+def test_batch_input_config_collect_metrics(batch_input_config):
+    metrics = batch_input_config.collect_metrics()
+    assert isinstance(metrics, dict)
+
+
+# Test _get_partitioned_key
+def test_batch_input_config_get_partitioned_key(batch_input_config):
+    batch_input_config.partition_scheme = "%Y/%m/%d"
+    partitioned_key = batch_input_config._get_partitioned_key(S3_FOLDER)
+    assert partitioned_key.startswith(S3_FOLDER)
+
+
+# Test FileNotExistError in spark_df
+def test_batch_input_config_spark_df_error():
+    with pytest.raises(FileNotExistError):
+        batch_input = BatchInput("nonexistent_folder", BUCKET, S3_FOLDER)
+        batch_input.spark_df(spark)
 
 
 # Test that the BatchInput can copy files from the S3 bucket
