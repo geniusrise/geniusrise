@@ -70,6 +70,8 @@ def test_batch_input_from_spark(batch_input):
 
 # Test that the BatchInput can save from a Spark DataFrame with partitioning
 def test_batch_input_from_spark_with_partition(batch_input):
+    batch_input.partition_scheme = "%Y/%m/%d"
+
     # Create a Spark DataFrame
     data = [
         Row(filename="test_partition1.json", content=json.dumps({"key": "value1"})),
@@ -78,7 +80,7 @@ def test_batch_input_from_spark_with_partition(batch_input):
     df = spark.createDataFrame(data)
 
     # Save DataFrame to input folder with partitioning
-    batch_input.from_spark(df, partition_scheme="%Y/%m/%d")
+    batch_input.from_spark(df)
 
     # Verify that the files were saved in a partitioned manner
     partition_folder = time.strftime("%Y/%m/%d")

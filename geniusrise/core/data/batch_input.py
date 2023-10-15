@@ -80,13 +80,12 @@ class BatchInput(Input):
         """
         return self.input_folder
 
-    def from_spark(self, df: DataFrame, partition_scheme: Optional[str] = None) -> None:
+    def from_spark(self, df: DataFrame) -> None:
         """
         Save the contents of a Spark DataFrame to the input folder with optional partitioning.
 
         Args:
             df (DataFrame): The Spark DataFrame to save.
-            partition_scheme (Optional[str]): Partitioning scheme for organizing saved files, e.g., "year/month/day".
 
         Raises:
             FileNotExistError: If the input folder does not exist.
@@ -95,13 +94,12 @@ class BatchInput(Input):
             raise FileNotExistError(f"❌ Input folder {self.input_folder} does not exist.")
 
         start_time = time.time()
-        self.partition_scheme = partition_scheme
 
         def save_row(row: Row) -> None:
             filename = row.filename if hasattr(row, "filename") else str(shortuuid.uuid())
             content = row.content if hasattr(row, "content") else json.dumps(row.asDict())
 
-            if partition_scheme:
+            if self.partition_scheme:
                 partitioned_folder = self._get_partitioned_key(".")
                 target_folder = os.path.join(self.input_folder, partitioned_folder)
                 if not os.path.exists(target_folder):
