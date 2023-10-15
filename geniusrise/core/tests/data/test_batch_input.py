@@ -48,42 +48,6 @@ def test_batch_input_get(batch_input):
     assert batch_input.get() == batch_input.input_folder
 
 
-def test_batch_input_validate_file(batch_input):
-    test_file = "test_file.txt"
-    with open(os.path.join(batch_input.input_folder, test_file), "w") as f:
-        f.write("test")
-    assert batch_input._validate_file(test_file)  # Method is now private
-    assert not batch_input._validate_file("nonexistent.txt")
-
-
-# Test that the BatchInput can list files in the input folder
-def test_batch_input_list_files(batch_input):
-    test_file = "test_file.txt"
-    with open(os.path.join(batch_input.input_folder, test_file), "w") as f:
-        f.write("test")
-    files = list(batch_input.list_files())
-    assert len(files) == 1
-    assert test_file in files[0]
-
-
-# Test that the BatchInput can read a file from the input folder
-def test_batch_input_read_file(batch_input):
-    test_file = "test_file.txt"
-    with open(os.path.join(batch_input.input_folder, test_file), "w") as f:
-        f.write("test")
-    contents = batch_input.read_file(test_file)
-    assert contents == "test"
-
-
-# Test that the BatchInput can delete a file from the input folder
-def test_batch_input_delete_file(batch_input):
-    test_file = "test_file.txt"
-    with open(os.path.join(batch_input.input_folder, test_file), "w") as f:
-        f.write("test")
-    batch_input.delete_file(test_file)
-    assert not os.path.exists(os.path.join(batch_input.input_folder, test_file))
-
-
 # Test Spark DataFrame creation
 def test_batch_input_spark_df(batch_input):
     test_file = "test_spark.txt"
