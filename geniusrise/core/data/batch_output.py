@@ -17,7 +17,7 @@
 import json
 import logging
 import os
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 import boto3
 import shortuuid
@@ -95,41 +95,6 @@ class BatchOutput(Output):
         🔄 Flush the output by copying all files and directories from the output folder to a given S3 bucket and folder.
         """
         self.copy_to_remote()
-
-    def list_files(self) -> List[str]:
-        """
-        📜 List all files in the output folder.
-
-        Returns:
-            list: The list of files in the output folder.
-        """
-        return [
-            os.path.join(self.output_folder, f)
-            for f in os.listdir(self.output_folder)
-            if os.path.isfile(os.path.join(self.output_folder, f))
-        ]
-
-    def read_file(self, filename: str) -> str:
-        """
-        📖 Read a file from the output folder.
-
-        Args:
-            filename (str): The name of the file to read.
-
-        Returns:
-            str: The contents of the file.
-        """
-        with open(os.path.join(self.output_folder, filename), "r") as f:
-            return f.read()
-
-    def delete_file(self, filename: str) -> None:
-        """
-        🗑️ Delete a file from the output folder.
-
-        Args:
-            filename (str): The name of the file to delete.
-        """
-        os.remove(os.path.join(self.output_folder, filename))
 
     def copy_file_to_remote(self, filename: str) -> None:
         """

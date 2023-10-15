@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import json
 import os
 
 import boto3
@@ -98,48 +97,6 @@ def file_exists_in_s3(bucket, key):
         print(e)
         return False
     return True
-
-
-# Test that the BatchOutput can list files in the output folder
-def test_batch_output_list_files(batch_output):
-    # First, save a file to the output folder
-    data = {"test": "buffer"}
-    filename = "test_file.json"
-    batch_output.save(data, filename)
-
-    # Then, list the files in the output folder
-    files = batch_output.list_files()
-
-    # Check that the list contains the file that was saved
-    assert os.path.join(batch_output.output_folder, filename) in files
-
-
-# Test that the BatchOutput can read a file from the output folder
-def test_batch_output_read_file(batch_output):
-    # First, save a file to the output folder
-    data = {"test": "buffer"}
-    filename = "test_file.json"
-    batch_output.save(data, filename)
-
-    # Then, read the file from the output folder
-    contents = batch_output.read_file(filename)
-
-    # Check that the contents of the file match the data that was saved
-    assert json.loads(contents) == data
-
-
-# Test that the BatchOutput can delete a file from the output folder
-def test_batch_output_delete_file(batch_output):
-    # First, save a file to the output folder
-    data = {"test": "buffer"}
-    filename = "test_file.json"
-    batch_output.save(data, filename)
-
-    # Then, delete the file from the output folder
-    batch_output.delete_file(filename)
-
-    # Check that the file no longer exists in the output folder
-    assert not os.path.isfile(os.path.join(batch_output.output_folder, filename))
 
 
 # Test that the BatchOutput can copy a specific file to the S3 bucket
