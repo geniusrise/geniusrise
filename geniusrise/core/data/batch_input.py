@@ -42,27 +42,6 @@ class BatchInput(Input):
         s3_folder (str): Folder within the S3 bucket.
         partition_scheme (Optional[str]): Partitioning scheme for S3, e.g., "year/month/day".
 
-    Usage:
-    ```python
-    # Initialize BatchInput
-    input = BatchInput("/path/to/input", "my_bucket", "s3/folder")
-
-    # Get the input folder
-    folder = input.get()
-
-    # Save a Spark DataFrame to the input folder
-    input.from_spark(my_dataframe)
-
-    # Compose multiple BatchInput instances
-    composed = input.compose(input1, input2)
-
-    # Copy files from S3 to the input folder
-    input.copy_from_remote()
-
-    # Collect metrics
-    metrics = input.collect_metrics()
-    ```
-
     Raises:
         FileNotExistError: If the file does not exist.
 
@@ -71,6 +50,38 @@ class BatchInput(Input):
         bucket (str): S3 bucket name.
         s3_folder (str): Folder within the S3 bucket.
         partition_scheme (Optional[str]): Partitioning scheme for S3, e.g., "year/month/day".
+
+    Usage:
+
+        # Initialize BatchInput
+        ```python
+        input = BatchInput("/path/to/input", "my_bucket", "s3/folder")
+        ```
+
+        ### Get the input folder
+        ```python
+        folder = input.get()
+        ```
+
+        ### Save a Spark DataFrame to the input folder
+        ```python
+        input.from_spark(my_dataframe)
+        ```
+
+        ### Compose multiple BatchInput instances
+        ```python
+        composed = input.compose(input1, input2)
+        ```
+
+        ### Copy files from S3 to the input folder
+        ```python
+        input.copy_from_remote()
+        ```
+
+        # Collect metrics
+        ```python
+        metrics = input.collect_metrics()
+        ```
     """
 
     def __init__(

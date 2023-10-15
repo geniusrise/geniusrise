@@ -45,30 +45,6 @@ class BatchOutput(Output):
         s3_folder (str): Folder within the S3 bucket.
         partition_scheme (Optional[str]): Partitioning scheme for S3, e.g., "year/month/day".
 
-    Usage:
-    ```python
-    # Initialize the BatchOutput instance
-    config = BatchOutput("/path/to/output", "my_bucket", "s3/folder", partition_scheme="%Y/%m/%d")
-
-    # Save data to a file
-    config.save({"key": "value"}, "example.json")
-
-    # Compose multiple BatchOutput instances
-    result = config1.compose(config2, config3)
-
-    # Convert output to a Spark DataFrame
-    spark_df = config.to_spark(spark_session)
-
-    # Copy files to a remote S3 bucket
-    config.copy_to_remote()
-
-    # Flush the output to S3
-    config.flush()
-
-    # Collect metrics
-    metrics = config.collect_metrics()
-    ```
-
     Raises:
         FileNotExistError: If the output folder does not exist.
 
@@ -77,6 +53,31 @@ class BatchOutput(Output):
         bucket (str): S3 bucket name.
         s3_folder (str): Folder within the S3 bucket.
         partition_scheme (Optional[str]): Partitioning scheme for S3, e.g., "year/month/day".
+
+
+    Usage:
+        ```python
+        # Initialize the BatchOutput instance
+        config = BatchOutput("/path/to/output", "my_bucket", "s3/folder", partition_scheme="%Y/%m/%d")
+
+        # Save data to a file
+        config.save({"key": "value"}, "example.json")
+
+        # Compose multiple BatchOutput instances
+        result = config1.compose(config2, config3)
+
+        # Convert output to a Spark DataFrame
+        spark_df = config.to_spark(spark_session)
+
+        # Copy files to a remote S3 bucket
+        config.copy_to_remote()
+
+        # Flush the output to S3
+        config.flush()
+
+        # Collect metrics
+        metrics = config.collect_metrics()
+        ```
     """
 
     def __init__(
