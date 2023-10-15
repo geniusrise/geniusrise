@@ -15,11 +15,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
+import json
 import os
 
 import pytest
 from kafka import KafkaProducer
-import json
 
 from geniusrise.cli.boltctl import BoltCtl
 from geniusrise.cli.discover import Discover

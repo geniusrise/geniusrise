@@ -14,11 +14,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from argparse import ArgumentParser, Namespace
-import json
 import ast
+import json
+from argparse import ArgumentParser, Namespace
+from typing import List, Optional
+
 from kubernetes import client
-from typing import Optional, List
 
 from .base import K8sResourceManager
 

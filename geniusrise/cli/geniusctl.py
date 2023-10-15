@@ -29,11 +29,11 @@ from termcolor import colored  # type: ignore
 
 from geniusrise.cli.boltctl import BoltCtl
 from geniusrise.cli.discover import Discover, DiscoveredBolt, DiscoveredSpout
+from geniusrise.cli.dockerctl import DockerCtl
 from geniusrise.cli.spoutctl import SpoutCtl
 from geniusrise.cli.yamlctl import YamlCtl
-from geniusrise.cli.dockerctl import DockerCtl
 from geniusrise.logging import setup_logger
-from geniusrise.runners.k8s import Deployment, Service, Job, CronJob, K8sResourceManager
+from geniusrise.runners.k8s import CronJob, Deployment, Job, K8sResourceManager, Service
 
 
 class GeniusCtl:

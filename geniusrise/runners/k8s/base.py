@@ -14,14 +14,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import json
 import base64
-import time
+import json
 import logging
+import time
 from argparse import ArgumentParser, Namespace
+from typing import List, Optional
+
 from kubernetes import client, config
-from kubernetes.client import Configuration, ApiClient, V1ResourceRequirements, BatchV1Api
-from typing import Optional, List
+from kubernetes.client import ApiClient, BatchV1Api, Configuration, V1ResourceRequirements
 
 
 class K8sResourceManager:

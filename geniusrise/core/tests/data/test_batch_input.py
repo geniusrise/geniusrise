@@ -15,9 +15,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+
 import boto3
 import pytest
 from pyspark.sql import SparkSession
+
 from geniusrise.core.data.batch_input import BatchInput, FileNotExistError
 
 # Define your S3 bucket and folder details as constants

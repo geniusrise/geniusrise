@@ -17,20 +17,8 @@
 import tempfile
 from typing import Any
 
-from geniusrise.core.data import (
-    BatchOutput,
-    Output,
-    StreamingOutput,
-    StreamToBatchOutput,
-)
-from geniusrise.core.state import (
-    DynamoDBState,
-    InMemoryState,
-    PostgresState,
-    RedisState,
-    State,
-    PrometheusState,
-)
+from geniusrise.core.data import BatchOutput, Output, StreamingOutput, StreamToBatchOutput
+from geniusrise.core.state import DynamoDBState, InMemoryState, PostgresState, PrometheusState, RedisState, State
 from geniusrise.core.task import Task
 from geniusrise.logging import setup_logger
 

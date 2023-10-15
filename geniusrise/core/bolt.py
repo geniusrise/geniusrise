@@ -28,14 +28,7 @@ from geniusrise.core.data import (
     StreamToBatchInput,
     StreamToBatchOutput,
 )
-from geniusrise.core.state import (
-    DynamoDBState,
-    InMemoryState,
-    PostgresState,
-    RedisState,
-    State,
-    PrometheusState,
-)
+from geniusrise.core.state import DynamoDBState, InMemoryState, PostgresState, PrometheusState, RedisState, State
 from geniusrise.logging import setup_logger
 
 from .task import Task
@@ -129,7 +122,7 @@ class Bolt(Task):
                 kwargs["input_folder"] = temp_folder
             elif isinstance(self.input, BatchToStreamingInput):
                 self.input.copy_from_remote()
-                iterator = self.input.iterator()
+                iterator = self.input.get()
                 kwargs["kafka_consumer"] = iterator
 
             # Execute the task's method
@@ -234,7 +227,7 @@ class Bolt(Task):
             )
         elif input_type == "streaming":
             input = StreamingInput(
-                input_topic=kwargs["input_kafka_topic"] if "input_kafka_topic" in kwargs else None,
+                input_topic=kwargs["input_kafka_topic"] if "input_kafka_topic" in kwargs else None,  # type: ignore
                 kafka_cluster_connection_string=kwargs["input_kafka_cluster_connection_string"]
                 if "input_kafka_cluster_connection_string" in kwargs
                 else None,

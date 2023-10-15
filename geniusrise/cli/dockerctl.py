@@ -14,14 +14,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
-import subprocess
-import logging
 import argparse
 import json
-from rich_argparse import RichHelpFormatter
+import logging
+import os
+import subprocess
 from typing import Optional
+
 import boto3
+from rich_argparse import RichHelpFormatter
 
 
 class DockerCtl:

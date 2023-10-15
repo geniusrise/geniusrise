@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from .base import K8sResourceManager
-from .deployment import Deployment
-from .service import Service
-from .job import Job
 from .cron_job import CronJob
+from .deployment import Deployment
+from .job import Job
+from .service import Service

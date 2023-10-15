@@ -18,9 +18,9 @@ import logging
 from typing import Any, Optional
 
 import colorlog
-from geniusrise.core.state import State
 
 from geniusrise.config import LOGLEVEL
+from geniusrise.core.state import State
 
 
 class StateHandler(logging.Handler):

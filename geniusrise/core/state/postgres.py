@@ -15,8 +15,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
-from typing import Dict, Optional
 from datetime import datetime
+from typing import Dict, Optional
 
 import jsonpickle
 import psycopg2

@@ -14,8 +14,4 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from geniusrise.runners.k8s import K8sResourceManager
-from geniusrise.runners.k8s import Deployment
-from geniusrise.runners.k8s import Service
-from geniusrise.runners.k8s import Job
-from geniusrise.runners.k8s import CronJob
+from geniusrise.runners.k8s import CronJob, Deployment, Job, K8sResourceManager, Service
