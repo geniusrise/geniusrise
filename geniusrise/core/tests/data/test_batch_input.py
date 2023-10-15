@@ -84,7 +84,7 @@ def test_batch_input_from_spark_with_partition(batch_input):
 
     # Verify that the files were saved in a partitioned manner
     partition_folder = time.strftime("%Y/%m/%d")
-    saved_files = os.listdir(os.path.join(batch_input.input_folder, partition_folder))
+    saved_files = os.listdir(os.path.join(batch_input.input_folder, os.path.join(S3_FOLDER, partition_folder)))
     assert "test_partition1.json" in saved_files
     assert "test_partition2.json" in saved_files
 

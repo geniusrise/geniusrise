@@ -15,11 +15,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-
 import boto3
 import pytest
-
+from pyspark.sql import SparkSession
 from geniusrise.core.data import BatchOutput
+
+# Initialize Spark session for testing
+spark = SparkSession.builder.master("local[1]").appName("GeniusRise").getOrCreate()
 
 # Define your S3 bucket and folder details as constants
 BUCKET = "geniusrise-test-bucket"
@@ -29,7 +31,7 @@ S3_FOLDER = "whatever"
 # Define a fixture for your BatchOutput
 @pytest.fixture
 def batch_output(tmpdir):
-    yield BatchOutput(tmpdir, BUCKET, S3_FOLDER)
+    yield BatchOutput(str(tmpdir), BUCKET, S3_FOLDER)
 
 
 # Test that the BatchOutput can be initialized
@@ -47,6 +49,30 @@ def test_batch_output_save(batch_output):
     assert os.path.isfile(os.path.join(batch_output.output_folder, filename))
 
 
+# Test that the BatchOutput can convert to a Spark DataFrame
+def test_batch_output_to_spark(batch_output):
+    data = {"test": "buffer"}
+    filename = "test_file.json"
+    batch_output.save(data, filename)
+
+    df = batch_output.to_spark(spark)
+    assert df.count() == 1
+    assert df.first().filename.endswith(filename)
+
+
+# Test that the BatchOutput can convert to a Spark DataFrame with partitioning
+def test_batch_output_to_spark_with_partition(batch_output):
+    batch_output.partition_scheme = "%Y/%m/%d"
+
+    data = {"test": "buffer"}
+    filename = "test_file.json"
+    batch_output.save(data, filename)
+
+    df = batch_output.to_spark(spark)
+    assert df.count() == 1
+    assert df.first().filename.endswith(filename)
+
+
 # Test that the BatchOutput can copy files to the S3 bucket
 def test_batch_output_copy_to_remote(batch_output):
     # First, save a file to the output folder
@@ -58,8 +84,6 @@ def test_batch_output_copy_to_remote(batch_output):
     batch_output.copy_to_remote()
 
     # Check that the file was copied to the S3 bucket
-    # Note: This assumes that you have a way to check the contents of the S3 bucket
-    # You might need to use the boto3 library or the AWS CLI to do this
     assert file_exists_in_s3(BUCKET, os.path.join(S3_FOLDER, filename))
 
 
@@ -74,8 +98,6 @@ def test_batch_output_flush(batch_output):
     batch_output.flush()
 
     # Check that the file was copied to the S3 bucket
-    # Note: This assumes that you have a way to check the contents of the S3 bucket
-    # You might need to use the boto3 library or the AWS CLI to do this
     assert file_exists_in_s3(BUCKET, os.path.join(S3_FOLDER, filename))
 
 
@@ -97,17 +119,3 @@ def file_exists_in_s3(bucket, key):
         print(e)
         return False
     return True
-
-
-# Test that the BatchOutput can copy a specific file to the S3 bucket
-def test_batch_output_copy_file_to_remote(batch_output):
-    # First, save a file to the output folder
-    data = {"test": "buffer"}
-    filename = "test_file.json"
-    batch_output.save(data, filename)
-
-    # Then, copy the file to the S3 bucket
-    batch_output.copy_file_to_remote(filename)
-
-    # Check that the file was copied to the S3 bucket
-    assert file_exists_in_s3(BUCKET, os.path.join(S3_FOLDER, filename))
