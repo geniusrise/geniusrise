@@ -32,7 +32,7 @@ S3_FOLDER = "whatever"
 
 # Fixture for BatchToStreamingInput
 @pytest.fixture
-def batch_to_streaming_input_config(tmpdir):
+def batch_to_streaming_input(tmpdir):
     return BatchToStreamingInput(
         input_topic=INPUT_TOPIC,
         kafka_cluster_connection_string=KAFKA_CLUSTER_CONNECTION_STRING,
@@ -44,12 +44,12 @@ def batch_to_streaming_input_config(tmpdir):
 
 
 # Test Initialization
-def test_batch_to_streaming_input_config_init(batch_to_streaming_input_config, tmpdir):
-    assert batch_to_streaming_input_config.input_folder == str(tmpdir)
+def test_batch_to_streaming_input_init(batch_to_streaming_input, tmpdir):
+    assert batch_to_streaming_input.input_folder == str(tmpdir)
 
 
 # Test stream_batch
-def test_batch_to_streaming_input_config_stream_batch(batch_to_streaming_input_config, tmpdir):
+def test_batch_to_streaming_input_stream_batch(batch_to_streaming_input, tmpdir):
     # Create a sample batch file
     sample_data = [{"key": i} for i in range(10)]
     for i, data in enumerate(sample_data):
@@ -58,7 +58,7 @@ def test_batch_to_streaming_input_config_stream_batch(batch_to_streaming_input_c
             json.dump(data, f)
 
     # Test get method
-    stream_iterator = batch_to_streaming_input_config.get()
+    stream_iterator = batch_to_streaming_input.get()
     for _, kafka_message in enumerate(stream_iterator):
         assert kafka_message.value["key"] >= 0
         assert kafka_message.value["key"] < 10
@@ -66,15 +66,15 @@ def test_batch_to_streaming_input_config_stream_batch(batch_to_streaming_input_c
 
 
 # Test KafkaMessage namedtuple
-def test_kafka_message_namedtuple(batch_to_streaming_input_config):
+def test_kafka_message_namedtuple(batch_to_streaming_input):
     # Create a sample batch file
     sample_data = [{"key": 0}]
-    sample_file_path = os.path.join(batch_to_streaming_input_config.input_folder, "sample.json")
+    sample_file_path = os.path.join(batch_to_streaming_input.input_folder, "sample.json")
     with open(sample_file_path, "w") as f:
         json.dump(sample_data, f)
 
     # Test get method
-    stream_iterator = batch_to_streaming_input_config.get()
+    stream_iterator = batch_to_streaming_input.get()
     kafka_message = next(stream_iterator)
     assert isinstance(kafka_message, KafkaMessage)
     assert kafka_message._fields == ("key", "value")

@@ -39,54 +39,54 @@ spark_session = (
 
 # Fixture for StreamingInput
 @pytest.fixture
-def streaming_input_config():
+def streaming_input():
     si = StreamingInput(INPUT_TOPIC, KAFKA_CLUSTER_CONNECTION_STRING, GROUP_ID)
     yield si
     si.close()
 
 
 # Test Initialization
-def test_streaming_input_config_init(streaming_input_config):
-    assert streaming_input_config.input_topic == INPUT_TOPIC
-    assert isinstance(streaming_input_config.consumer, KafkaConsumer)
+def test_streaming_input_init(streaming_input):
+    assert streaming_input.input_topic == INPUT_TOPIC
+    assert isinstance(streaming_input.consumer, KafkaConsumer)
 
 
 # Test Get Consumer
-def test_streaming_input_config_get(streaming_input_config):
-    consumer = streaming_input_config.get()
+def test_streaming_input_get(streaming_input):
+    consumer = streaming_input.get()
     assert consumer is not None
 
 
 # Test Close Consumer
-def test_streaming_input_config_close(streaming_input_config):
+def test_streaming_input_close(streaming_input):
     try:
-        streaming_input_config.close()
+        streaming_input.close()
     except Exception:
         pytest.fail("Failed to close Kafka consumer")
 
 
 # Test Seek
-def test_streaming_input_config_seek(streaming_input_config):
-    itr = streaming_input_config.get()
+def test_streaming_input_seek(streaming_input):
+    itr = streaming_input.get()
     itr.poll(0)
     try:
-        streaming_input_config.seek(0)
+        streaming_input.seek(0)
     except Exception:
         pytest.fail("Failed to seek Kafka consumer")
 
 
 # Test Commit Offsets
-def test_streaming_input_config_commit(streaming_input_config):
+def test_streaming_input_commit(streaming_input):
     try:
-        streaming_input_config.commit()
+        streaming_input.commit()
     except Exception:
         pytest.fail("Failed to commit offsets")
 
 
 # Test Collect Metrics
-def test_streaming_input_config_collect_metrics(streaming_input_config):
+def test_streaming_input_collect_metrics(streaming_input):
     try:
-        metrics = streaming_input_config.collect_metrics()
+        metrics = streaming_input.collect_metrics()
         assert "request_latency_avg" in metrics
         assert "request_latency_max" in metrics
     except Exception:
@@ -94,33 +94,33 @@ def test_streaming_input_config_collect_metrics(streaming_input_config):
 
 
 # Test for streamz_df method
-def test_streaming_input_streamz_df(streaming_input_config):
-    sdf = streaming_input_config.streamz_df()
+def test_streaming_input_streamz_df(streaming_input):
+    sdf = streaming_input.streamz_df()
     assert sdf is not None
 
 
 # Test for spark_df method
 @pytest.mark.skipif(not spark_session, reason="SparkSession not available.")
-def test_streaming_input_spark_df(streaming_input_config):
+def test_streaming_input_spark_df(streaming_input):
     try:
-        df = streaming_input_config.spark_df(spark_session)
+        df = streaming_input.spark_df(spark_session)
         assert df is not None
     except KafkaConnectionError:
         pytest.fail("Failed to create Spark DataFrame")
 
 
 # Test Flink Table
-def test_streaming_input_config_flink_table(streaming_input_config):
+def test_streaming_input_flink_table(streaming_input):
     try:
-        flink_table = streaming_input_config.flink_table(FLINK_TABLE_SCHEMA)
+        flink_table = streaming_input.flink_table(FLINK_TABLE_SCHEMA)
         assert flink_table is not None
     except KafkaConnectionError:
         pytest.fail("Failed to create Flink table")
 
 
 # Test for compose method
-def test_streaming_input_compose(streaming_input_config):
+def test_streaming_input_compose(streaming_input):
     # Create another StreamingInput instance for composition
     another_input = StreamingInput("another_topic", KAFKA_CLUSTER_CONNECTION_STRING, GROUP_ID)
-    result = streaming_input_config.compose(another_input)
+    result = streaming_input.compose(another_input)
     assert result is True

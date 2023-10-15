@@ -33,7 +33,7 @@ BUFFER_SIZE = 10
 
 # Fixtures
 @pytest.fixture
-def stream_to_batch_output_config(tmpdir):
+def stream_to_batch_output(tmpdir):
     return StreamToBatchOutput(
         output_topic=OUTPUT_TOPIC,
         kafka_servers=KAFKA_SERVERS,
@@ -63,23 +63,23 @@ def file_exists_in_s3(bucket, key):
 
 
 # Tests
-def test_stream_to_batch_output_init(stream_to_batch_output_config):
-    assert stream_to_batch_output_config.buffer_size == BUFFER_SIZE
+def test_stream_to_batch_output_init(stream_to_batch_output):
+    assert stream_to_batch_output.buffer_size == BUFFER_SIZE
 
 
-def test_stream_to_batch_output_save(stream_to_batch_output_config):
+def test_stream_to_batch_output_save(stream_to_batch_output):
     data = {"test": "buffer"}
     for _ in range(BUFFER_SIZE):
-        stream_to_batch_output_config.save(data)
+        stream_to_batch_output.save(data)
 
-    files = os.listdir(stream_to_batch_output_config.output_folder)
+    files = os.listdir(stream_to_batch_output.output_folder)
     assert any(file_exists_in_s3(BUCKET, os.path.join(S3_FOLDER, f)) for f in files)
 
 
-def test_stream_to_batch_output_flush(stream_to_batch_output_config):
+def test_stream_to_batch_output_flush(stream_to_batch_output):
     data = {"test": "buffer"}
     for _ in range(BUFFER_SIZE - 1):
-        stream_to_batch_output_config.save(data)
+        stream_to_batch_output.save(data)
 
-    stream_to_batch_output_config.flush()
-    assert len(stream_to_batch_output_config.buffered_messages) == 0
+    stream_to_batch_output.flush()
+    assert len(stream_to_batch_output.buffered_messages) == 0
