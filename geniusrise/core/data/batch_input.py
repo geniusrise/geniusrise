@@ -14,18 +14,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import glob
 import os
 import shutil
 import time
 from typing import Dict, Optional, Union
 
 import boto3
-import pyspark
-from pyspark.sql import Row, SparkSession
+from pyspark.sql import Row, DataFrame
 from retrying import retry
+import shortuuid
+import json
 
-from .input import Input  # Assuming Input is in the same package
+from .input import Input
 
 
 class FileNotExistError(Exception):
@@ -69,7 +69,7 @@ class BatchInput(Input):
         self.bucket = bucket
         self.s3_folder = s3_folder
         self.partition_scheme = partition_scheme
-        self._metrics: Dict[str, float] = {}  # Initialize metrics dictionary
+        self._metrics: Dict[str, float] = {}
 
     def get(self) -> str:
         """
@@ -80,12 +80,13 @@ class BatchInput(Input):
         """
         return self.input_folder
 
-    def spark_df(self, spark: SparkSession) -> pyspark.sql.DataFrame:
+    def from_spark(self, df: DataFrame, partition_scheme: Optional[str] = None) -> None:
         """
-        Get a Spark DataFrame from the input folder.
+        Save the contents of a Spark DataFrame to the input folder with optional partitioning.
 
-        Returns:
-            pyspark.sql.DataFrame: A Spark DataFrame where each row corresponds to a file in the input folder.
+        Args:
+            df (DataFrame): The Spark DataFrame to save.
+            partition_scheme (Optional[str]): Partitioning scheme for organizing saved files, e.g., "year/month/day".
 
         Raises:
             FileNotExistError: If the input folder does not exist.
@@ -93,17 +94,29 @@ class BatchInput(Input):
         if not os.path.exists(self.input_folder):
             raise FileNotExistError(f"❌ Input folder {self.input_folder} does not exist.")
 
-        def file_generator():
-            files = glob.glob(f"{self.input_folder}/*")
-            for file in files:
-                with open(file, "r") as f:
-                    content = f.read()
-                yield Row(filename=file, content=content)
+        start_time = time.time()
+        self.partition_scheme = partition_scheme
 
-        rdd = spark.sparkContext.parallelize(file_generator())
-        df = spark.createDataFrame(rdd)
+        def save_row(row: Row) -> None:
+            filename = row.filename if hasattr(row, "filename") else str(shortuuid.uuid())
+            content = row.content if hasattr(row, "content") else json.dumps(row.asDict())
 
-        return df
+            if partition_scheme:
+                partitioned_folder = self._get_partitioned_key(".")
+                target_folder = os.path.join(self.input_folder, partitioned_folder)
+                if not os.path.exists(target_folder):
+                    os.makedirs(target_folder)
+            else:
+                target_folder = self.input_folder
+
+            file_path = os.path.join(target_folder, filename)
+            with open(file_path, "w") as f:
+                f.write(content)
+
+        df.foreach(save_row)
+
+        end_time = time.time()
+        self._metrics["from_spark_time"] = end_time - start_time
 
     def compose(self, *inputs: "Input") -> Union[bool, str]:
         """
