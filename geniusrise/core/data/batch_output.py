@@ -36,21 +36,47 @@ class FileNotExistError(Exception):
 
 
 class BatchOutput(Output):
-    """
+    r"""
     📁 BatchOutput: Manages batch output data.
 
     Attributes:
         output_folder (str): Folder to save output files.
         bucket (str): S3 bucket name.
         s3_folder (str): Folder within the S3 bucket.
+        partition_scheme (Optional[str]): Partitioning scheme for S3, e.g., "year/month/day".
 
     Usage:
     ```python
-    config = BatchOutput("/path/to/output", "my_bucket", "s3/folder")
+    # Initialize the BatchOutput instance
+    config = BatchOutput("/path/to/output", "my_bucket", "s3/folder", partition_scheme="%Y/%m/%d")
+
+    # Save data to a file
     config.save({"key": "value"}, "example.json")
-    files = config.list_files()
-    content = config.read_file("example.json")
+
+    # Compose multiple BatchOutput instances
+    result = config1.compose(config2, config3)
+
+    # Convert output to a Spark DataFrame
+    spark_df = config.to_spark(spark_session)
+
+    # Copy files to a remote S3 bucket
+    config.copy_to_remote()
+
+    # Flush the output to S3
+    config.flush()
+
+    # Collect metrics
+    metrics = config.collect_metrics()
     ```
+
+    Raises:
+        FileNotExistError: If the output folder does not exist.
+
+    Args:
+        output_folder (str): Folder to save output files.
+        bucket (str): S3 bucket name.
+        s3_folder (str): Folder within the S3 bucket.
+        partition_scheme (Optional[str]): Partitioning scheme for S3, e.g., "year/month/day".
     """
 
     def __init__(
@@ -154,7 +180,6 @@ class BatchOutput(Output):
             else:
                 target_folder = self.output_folder
 
-            print(target_folder, "&**********************************************")
             files = glob.glob(f"{target_folder}/*")
             for file in files:
                 with open(file, "r") as f:
