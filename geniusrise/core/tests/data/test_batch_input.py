@@ -15,12 +15,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import json
+import time
 
 import boto3
 import pytest
-from pyspark.sql import SparkSession
+from pyspark.sql import SparkSession, Row
 
-from geniusrise.core.data.batch_input import BatchInput, FileNotExistError
+from geniusrise.core.data.batch_input import BatchInput
 
 # Define your S3 bucket and folder details as constants
 BUCKET = "geniusrise-test-bucket"
@@ -48,14 +50,41 @@ def test_batch_input_get(batch_input):
     assert batch_input.get() == batch_input.input_folder
 
 
-# Test Spark DataFrame creation
-def test_batch_input_spark_df(batch_input):
-    test_file = "test_spark.txt"
-    with open(os.path.join(batch_input.input_folder, test_file), "w") as f:
-        f.write("spark test")
-    df = batch_input.spark_df(spark)
-    assert df.count() == 1
-    assert df.first().content == "spark test"
+# Test that the BatchInput can save from a Spark DataFrame
+def test_batch_input_from_spark(batch_input):
+    # Create a Spark DataFrame
+    data = [
+        Row(filename="test1.json", content=json.dumps({"key": "value1"})),
+        Row(filename="test2.json", content=json.dumps({"key": "value2"})),
+    ]
+    df = spark.createDataFrame(data)
+
+    # Save DataFrame to input folder
+    batch_input.from_spark(df)
+
+    # Verify that the files were saved
+    saved_files = os.listdir(batch_input.input_folder)
+    assert "test1.json" in saved_files
+    assert "test2.json" in saved_files
+
+
+# Test that the BatchInput can save from a Spark DataFrame with partitioning
+def test_batch_input_from_spark_with_partition(batch_input):
+    # Create a Spark DataFrame
+    data = [
+        Row(filename="test_partition1.json", content=json.dumps({"key": "value1"})),
+        Row(filename="test_partition2.json", content=json.dumps({"key": "value2"})),
+    ]
+    df = spark.createDataFrame(data)
+
+    # Save DataFrame to input folder with partitioning
+    batch_input.from_spark(df, partition_scheme="%Y/%m/%d")
+
+    # Verify that the files were saved in a partitioned manner
+    partition_folder = time.strftime("%Y/%m/%d")
+    saved_files = os.listdir(os.path.join(batch_input.input_folder, partition_folder))
+    assert "test_partition1.json" in saved_files
+    assert "test_partition2.json" in saved_files
 
 
 # Test composing multiple BatchInput instances
@@ -79,13 +108,6 @@ def test_batch_input_get_partitioned_key(batch_input):
     batch_input.partition_scheme = "%Y/%m/%d"
     partitioned_key = batch_input._get_partitioned_key(S3_FOLDER)
     assert partitioned_key.startswith(S3_FOLDER)
-
-
-# Test FileNotExistError in spark_df
-def test_batch_input_spark_df_error():
-    with pytest.raises(FileNotExistError):
-        batch_input = BatchInput("nonexistent_folder", BUCKET, S3_FOLDER)
-        batch_input.spark_df(spark)
 
 
 # Test that the BatchInput can copy files from the S3 bucket
