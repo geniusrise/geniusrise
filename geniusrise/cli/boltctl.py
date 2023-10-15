@@ -25,7 +25,7 @@ from rich_argparse import RichHelpFormatter
 
 from geniusrise.cli.discover import DiscoveredBolt
 from geniusrise.core import Bolt
-from geniusrise.runners.k8s import Deployment, Service, Job, CronJob
+from geniusrise.runners.k8s import CronJob, Deployment, Job, Service
 
 
 class BoltCtl:

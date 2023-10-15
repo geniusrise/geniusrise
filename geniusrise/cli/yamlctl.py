@@ -17,18 +17,18 @@
 import argparse
 import logging
 import typing
+from concurrent.futures import ThreadPoolExecutor, wait
 from typing import Dict, List
-
-# import os
 
 import emoji  # type: ignore
 import yaml  # type: ignore
-from concurrent.futures import ThreadPoolExecutor, wait
 from rich_argparse import RichHelpFormatter
 
 from geniusrise.cli.boltctl import BoltCtl
 from geniusrise.cli.schema import Bolt, Geniusfile, Spout
 from geniusrise.cli.spoutctl import SpoutCtl
+
+# import os
 
 
 class YamlCtl:

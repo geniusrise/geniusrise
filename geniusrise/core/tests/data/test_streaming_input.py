@@ -19,7 +19,8 @@ import pytest
 from kafka import KafkaConsumer
 from pyflink.table import DataTypes, TableSchema
 from pyspark.sql import SparkSession
-from geniusrise.core.data.streaming_input import StreamingInput, KafkaConnectionError
+
+from geniusrise.core.data.streaming_input import KafkaConnectionError, StreamingInput
 
 # Constants
 KAFKA_CLUSTER_CONNECTION_STRING = "localhost:9094"

@@ -14,17 +14,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import glob
 import json
 import logging
 import os
-import tempfile
-from typing import List
-
-from typing import Union
-from pyspark.sql import SparkSession, Row
 import shutil
-import glob
+import tempfile
+from typing import List, Union
+
 import pyspark
+from pyspark.sql import Row, SparkSession
 
 from .batch_input import BatchInput
 from .streaming_input import StreamingInput

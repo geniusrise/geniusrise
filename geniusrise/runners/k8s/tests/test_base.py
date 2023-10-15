@@ -14,9 +14,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pytest
 import subprocess
 import time
+
+import pytest
+
 from geniusrise.runners.k8s.base import K8sResourceManager
 
 

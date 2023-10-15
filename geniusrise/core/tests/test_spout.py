@@ -18,13 +18,7 @@ import pytest
 
 from geniusrise.core import Spout
 from geniusrise.core.data import BatchOutput, StreamingOutput, StreamToBatchOutput
-from geniusrise.core.state import (
-    DynamoDBState,
-    InMemoryState,
-    PostgresState,
-    RedisState,
-    PrometheusState,
-)
+from geniusrise.core.state import DynamoDBState, InMemoryState, PostgresState, PrometheusState, RedisState
 
 output_topic = "test_topic"
 kafka_servers = "localhost:9094"

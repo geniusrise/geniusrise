@@ -14,13 +14,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pytest
 import json
-from geniusrise.runners.k8s.base import K8sResourceManager
-from geniusrise.runners.k8s.deployment import Deployment
-from argparse import Namespace
 import subprocess
 import time
+from argparse import Namespace
+
+import pytest
+
+from geniusrise.runners.k8s.base import K8sResourceManager
+from geniusrise.runners.k8s.deployment import Deployment
 
 
 @pytest.fixture(scope="module")

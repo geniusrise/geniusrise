@@ -14,17 +14,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import time
 import logging
-import threading
-import socket
-import GPUtil
 import platform
-from datetime import datetime
-import psutil
+import socket
+import threading
+import time
 from abc import ABC, abstractmethod
-from typing import Dict, Optional, Any, Callable
-from prometheus_client import Counter, Gauge, Summary, CollectorRegistry
+from datetime import datetime
+from typing import Any, Callable, Dict, Optional
+
+import GPUtil
+import psutil
+from prometheus_client import CollectorRegistry, Counter, Gauge, Summary
 
 
 class State(ABC):

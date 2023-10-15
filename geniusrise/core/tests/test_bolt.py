@@ -29,13 +29,7 @@ from geniusrise.core.data import (
     StreamToBatchInput,
     StreamToBatchOutput,
 )
-from geniusrise.core.state import (
-    DynamoDBState,
-    InMemoryState,
-    PostgresState,
-    RedisState,
-    PrometheusState,
-)
+from geniusrise.core.state import DynamoDBState, InMemoryState, PostgresState, PrometheusState, RedisState
 
 # Define the parameters for the tests
 bucket = "geniusrise-test-bucket"
