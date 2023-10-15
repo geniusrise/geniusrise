@@ -100,7 +100,7 @@ class BatchInput(Input):
             content = row.content if hasattr(row, "content") else json.dumps(row.asDict())
 
             if self.partition_scheme:
-                partitioned_folder = self._get_partitioned_key(".")
+                partitioned_folder = self._get_partitioned_key(self.s3_folder)
                 target_folder = os.path.join(self.input_folder, partitioned_folder)
                 if not os.path.exists(target_folder):
                     os.makedirs(target_folder)
