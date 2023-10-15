@@ -33,7 +33,7 @@ class FileNotExistError(Exception):
 
 
 class BatchInput(Input):
-    """
+    r"""
     📁 BatchInput: Manages batch input data.
 
     Attributes:
@@ -43,8 +43,25 @@ class BatchInput(Input):
         partition_scheme (Optional[str]): Partitioning scheme for S3, e.g., "year/month/day".
 
     Usage:
-        input = BatchInput("/path/to/input", "my_bucket", "s3/folder")
-        folder = input.get()
+    ```python
+    # Initialize BatchInput
+    input = BatchInput("/path/to/input", "my_bucket", "s3/folder")
+
+    # Get the input folder
+    folder = input.get()
+
+    # Save a Spark DataFrame to the input folder
+    input.from_spark(my_dataframe)
+
+    # Compose multiple BatchInput instances
+    composed = input.compose(input1, input2)
+
+    # Copy files from S3 to the input folder
+    input.copy_from_remote()
+
+    # Collect metrics
+    metrics = input.collect_metrics()
+    ```
 
     Raises:
         FileNotExistError: If the file does not exist.
