@@ -18,7 +18,7 @@ import glob
 import os
 import shutil
 import time
-from typing import Dict, Generator, Optional, Union
+from typing import Dict, Optional, Union
 
 import boto3
 import pyspark
@@ -132,91 +132,6 @@ class BatchInput(Input):
         except Exception as e:
             self.log.error(f"❌ Error during composition: {e}")
             return str(e)
-
-    def _validate_file(self, filename: str) -> bool:
-        """
-        Validate if the file exists and is a file.
-
-        Args:
-            filename (str): The name of the file to validate.
-
-        Returns:
-            bool: True if the file is valid, False otherwise.
-        """
-        file_path = os.path.join(self.input_folder, filename)
-        if os.path.exists(file_path) and os.path.isfile(file_path):
-            return True
-        self.log.error(f"❌ Invalid file: {filename}")
-        return False
-
-    def list_files(self, start: Optional[int] = None, limit: Optional[int] = None) -> Generator[str, None, None]:
-        """
-        List all files in the input folder with optional pagination.
-
-        Args:
-            start (Optional[int]): The starting index for pagination.
-            limit (Optional[int]): The maximum number of files to return.
-
-        Yields:
-            str: The next file path in the input folder.
-        """
-        start_time = time.time()
-        count = 0
-        for f in os.listdir(self.input_folder):
-            file_path = os.path.join(self.input_folder, f)
-            if os.path.isfile(file_path):
-                if start is not None and count < start:
-                    count += 1
-                    continue
-                if limit is not None and count >= (start or 0) + limit:
-                    break
-                yield file_path
-                count += 1
-        end_time = time.time()
-        self._metrics["list_time"] = end_time - start_time  # Record time taken to list files
-
-    @retry(stop_max_attempt_number=3, wait_fixed=2000)
-    def read_file(self, filename: str) -> str:
-        """
-        Read the content of a file.
-
-        Args:
-            filename (str): The name of the file to read.
-
-        Returns:
-            str: The content of the file.
-
-        Raises:
-            FileNotExistError: If the file does not exist.
-        """
-        start_time = time.time()
-        if self._validate_file(filename):
-            with open(os.path.join(self.input_folder, filename), "r") as file:
-                content = file.read()
-            end_time = time.time()
-            self._metrics["read_time"] = end_time - start_time  # Record time taken to read a file
-            return content
-        else:
-            raise FileNotExistError(f"❌ Invalid file: {filename}")
-
-    @retry(stop_max_attempt_number=3, wait_fixed=2000)
-    def delete_file(self, filename: str) -> None:
-        """
-        Delete a file.
-
-        Args:
-            filename (str): The name of the file to delete.
-
-        Raises:
-            FileNotExistError: If the file does not exist.
-        """
-        start_time = time.time()
-        if self._validate_file(filename):
-            os.remove(os.path.join(self.input_folder, filename))
-            end_time = time.time()
-            self._metrics["delete_time"] = end_time - start_time  # Record time taken to delete a file
-        else:
-            raise FileNotExistError(f"❌ Invalid file: {filename}")
 
     @retry(stop_max_attempt_number=3, wait_fixed=2000)
     def copy_from_remote(self) -> None:
