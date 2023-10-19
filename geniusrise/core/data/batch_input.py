@@ -21,7 +21,6 @@ from typing import Dict, Optional, Union
 
 import boto3
 from pyspark.sql import Row, DataFrame
-from retrying import retry
 import shortuuid
 import json
 
@@ -75,7 +74,7 @@ class BatchInput(Input):
 
         ### Copy files from S3 to the input folder
         ```python
-        input.copy_from_remote()
+        input.from_s3()
         ```
 
         # Collect metrics
@@ -144,6 +143,34 @@ class BatchInput(Input):
         end_time = time.time()
         self._metrics["from_spark_time"] = end_time - start_time
 
+    def from_s3(
+        self,
+        bucket: Optional[str] = None,
+        s3_folder: Optional[str] = None,
+    ) -> None:
+        """
+        Copy contents from a given S3 bucket and location to the input folder.
+
+        Raises:
+            Exception: If the input folder is not specified.
+        """
+        self.bucket = bucket if bucket else self.bucket
+        self.s3_folder = s3_folder if s3_folder else self.s3_folder
+
+        start_time = time.time()
+        if self.input_folder:
+            s3 = boto3.resource("s3")
+            _bucket = s3.Bucket(self.bucket)
+            prefix = self._get_partitioned_key(self.s3_folder)
+            for obj in _bucket.objects.filter(Prefix=prefix):
+                if not os.path.exists(os.path.dirname(f"{self.input_folder}/{obj.key}")):
+                    os.makedirs(os.path.dirname(f"{self.input_folder}/{obj.key}"))
+                _bucket.download_file(obj.key, f"{self.input_folder}/{obj.key}")
+            end_time = time.time()
+            self._metrics["from_s3_time"] = end_time - start_time
+        else:
+            raise Exception("❌ Input folder not specified.")
+
     def compose(self, *inputs: "Input") -> Union[bool, str]:
         """
         Compose multiple BatchInput instances by merging their input folders.
@@ -171,28 +198,6 @@ class BatchInput(Input):
         except Exception as e:
             self.log.exception(f"❌ Error during composition: {e}")
             return str(e)
-
-    @retry(stop_max_attempt_number=3, wait_fixed=2000)
-    def copy_from_remote(self) -> None:
-        """
-        Copy contents from a given S3 bucket and location to the input folder.
-
-        Raises:
-            Exception: If the input folder is not specified.
-        """
-        start_time = time.time()
-        if self.input_folder:
-            s3 = boto3.resource("s3")
-            _bucket = s3.Bucket(self.bucket)
-            prefix = self._get_partitioned_key(self.s3_folder)
-            for obj in _bucket.objects.filter(Prefix=prefix):
-                if not os.path.exists(os.path.dirname(f"{self.input_folder}/{obj.key}")):
-                    os.makedirs(os.path.dirname(f"{self.input_folder}/{obj.key}"))
-                _bucket.download_file(obj.key, f"{self.input_folder}/{obj.key}")
-            end_time = time.time()
-            self._metrics["copy_from_remote_time"] = end_time - start_time  # Record time taken to copy from remote
-        else:
-            raise Exception("❌ Input folder not specified.")
 
     def collect_metrics(self) -> Dict[str, float]:
         """

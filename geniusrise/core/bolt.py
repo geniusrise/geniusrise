@@ -111,7 +111,7 @@ class Bolt(Task):
 
             # Copy input data to local or connect to kafka and pass on the details
             if type(self.input) is BatchInput:
-                self.input.copy_from_remote()
+                self.input.from_s3()
                 input_folder = self.input.get()
                 kwargs["input_folder"] = input_folder
             elif type(self.input) is StreamingInput:
@@ -121,7 +121,7 @@ class Bolt(Task):
                 temp_folder = self.input.get()
                 kwargs["input_folder"] = temp_folder
             elif isinstance(self.input, BatchToStreamingInput):
-                self.input.copy_from_remote()
+                self.input.from_s3()
                 iterator = self.input.get()
                 kwargs["kafka_consumer"] = iterator
 
