@@ -20,6 +20,7 @@ import time
 
 import boto3
 import pytest
+from kafka import KafkaProducer
 from pyspark.sql import SparkSession, Row
 
 from geniusrise.core.data.batch_input import BatchInput
@@ -27,6 +28,10 @@ from geniusrise.core.data.batch_input import BatchInput
 # Define your S3 bucket and folder details as constants
 BUCKET = "geniusrise-test-bucket"
 S3_FOLDER = "whatever"
+KAFKA_CLUSTER_CONNECTION_STRING = "localhost:9094"
+GROUP_ID = "geniusrise"
+INPUT_TOPIC = "test_topic"
+
 
 # Initialize Spark session for testing
 spark = SparkSession.builder.master("local[1]").appName("GeniusRise").getOrCreate()
@@ -127,3 +132,34 @@ def test_batch_input_from_s3(batch_input):
 
     # Clean up the test file from the S3 bucket
     s3.delete_object(Bucket=BUCKET, Key=f"{S3_FOLDER}/test_file_from_s3.txt")
+
+
+def test_batch_input_from_kafka(batch_input):
+    producer = KafkaProducer(bootstrap_servers=KAFKA_CLUSTER_CONNECTION_STRING)
+    for _ in range(10):
+        producer.send(INPUT_TOPIC, value=json.dumps({"test": "buffer"}).encode("utf-8"))
+        producer.flush()
+
+    # Run the from_kafka method
+    input_folder = batch_input.from_kafka(
+        input_topic=INPUT_TOPIC,
+        kafka_cluster_connection_string=KAFKA_CLUSTER_CONNECTION_STRING,
+        nr_messages=2,
+        group_id=GROUP_ID,
+    )
+
+    # Check that the messages were saved to the input folder
+    saved_files = os.listdir(input_folder)
+    assert "message_0.json" in saved_files
+    assert "message_1.json" in saved_files
+
+    # Validate the content of the saved files
+    with open(os.path.join(input_folder, "message_0.json"), "r") as f:
+        content = json.load(f)
+    # Replace the following line with the actual content you expect
+    assert content == {"test": "buffer"}
+
+    with open(os.path.join(input_folder, "message_1.json"), "r") as f:
+        content = json.load(f)
+    # Replace the following line with the actual content you expect
+    assert content == {"test": "buffer"}

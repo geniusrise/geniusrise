@@ -25,7 +25,6 @@ from geniusrise.core.data import (
     Output,
     StreamingInput,
     StreamingOutput,
-    StreamToBatchInput,
     StreamToBatchOutput,
 )
 from geniusrise.core.state import DynamoDBState, InMemoryState, PostgresState, PrometheusState, RedisState, State
@@ -117,9 +116,6 @@ class Bolt(Task):
             elif type(self.input) is StreamingInput:
                 kafka_consumer = self.input.get()
                 kwargs["kafka_consumer"] = kafka_consumer
-            elif isinstance(self.input, StreamToBatchInput):
-                temp_folder = self.input.get()
-                kwargs["input_folder"] = temp_folder
             elif isinstance(self.input, BatchToStreamingInput):
                 self.input.from_s3()
                 iterator = self.input.get()
@@ -218,7 +214,7 @@ class Bolt(Task):
             ValueError: If an invalid input type, output type, or state type is provided.
         """
         # Create the input
-        input: BatchInput | StreamingInput | StreamToBatchInput | BatchToStreamingInput
+        input: BatchInput | StreamingInput | BatchToStreamingInput
         if input_type == "batch":
             input = BatchInput(
                 input_folder=kwargs["input_folder"] if "input_folder" in kwargs else tempfile.mkdtemp(),
@@ -231,15 +227,6 @@ class Bolt(Task):
                 kafka_cluster_connection_string=kwargs["input_kafka_cluster_connection_string"]
                 if "input_kafka_cluster_connection_string" in kwargs
                 else None,
-                group_id=kwargs["input_kafka_consumer_group_id"] if "input_kafka_consumer_group_id" in kwargs else None,
-            )
-        elif input_type == "stream_to_batch":
-            input = StreamToBatchInput(
-                input_topic=kwargs["input_kafka_topic"] if "input_kafka_topic" in kwargs else None,
-                kafka_cluster_connection_string=kwargs["input_kafka_cluster_connection_string"]
-                if "input_kafka_cluster_connection_string" in kwargs
-                else None,
-                buffer_size=int(kwargs.get("buffer_size", 1000)) if "buffer_size" in kwargs else 1,
                 group_id=kwargs["input_kafka_consumer_group_id"] if "input_kafka_consumer_group_id" in kwargs else None,
             )
         elif input_type == "batch_to_stream":
@@ -265,13 +252,6 @@ class Bolt(Task):
                 kwargs["output_kafka_cluster_connection_string"]
                 if "output_kafka_cluster_connection_string" in kwargs
                 else None,
-            )
-        elif output_type == "stream_to_batch":
-            output = StreamToBatchOutput(
-                output_folder=kwargs["output_folder"] if "output_folder" in kwargs else tempfile.mkdtemp(),
-                bucket=kwargs["output_s3_bucket"] if "output_s3_bucket" in kwargs else None,
-                s3_folder=kwargs["output_s3_folder"] if "output_s3_folder" in kwargs else None,
-                buffer_size=int(kwargs.get("buffer_size", 1000)) if "buffer_size" in kwargs else 1,
             )
         else:
             raise ValueError(f"Invalid output type: {output_type}")

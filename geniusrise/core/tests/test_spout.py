@@ -98,7 +98,7 @@ def test_spout_call(output, state):
     assert result == 6 * (4 + 5 + 6)
 
 
-@pytest.fixture(params=["batch", "streaming", "stream_to_batch"])
+@pytest.fixture(params=["batch", "streaming"])
 def output_type(request):
     return request.param
 
@@ -137,8 +137,6 @@ def test_spout_create(output_type, state_type, tmpdir):
         assert isinstance(spout.output, BatchOutput)
     elif output_type == "streaming":
         assert isinstance(spout.output, StreamingOutput)
-    elif output_type == "stream_to_batch":
-        assert isinstance(spout.output, StreamToBatchOutput)
 
     if state_type == "none":
         assert isinstance(spout.state, InMemoryState)

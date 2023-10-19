@@ -166,72 +166,6 @@ class YamlCtl:
             kube_config_path: ~/.kube/config
     ```
 
-
-    ```yaml
-    version: 1
-
-    spouts:
-    http_listener:
-        name: Webhook
-        method: listen
-        args:
-        port: 8080
-        state:
-        type: none
-        output:
-        type: stream_to_batch
-        args:
-            bucket: geniusrise-test
-            folder: train
-        deploy:
-        type: k8s
-        args:
-            kind: deployment
-            name: webhook
-            context_name: arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
-            namespace: geniusrise
-            image: geniusrise/geniusrise
-            kube_config_path: ~/.kube/config
-    bolts:
-    http_classifier:
-        name: HuggingFaceClassificationFineTuner
-        method: fine_tune
-        args:
-        model_name: bert-base-uncased
-        tokenizer_name: bert-base-uncased
-        num_train_epochs: 2
-        per_device_train_batch_size: 2
-        model_class: BertForSequenceClassification
-        tokenizer_class: BertTokenizer
-        data_masked: true
-        data_extractor_lambda: "lambda x: x['data']"
-        hf_repo_id: ixaxaar/geniusrise-api-status-code-prediction
-        hf_commit_message: initial local testing
-        hf_create_pr: true
-        hf_token: ***REMOVED***
-        state:
-        type: none
-        input:
-        type: batch
-        args:
-            bucket: geniusrise-test
-            folder: train
-        output:
-        type: batch
-        args:
-            bucket: geniusrise-test
-            folder: model
-        deploy:
-        type: k8s
-        args:
-            kind: deployment
-            name: classifier
-            context_name: arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
-            namespace: geniusrise
-            image: geniusrise/geniusrise
-            kube_config_path: ~/.kube/config
-    ```
-
     Attributes:
         geniusfile (Geniusfile): Parsed YAML configuration.
         spout_ctls (Dict[str, SpoutCtl]): Dictionary of SpoutCtl instances.
@@ -560,11 +494,6 @@ class YamlCtl:
         elif spout.output.type == "streaming":
             spout_args.append(f"--output_kafka_topic={spout.output.args.output_topic}")
             spout_args.append(f"--output_kafka_cluster_connection_string={spout.output.args.kafka_servers}")
-        elif spout.output.type == "stream_to_batch":
-            spout_args.append(f"--output_folder={spout.output.args.folder}")
-            spout_args.append(f"--output_s3_bucket={spout.output.args.bucket}")
-            spout_args.append(f"--output_s3_folder={spout.output.args.folder}")
-            spout_args.append(f"--buffer_size={spout.output.args.buffer_size}")
 
         # Convert state
         if spout.state.type == "redis":
@@ -609,12 +538,6 @@ class YamlCtl:
             bolt_args.append(f"--input_folder={bolt.input.args.folder}")
             bolt_args.append(f"--input_s3_bucket={bolt.input.args.bucket}")
             bolt_args.append(f"--input_s3_folder={bolt.input.args.folder}")
-        elif bolt.input.type == "stream_to_batch":
-            bolt_args.append(f"--input_kafka_topic={bolt.input.args.input_topic}")
-            bolt_args.append(f"--input_kafka_consumer_group_id={bolt.input.args.group_id}")
-            bolt_args.append(f"--input_kafka_cluster_connection_string={bolt.input.args.kafka_servers}")
-            bolt_args.append(f"--input_kafka_consumer_group_id={bolt.input.args.group_id}")
-            bolt_args.append(f"--buffer_size={bolt.output.args.buffer_size}")
 
         # Convert output
         if bolt.output.type == "batch":
@@ -624,11 +547,6 @@ class YamlCtl:
         elif bolt.output.type == "streaming":
             bolt_args.append(f"--output_kafka_topic={bolt.output.args.output_topic}")
             bolt_args.append(f"--output_kafka_cluster_connection_string={bolt.output.args.kafka_servers}")
-        elif bolt.output.type == "stream_to_batch":
-            bolt_args.append(f"--output_folder={bolt.output.args.folder}")
-            bolt_args.append(f"--output_s3_bucket={bolt.output.args.bucket}")
-            bolt_args.append(f"--output_s3_folder={bolt.output.args.folder}")
-            bolt_args.append(f"--buffer_size={bolt.output.args.buffer_size}")
 
         # Convert state
         if bolt.state.type == "redis":
