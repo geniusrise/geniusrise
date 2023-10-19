@@ -215,7 +215,7 @@ class StreamingInput(Input):
                 self.log.warn("Queue is empty.")
                 continue
 
-            if sentinel and item.equals(sentinel.reset_index(drop=True)):
+            if sentinel is not None and item.equals(sentinel.reset_index(drop=True)):
                 break
             yield item
 
