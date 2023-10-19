@@ -158,7 +158,7 @@ class BatchOutput(Output):
 
             return True
         except Exception as e:
-            self.log.error(f"❌ Error during composition: {e}")
+            self.log.exception(f"❌ Error during composition: {e}")
             return str(e)
 
     def to_spark(self, spark: SparkSession) -> pyspark.sql.DataFrame:

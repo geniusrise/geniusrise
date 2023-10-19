@@ -172,7 +172,7 @@ class Job(Deployment):
         elif args.job == "status":
             self.status(args.name)
         else:
-            self.log.error("Unknown command: %s", args.job)
+            self.log.exception("Unknown command: %s", args.job)
 
     def _create_job_spec(
         self,

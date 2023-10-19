@@ -145,4 +145,4 @@ class PostgresState(State):
                 self.log.exception(f"🚫 Failed to set state in PostgreSQL: {e}")
                 raise
         else:
-            self.log.error("🚫 No PostgreSQL connection.")
+            self.log.exception("🚫 No PostgreSQL connection.")

@@ -203,7 +203,7 @@ class BatchToStreamingInput(StreamingInput, BatchInput):
 
             return flink_table
         except Exception as e:
-            self.log.error(f"❌ Failed to create Flink Table: {e}")
+            self.log.exception(f"❌ Failed to create Flink Table: {e}")
             raise
 
     def compose(self, *inputs: "StreamingInput") -> Union[bool, str]:  # type: ignore

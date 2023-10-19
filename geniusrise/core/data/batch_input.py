@@ -169,7 +169,7 @@ class BatchInput(Input):
 
             return True
         except Exception as e:
-            self.log.error(f"❌ Error during composition: {e}")
+            self.log.exception(f"❌ Error during composition: {e}")
             return str(e)
 
     @retry(stop_max_attempt_number=3, wait_fixed=2000)

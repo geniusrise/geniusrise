@@ -14,15 +14,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import json
 import logging
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Optional, Generator, Any, Callable
 
-import pyflink
 from kafka import KafkaConsumer, TopicPartition
-from pyflink.table import EnvironmentSettings, TableEnvironment, TableSchema
-from pyspark.sql import DataFrame, SparkSession
-from streamz import Stream
+from pyspark.sql import DataFrame, Row
+from pyspark.sql.streaming import StreamingQuery
+from pyspark.rdd import RDD
+from pyflink.table import Table
+from pyflink.datastream import DataStream
 from streamz.dataframe import DataFrame as ZDataFrame
 
 from .input import Input
@@ -35,14 +35,15 @@ class KafkaConnectionError(Exception):
 
 
 class StreamingInput(Input):
-    """
-    📡 **StreamingInput**: Manages streaming input data from Kafka.
+    r"""
+    📡 **StreamingInput**: Manages streaming input data from Kafka and other streaming sources.
 
     Attributes:
         input_topic (str): Kafka topic to consume data from.
         kafka_cluster_connection_string (str): Connection string for the Kafka cluster.
         group_id (str): Kafka consumer group ID.
         consumer (KafkaConsumer): Kafka consumer instance.
+        partition_scheme (Optional[str]): Partitioning scheme for Kafka, e.g., "year/month/day".
 
     Usage:
         input = StreamingInput("my_topic", "localhost:9094")
@@ -53,10 +54,77 @@ class StreamingInput(Input):
         input_topic (str): Kafka topic to consume data from.
         kafka_cluster_connection_string (str): Connection string for the Kafka cluster.
         group_id (str, optional): Kafka consumer group ID. Defaults to "geniusrise".
+        partition_scheme (Optional[str]): Partitioning scheme for Kafka, e.g., "year/month/day".
         **kwargs: Additional keyword arguments for KafkaConsumer.
 
     Raises:
         KafkaConnectionError: If unable to connect to Kafka.
+
+    Usage:
+
+        ### Using `get` method to consume from Kafka
+        ```python
+        input = StreamingInput("my_topic", "localhost:9094")
+        consumer = input.get()
+        for message in consumer:
+            print(message.value)
+        ```
+
+        ### Using `from_streamz_df` method to process streamz DataFrame
+        ```python
+        input = StreamingInput("my_topic", "localhost:9094")
+        streamz_df = ...  # Assume this is a streamz DataFrame
+        for row in input.from_streamz_df(streamz_df):
+            print(row)
+        ```
+
+        ### Using `from_spark_df` method to process Spark DataFrame
+        ```python
+        input = StreamingInput("my_topic", "localhost:9094")
+        spark_df = ...  # Assume this is a Spark DataFrame
+        map_func = lambda row: {"key": row.key, "value": row.value}
+        query_or_rdd = input.from_spark_df(spark_df, map_func)
+        ```
+
+        ### Using `from_flink_table` method to process Flink Table
+        ```python
+        input = StreamingInput("my_topic", "localhost:9094")
+        flink_table = ...  # Assume this is a Flink Table
+        map_func = lambda row: {"key": row[0], "value": row[1]}
+        data_stream = input.from_flink_table(flink_table, map_func)
+        ```
+
+        ### Using `compose` method to merge multiple StreamingInput instances
+        ```python
+        input1 = StreamingInput("topic1", "localhost:9094")
+        input2 = StreamingInput("topic2", "localhost:9094")
+        result = input1.compose(input2)
+        ```
+
+        ### Using `close` method to close the Kafka consumer
+        ```python
+        input = StreamingInput("my_topic", "localhost:9094")
+        input.close()
+        ```
+
+        ### Using `seek` method to seek to a specific offset
+        ```python
+        input = StreamingInput("my_topic", "localhost:9094")
+        input.seek(42)
+        ```
+
+        ### Using `commit` method to manually commit offsets
+        ```python
+        input = StreamingInput("my_topic", "localhost:9094")
+        input.commit()
+        ```
+
+        ### Using `collect_metrics` method to collect Kafka metrics
+        ```python
+        input = StreamingInput("my_topic", "localhost:9094")
+        metrics = input.collect_metrics()
+        print(metrics)
+        ```
     """
 
     def __init__(
@@ -64,6 +132,7 @@ class StreamingInput(Input):
         input_topic: Union[str, List[str]],
         kafka_cluster_connection_string: str,
         group_id: str = "geniusrise",
+        partition_scheme: Optional[str] = None,
         **kwargs,
     ) -> None:
         """
@@ -79,6 +148,7 @@ class StreamingInput(Input):
         self.input_topic = input_topic
         self.kafka_cluster_connection_string = kafka_cluster_connection_string
         self.group_id = group_id
+        self.partition_scheme = partition_scheme
 
         try:
             self.consumer = KafkaConsumer(
@@ -115,121 +185,67 @@ class StreamingInput(Input):
         else:
             raise KafkaConnectionError("No Kafka consumer available.")
 
-    def streamz_df(self) -> ZDataFrame:
+    def from_streamz_df(self, streamz_df: ZDataFrame) -> Generator[Any, None, None]:
         """
-        Get a streamz DataFrame from the Kafka topic.
-
-        Returns:
-            DataFrame: A streamz DataFrame representing the Kafka topic.
-
-        Raises:
-            KafkaConnectionError: If no Kafka consumer is available.
-        """
-        if not self.consumer:
-            raise KafkaConnectionError("No Kafka consumer available.")
-
-        try:
-            source = Stream.from_kafka_batched(
-                self.input_topic,
-                {
-                    "bootstrap.servers": self.kafka_cluster_connection_string,
-                    "group.id": self.group_id,
-                },
-                poll_interval="1s",
-                asynchronous=True,
-                dask=False,
-            )
-
-            # Assuming the Kafka messages are JSON strings
-            json_stream = source.map(json.loads)
-            sdf = ZDataFrame(json_stream, example={"column1": [], "column2": []})
-
-            return sdf
-        except Exception as e:
-            self.log.error(f"❌ Failed to create streamz DataFrame: {e}")
-            raise
-
-    def spark_df(self, spark: SparkSession) -> DataFrame:
-        """
-        Get a Spark DataFrame from the Kafka topic.
+        Process a streamz DataFrame as a stream, similar to Kafka processing.
 
         Args:
-            spark (SparkSession): The SparkSession object.
+            streamz_df (ZDataFrame): The streamz DataFrame to process.
 
-        Returns:
-            DataFrame: A Spark DataFrame representing the Kafka topic.
-
-        Raises:
-            KafkaConnectionError: If no Kafka consumer is available.
+        Yields:
+            Any: Yields each row as a dictionary.
         """
-        if not self.consumer:
-            raise KafkaConnectionError("No Kafka consumer available.")
+        stream = streamz_df.stream
+        for row in stream:
+            yield row
 
-        try:
-            df = (
-                spark.readStream.format("kafka")
-                .option("kafka.bootstrap.servers", self.kafka_cluster_connection_string)
-                .option(
-                    "subscribe",
-                    self.input_topic if type(self.input_topic) is str else ",".join(self.input_topic),
-                )
-                .load()
-            )
-
-            return df
-        except Exception as e:
-            self.log.error(f"❌ Failed to create Spark DataFrame: {e}")
-            raise
-
-    def flink_table(self, table_schema: TableSchema) -> pyflink.table.Table:
+    def from_spark_df(self, spark_df: DataFrame, map_func: Callable[[Row], Any]) -> Union[StreamingQuery, RDD[Any]]:
         """
-        Get a Flink Table from the Kafka topic.
+        Process a Spark DataFrame as a stream, similar to Kafka processing.
 
         Args:
-            table_schema (TableSchema): The schema of the Flink table.
+            spark_df (DataFrame): The Spark DataFrame to process.
+            map_func (Callable[[Row], Any]): Function to map each row of the DataFrame.
 
         Returns:
-            pyflink.table.Table: A Flink Table representing the Kafka topic.
+            Union[StreamingQuery, RDD[Any]]: Returns a StreamingQuery for streaming DataFrames, and an RDD for batch DataFrames.
 
         Raises:
-            KafkaConnectionError: If no Kafka consumer is available.
+            Exception: If an error occurs during processing.
         """
-        if not self.consumer:
-            raise KafkaConnectionError("No Kafka consumer available.")
-
         try:
-            # Initialize Flink environment
-            env_settings = EnvironmentSettings.in_streaming_mode()
-            table_env = TableEnvironment.create(env_settings)
-
-            # Create Flink Kafka connector
-            field_names = table_schema.get_field_names()
-            field_types = [str(x) for x in table_schema.get_field_data_types()]
-
-            fields_str = ",\n".join([f"{f} {t}" for f, t in zip(field_names, field_types)])
-
-            kafka_connector_ddl = f"""
-            CREATE TABLE kafka_source (
-                {fields_str}
-            ) WITH (
-                'connector' = 'kafka',
-                'topic' = '{self.input_topic}',
-                'properties.bootstrap.servers' = '{self.kafka_cluster_connection_string}',
-                'properties.group.id' = '{self.group_id}',
-                'format' = 'json'
-            )
-            """
-            print(kafka_connector_ddl)
-
-            # Register the source table in Flink
-            table_env.execute_sql(kafka_connector_ddl)
-
-            # Create the Flink table
-            flink_table = table_env.from_path("kafka_source")
-
-            return flink_table
+            if spark_df.isStreaming:
+                return spark_df.writeStream.foreach(map_func).start()
+            else:
+                return spark_df.rdd.map(map_func)
         except Exception as e:
-            self.log.error(f"❌ Failed to create Flink Table: {e}")
+            self.log.exception(f"❌ Failed to process Spark DataFrame: {e}")
+            raise
+
+    def from_flink_table(self, flink_table: Table, map_func: Callable[[Row], Any]) -> DataStream:
+        """
+        Process a Flink Table as a stream, similar to Kafka processing.
+
+        Args:
+            flink_table (Table): The Flink Table to process.
+            map_func (Callable[[Row], Any]): Function to map each row of the Table.
+
+        Returns:
+            DataStream: Returns a Flink DataStream after applying the map function.
+
+        Raises:
+            Exception: If an error occurs during processing.
+        """
+        try:
+            # Convert the Table to a DataStream
+            data_stream = flink_table.to_append_stream()
+
+            # Apply the map function to the DataStream
+            mapped_stream = data_stream.map(map_func)
+
+            return mapped_stream
+        except Exception as e:
+            self.log.exception(f"❌ Failed to process Flink Table: {e}")
             raise
 
     def compose(self, *inputs: "StreamingInput") -> Union[bool, str]:  # type: ignore
@@ -270,8 +286,8 @@ class StreamingInput(Input):
 
             return True
         except Exception as e:
-            self.log.error(f"❌ Error during composition: {e}")
-            return str(e)
+            self.log.exception(f"❌ Error during composition: {e}")
+            raise
 
     def close(self) -> None:
         """

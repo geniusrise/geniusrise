@@ -364,12 +364,12 @@ class YamlCtl:
         """
         spout = self.geniusfile.spouts.get(spout_name)
         if not spout:
-            self.log.error(emoji.emojize(f":x: Spout {spout_name} not found."))
+            self.log.exception(emoji.emojize(f":x: Spout {spout_name} not found."))
             return
 
         spout_ctl = self.spout_ctls.get(spout.name)
         if not spout_ctl:
-            self.log.error(emoji.emojize(f":x: SpoutCtl for {spout_name} - {spout.name} not found."))
+            self.log.exception(emoji.emojize(f":x: SpoutCtl for {spout_name} - {spout.name} not found."))
             return
 
         self.log.info(emoji.emojize(f":rocket: Running spout {spout_name}..."))
@@ -397,12 +397,12 @@ class YamlCtl:
         """
         spout = self.geniusfile.spouts.get(spout_name)
         if not spout:
-            self.log.error(emoji.emojize(f":x: Spout {spout_name} not found."))
+            self.log.exception(emoji.emojize(f":x: Spout {spout_name} not found."))
             return
 
         spout_ctl = self.spout_ctls.get(spout.name)
         if not spout_ctl:
-            self.log.error(emoji.emojize(f":x: SpoutCtl for {spout_name} - {spout.name} not found."))
+            self.log.exception(emoji.emojize(f":x: SpoutCtl for {spout_name} - {spout.name} not found."))
             return
 
         self.log.info(emoji.emojize(f":rocket: Deploying spout {spout_name}..."))
@@ -435,7 +435,7 @@ class YamlCtl:
         """
         bolt = self.geniusfile.bolts.get(bolt_name)
         if not bolt:
-            self.log.error(emoji.emojize(f":x: Bolt {bolt_name} not found."))
+            self.log.exception(emoji.emojize(f":x: Bolt {bolt_name} not found."))
             return
 
         # Resolve reference if input type is "spout" or "bolt"
@@ -445,14 +445,14 @@ class YamlCtl:
             ref_name = bolt.input.args.name
             resolved_output = self.resolve_reference(bolt.input.type, ref_name)
             if not resolved_output:
-                self.log.error(emoji.emojize(f":x: Failed to resolve reference for bolt {bolt_name}."))
+                self.log.exception(emoji.emojize(f":x: Failed to resolve reference for bolt {bolt_name}."))
                 return
             bolt.input.type = resolved_output.type  # Set the resolved output type as the bolt's input type
             bolt.input.args = resolved_output.args  # Set the resolved output args as the bolt's input args
 
         bolt_ctl = self.bolt_ctls.get(bolt.name)
         if not bolt_ctl:
-            self.log.error(emoji.emojize(f":x: BoltCtl for {bolt_name} = {bolt.name} not found."))
+            self.log.exception(emoji.emojize(f":x: BoltCtl for {bolt_name} = {bolt.name} not found."))
             return
 
         self.log.info(emoji.emojize(f":rocket: Running bolt {bolt_name}..."))
@@ -479,7 +479,7 @@ class YamlCtl:
         """
         bolt = self.geniusfile.bolts.get(bolt_name)
         if not bolt:
-            self.log.error(emoji.emojize(f":x: Bolt {bolt_name} not found."))
+            self.log.exception(emoji.emojize(f":x: Bolt {bolt_name} not found."))
             return
 
         # Resolve reference if input type is "spout" or "bolt"
@@ -489,14 +489,14 @@ class YamlCtl:
             ref_name = bolt.input.args.name
             resolved_output = self.resolve_reference(bolt.input.type, ref_name)
             if not resolved_output:
-                self.log.error(emoji.emojize(f":x: Failed to resolve reference for bolt {bolt_name}."))
+                self.log.exception(emoji.emojize(f":x: Failed to resolve reference for bolt {bolt_name}."))
                 return
             bolt.input.type = resolved_output.type  # Set the resolved output type as the bolt's input type
             bolt.input.args = resolved_output.args  # Set the resolved output args as the bolt's input args
 
         bolt_ctl = self.bolt_ctls.get(bolt.name)
         if not bolt_ctl:
-            self.log.error(emoji.emojize(f":x: BoltCtl for {bolt_name} = {bolt.name} not found."))
+            self.log.exception(emoji.emojize(f":x: BoltCtl for {bolt_name} = {bolt.name} not found."))
             return
 
         self.log.info(emoji.emojize(f":rocket: Running bolt {bolt_name}..."))
@@ -534,17 +534,17 @@ class YamlCtl:
         if input_type == "spout":
             referred_spout = self.geniusfile.spouts.get(ref_name)
             if not referred_spout:
-                self.log.error(emoji.emojize(f":x: Referred spout {ref_name} not found."))
+                self.log.exception(emoji.emojize(f":x: Referred spout {ref_name} not found."))
                 return None
             return referred_spout.output
         elif input_type == "bolt":
             referred_bolt = self.geniusfile.bolts.get(ref_name)
             if not referred_bolt:
-                self.log.error(emoji.emojize(f":x: Referred bolt {ref_name} not found."))
+                self.log.exception(emoji.emojize(f":x: Referred bolt {ref_name} not found."))
                 return None
             return referred_bolt.output
         else:
-            self.log.error(emoji.emojize(f":x: Invalid reference type {input_type}."))
+            self.log.exception(emoji.emojize(f":x: Invalid reference type {input_type}."))
             return None
 
     # TODO: maybe create argparse namespaces instead of this nonsense
