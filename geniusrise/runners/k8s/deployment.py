@@ -179,7 +179,7 @@ class Deployment(K8sResourceManager):
         elif args.deployment == "status":
             self.status(args.name)
         else:
-            self.log.error("Unknown command: %s", args.deployment)
+            self.log.exception("Unknown command: %s", args.deployment)
 
     def __create_deployment_spec(
         self,

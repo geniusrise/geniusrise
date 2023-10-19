@@ -132,7 +132,7 @@ class K8sResourceManager:
         elif args.command == "logs":
             self.logs(args.name, args.follow, args.tail)
         else:
-            self.log.error("Unknown command: %s", args.command)
+            self.log.exception("Unknown command: %s", args.command)
 
     def connect(
         self,

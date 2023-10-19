@@ -101,7 +101,7 @@ class StreamToBatchInput(StreamingInput, BatchInput):
                 buffered_messages.append(json.loads(message.value.decode("utf-8")))  # type: ignore
             return buffered_messages
         except Exception as e:
-            self.log.error(f"Kafka error occurred: {e}")
+            self.log.exception(f"Kafka error occurred: {e}")
             raise
 
     def store_to_temp(self, messages: List[KafkaMessage]) -> None:
@@ -125,7 +125,7 @@ class StreamToBatchInput(StreamingInput, BatchInput):
             self.store_to_temp(buffered_messages)
             return self.temp_folder
         except Exception as e:
-            self.log.error(f"An error occurred: {e}")
+            self.log.exception(f"An error occurred: {e}")
             raise
 
     def close(self) -> None:
@@ -136,7 +136,7 @@ class StreamToBatchInput(StreamingInput, BatchInput):
             self.consumer.close()
             # Additional resource cleanup logic here
         except Exception as e:
-            self.log.error(f"Failed to close resources: {e}")
+            self.log.exception(f"Failed to close resources: {e}")
 
     def compose(self, *inputs: "StreamToBatchInput") -> Union[bool, str]:  # type: ignore
         """
@@ -166,7 +166,7 @@ class StreamToBatchInput(StreamingInput, BatchInput):
 
             return True
         except Exception as e:
-            self.log.error(f"❌ Error during composition: {e}")
+            self.log.exception(f"❌ Error during composition: {e}")
             return str(e)
 
     def spark_df(self, spark: SparkSession) -> pyspark.sql.DataFrame:
@@ -193,5 +193,5 @@ class StreamToBatchInput(StreamingInput, BatchInput):
 
             return df
         except Exception as e:
-            self.log.error(f"❌ Failed to create Spark DataFrame: {e}")
+            self.log.exception(f"❌ Failed to create Spark DataFrame: {e}")
             raise

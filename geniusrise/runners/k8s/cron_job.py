@@ -177,7 +177,7 @@ class CronJob(Job):
         elif args.command == "get_cronjob_status":
             self.status(args.name)
         else:
-            self.log.error("Unknown command: %s", args.command)
+            self.log.exception("Unknown command: %s", args.command)
 
     def __create_cronjob_spec(
         self,

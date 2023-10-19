@@ -187,7 +187,7 @@ class Service(Deployment):
         elif args.service == "describe":
             self.describe(args.name)
         else:
-            self.log.error("Unknown command: %s", args.service)
+            self.log.exception("Unknown command: %s", args.service)
 
     def __create_service_spec(self, port: int, target_port: int) -> client.V1ServiceSpec:
         """
