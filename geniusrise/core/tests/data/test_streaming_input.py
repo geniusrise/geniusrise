@@ -19,8 +19,12 @@ import pytest
 from kafka import KafkaConsumer
 from pyflink.table import DataTypes, TableSchema
 from pyspark.sql import SparkSession
+from streamz import Stream
+import pandas as pd
+import threading
+import time
 
-from geniusrise.core.data.streaming_input import KafkaConnectionError, StreamingInput
+from geniusrise.core.data.streaming_input import StreamingInput
 
 # Constants
 KAFKA_CLUSTER_CONNECTION_STRING = "localhost:9094"
@@ -94,34 +98,46 @@ def test_streaming_input_collect_metrics(streaming_input):
         pytest.fail("Failed to collect metrics")
 
 
-# Test for streamz_df method
-def test_streaming_input_streamz_df(streaming_input):
-    sdf = streaming_input.streamz_df()
-    assert sdf is not None
-
-
-# Test for spark_df method
-@pytest.mark.skipif(not spark_session, reason="SparkSession not available.")
-def test_streaming_input_spark_df(streaming_input):
-    try:
-        df = streaming_input.spark_df(spark_session)
-        assert df is not None
-    except KafkaConnectionError:
-        pytest.fail("Failed to create Spark DataFrame")
-
-
-# Test Flink Table
-def test_streaming_input_flink_table(streaming_input):
-    try:
-        flink_table = streaming_input.flink_table(FLINK_TABLE_SCHEMA)
-        assert flink_table is not None
-    except KafkaConnectionError:
-        pytest.fail("Failed to create Flink table")
-
-
 # Test for compose method
 def test_streaming_input_compose(streaming_input):
     # Create another StreamingInput instance for composition
     another_input = StreamingInput("another_topic", KAFKA_CLUSTER_CONNECTION_STRING, GROUP_ID)
     result = streaming_input.compose(another_input)
     assert result is True
+
+
+# Test for from_streamz method
+def test_streaming_input_from_streamz(streaming_input):
+    # Create a stream and a streamz DataFrame
+    source = Stream()
+    example = pd.DataFrame({"x": [], "y": []})
+    sdf = source.map(pd.DataFrame).to_dataframe(example=example)
+
+    # Function to emit data
+    def emit_data():
+        time.sleep(1)  # Wait for a short time to ensure the generator is ready
+        new_data = {"x": [1, 2, 3], "y": [4, 5, 6]}
+        source.emit(new_data)
+        sentinel = pd.DataFrame({"x": [-1], "y": [-1]})
+        source.emit(sentinel)
+
+    # Start a thread to emit data
+    emit_thread = threading.Thread(target=emit_data)
+    emit_thread.start()
+
+    # Create a generator from the from_streamz method
+    sentinel = pd.DataFrame({"x": [-1], "y": [-1]})
+    row_gen = streaming_input.from_streamz(sdf, sentinel=sentinel)
+
+    # Collect emitted data from the generator
+    collected_data = []
+    for _ in range(1):  # We emitted 1 chunk of data
+        collected_data.append(next(row_gen))
+
+    # Wait for the emit thread to finish
+    emit_thread.join()
+
+    # Validate the collected data
+    pd.testing.assert_frame_equal(
+        collected_data[0].reset_index(drop=True), pd.DataFrame({"x": [1, 2, 3], "y": [4, 5, 6]}).reset_index(drop=True)
+    )
