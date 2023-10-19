@@ -23,6 +23,10 @@ from streamz import Stream
 import pandas as pd
 import threading
 import time
+import tempfile
+import csv
+import os
+from pyspark.sql.types import StructType, StructField, IntegerType
 
 from geniusrise.core.data.streaming_input import StreamingInput
 
@@ -141,3 +145,46 @@ def test_streaming_input_from_streamz(streaming_input):
     pd.testing.assert_frame_equal(
         collected_data[0].reset_index(drop=True), pd.DataFrame({"x": [1, 2, 3], "y": [4, 5, 6]}).reset_index(drop=True)
     )
+
+
+def create_test_csv(dir_path):
+    csv_file_path = os.path.join(dir_path, "test.csv")
+    with open(csv_file_path, mode="w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["x", "y"])
+        writer.writerow([1, 2])
+        writer.writerow([3, 4])
+        writer.writerow([5, 6])
+    return csv_file_path
+
+
+def map_func(row):
+    return row["x"] + row["y"]
+
+
+def test_from_spark_streaming(streaming_input):
+    # Create a temporary directory and CSV file
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        create_test_csv(tmpdirname)
+
+        # Create a streaming DataFrame
+        schema = StructType([StructField("x", IntegerType()), StructField("y", IntegerType())])
+        streaming_df = spark_session.readStream.schema(schema).csv(tmpdirname)
+
+        query = streaming_input.from_spark(streaming_df, map_func)
+
+        assert query.isActive
+
+
+def test_from_spark_batch(streaming_input):
+    # Create a batch DataFrame
+    data = [(1, 2), (3, 4), (5, 6)]
+
+    # spark_session.sparkContext.addPyFile("./geniusrise/core/tests/data/test_streaming_input.py")
+    batch_df = spark_session.createDataFrame(data, ["x", "y"])
+
+    rdd = streaming_input.from_spark(batch_df, lambda row: row["x"] + row["y"])
+
+    # Collect the results and check
+    results = rdd.collect()
+    assert results == [3, 7, 11]
