@@ -27,8 +27,13 @@ import pyspark
 from pyspark.sql import SparkSession, Row
 from retrying import retry
 import shortuuid
+from kafka import KafkaProducer
 
 from .output import Output
+
+
+class KafkaConnectionError(Exception):
+    """❌ Custom exception for Kafka connection problems."""
 
 
 class FileNotExistError(Exception):
@@ -70,7 +75,7 @@ class BatchOutput(Output):
         spark_df = config.to_spark(spark_session)
 
         # Copy files to a remote S3 bucket
-        config.copy_to_remote()
+        config.to_s3()
 
         # Flush the output to S3
         config.flush()
@@ -122,7 +127,6 @@ class BatchOutput(Output):
         # Create the target folder if it doesn't exist
         os.makedirs(target_folder, exist_ok=True)
 
-        print(target_folder, ")))))))))))))))))))))))))))))))))))))")
         # Save the file
         try:
             with open(os.path.join(target_folder, filename), "w") as f:
@@ -175,25 +179,73 @@ class BatchOutput(Output):
             raise FileNotExistError(f"❌ Output folder {self.output_folder} does not exist.")
 
         def file_generator():
-            if self.partition_scheme:
-                partitioned_folder = self._get_partitioned_key(self.s3_folder)
-                target_folder = os.path.join(self.output_folder, partitioned_folder)
-            else:
-                target_folder = self.output_folder
+            try:
+                if self.partition_scheme:
+                    partitioned_folder = self._get_partitioned_key(self.s3_folder)
+                    target_folder = os.path.join(self.output_folder, partitioned_folder)
+                else:
+                    target_folder = self.output_folder
 
-            files = glob.glob(f"{target_folder}/*")
-            for file in files:
-                with open(file, "r") as f:
-                    content = f.read()
-                yield Row(filename=file, content=content)
+                files = glob.glob(f"{target_folder}/*")
+                for file in files:
+                    with open(file, "r") as f:
+                        content = f.read()
+                    yield Row(filename=file, content=content)
+            except Exception as e:
+                self.log.exception(f"Failed to ingest the file {file} in spark: {e}")
 
+        start_time = time.time()
         rdd = spark.sparkContext.parallelize(file_generator())
         df = spark.createDataFrame(rdd)
 
+        end_time = time.time()
+        self._metrics["from_s3_time"] = end_time - start_time
+
         return df
 
+    def to_kafka(
+        self,
+        output_topic: str,
+        kafka_cluster_connection_string: str,
+    ) -> None:
+        """
+        Produce messages to a Kafka topic from the files in the output folder.
+
+        Args:
+            output_topic (str): Kafka topic to produce data to.
+            kafka_cluster_connection_string (str): Connection string for the Kafka cluster.
+            key_serializer (Optional[str]): Serializer for message keys. Defaults to None.
+
+        Raises:
+            KafkaConnectionError: If unable to connect to Kafka.
+            Exception: If any other error occurs during processing.
+        """
+        start_time = time.time()
+        try:
+            producer = KafkaProducer(
+                bootstrap_servers=kafka_cluster_connection_string,
+                value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+            )
+        except Exception as e:
+            self.log.exception(f"🚫 Failed to create Kafka producer: {e}")
+            raise KafkaConnectionError("Failed to connect to Kafka.")
+
+        try:
+            for root, _, files in os.walk(self.output_folder):
+                for filename in files:
+                    file_path = os.path.join(root, filename)
+                    with open(file_path, "r") as f:
+                        message = json.load(f)
+                    producer.send(output_topic, value=message)
+            producer.flush()
+            end_time = time.time()
+            self._metrics["to_kafka_time"] = end_time - start_time
+        except Exception as e:
+            self.log.exception(f"An error occurred: {e}")
+            raise
+
     @retry(stop_max_attempt_number=3, wait_fixed=2000)
-    def copy_to_remote(self) -> None:
+    def to_s3(self) -> None:
         """
         ☁️ Recursively copy all files and directories from the output folder to a given S3 bucket and folder.
         """
@@ -207,7 +259,7 @@ class BatchOutput(Output):
                     s3_key = os.path.join(self.s3_folder, relative_path)
                     s3.upload_file(local_path, self.bucket, s3_key)
             end_time = time.time()
-            self._metrics["copy_to_remote_time"] = end_time - start_time  # Record time taken to copy to remote
+            self._metrics["to_s3_time"] = end_time - start_time  # Record time taken to copy to remote
         except Exception as e:
             self.log.exception(f"🚫 Failed to copy files to S3: {e}")
             raise
@@ -216,7 +268,7 @@ class BatchOutput(Output):
         """
         🔄 Flush the output by copying all files and directories from the output folder to a given S3 bucket and folder.
         """
-        self.copy_to_remote()
+        self.to_s3()
 
     def collect_metrics(self) -> Dict[str, float]:
         """
