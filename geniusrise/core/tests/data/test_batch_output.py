@@ -19,6 +19,8 @@ import boto3
 import pytest
 from pyspark.sql import SparkSession
 from geniusrise.core.data import BatchOutput
+from kafka import KafkaConsumer
+import json
 
 # Initialize Spark session for testing
 spark = SparkSession.builder.master("local[1]").appName("GeniusRise").getOrCreate()
@@ -26,6 +28,20 @@ spark = SparkSession.builder.master("local[1]").appName("GeniusRise").getOrCreat
 # Define your S3 bucket and folder details as constants
 BUCKET = "geniusrise-test-bucket"
 S3_FOLDER = "whatever"
+KAFKA_CLUSTER_CONNECTION_STRING = "localhost:9094"
+OUTPUT_TOPIC = "test_topic"
+
+
+# Define a fixture for KafkaConsumer
+@pytest.fixture
+def kafka_consumer():
+    consumer = KafkaConsumer(
+        OUTPUT_TOPIC,
+        bootstrap_servers=KAFKA_CLUSTER_CONNECTION_STRING,
+        value_deserializer=lambda x: json.loads(x.decode("utf-8")),
+    )
+    yield consumer
+    consumer.close()
 
 
 # Define a fixture for your BatchOutput
@@ -74,14 +90,14 @@ def test_batch_output_to_spark_with_partition(batch_output):
 
 
 # Test that the BatchOutput can copy files to the S3 bucket
-def test_batch_output_copy_to_remote(batch_output):
+def test_batch_output_to_s3(batch_output):
     # First, save a file to the output folder
     data = {"test": "buffer"}
     filename = "test_file.json"
     batch_output.save(data, filename)
 
     # Then, copy the file to the S3 bucket
-    batch_output.copy_to_remote()
+    batch_output.to_s3()
 
     # Check that the file was copied to the S3 bucket
     assert file_exists_in_s3(BUCKET, os.path.join(S3_FOLDER, filename))
@@ -119,3 +135,21 @@ def file_exists_in_s3(bucket, key):
         print(e)
         return False
     return True
+
+
+# Test that the BatchOutput can produce messages to Kafka
+def test_batch_output_to_kafka(batch_output, kafka_consumer):
+    # First, save a file to the output folder
+    data = {"test": "buffer"}
+    batch_output.save(data)
+
+    # Then, produce messages to Kafka
+    batch_output.to_kafka(
+        output_topic=OUTPUT_TOPIC,
+        kafka_cluster_connection_string=KAFKA_CLUSTER_CONNECTION_STRING,
+    )
+
+    # # Consume the message from Kafka - TODO: consumer in different thread?
+    # kafka_consumer.poll(1000)  # Wait for 1 second to get the message
+    # consumed_data = next(kafka_consumer)
+    # assert consumed_data.value == data
