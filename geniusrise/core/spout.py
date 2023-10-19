@@ -17,7 +17,7 @@
 import tempfile
 from typing import Any
 
-from geniusrise.core.data import BatchOutput, Output, StreamingOutput, StreamToBatchOutput
+from geniusrise.core.data import BatchOutput, Output, StreamingOutput
 from geniusrise.core.state import DynamoDBState, InMemoryState, PostgresState, PrometheusState, RedisState, State
 from geniusrise.core.task import Task
 from geniusrise.logging import setup_logger
@@ -165,13 +165,6 @@ class Spout(Task):
             output = StreamingOutput(
                 output_topic=kwargs.get("output_kafka_topic", None),
                 kafka_servers=kwargs.get("output_kafka_cluster_connection_string", None),
-            )
-        elif output_type == "stream_to_batch":
-            output = StreamToBatchOutput(
-                output_folder=kwargs.get("output_folder", tempfile.mkdtemp()),
-                bucket=kwargs.get("output_s3_bucket", "geniusrise"),
-                s3_folder=kwargs.get("output_s3_folder", klass.__class__.__name__),
-                buffer_size=kwargs.get("buffer_size", 1000),
             )
         else:
             raise ValueError(f"Invalid output type: {output_type}")

@@ -26,7 +26,6 @@ from geniusrise.core.data import (
     BatchToStreamingInput,
     StreamingInput,
     StreamingOutput,
-    StreamToBatchInput,
     StreamToBatchOutput,
 )
 from geniusrise.core.state import DynamoDBState, InMemoryState, PostgresState, PrometheusState, RedisState
@@ -60,19 +59,12 @@ class TestBolt(Bolt):
 
 
 # Define a fixture for the input
-@pytest.fixture(params=[BatchInput, StreamingInput, StreamToBatchInput, BatchToStreamingInput])
+@pytest.fixture(params=[BatchInput, StreamingInput, BatchToStreamingInput])
 def input(request, tmpdir):
     if request.param == BatchInput:
         return request.param(tmpdir, bucket, s3_folder)
     elif request.param == StreamingInput:
         return request.param(input_topic, kafka_cluster_connection_string, group_id)
-    elif request.param == StreamToBatchInput:
-        return request.param(
-            input_topic,
-            kafka_cluster_connection_string,
-            group_id,
-            buffer_size=buffer_size,
-        )
     elif request.param == BatchToStreamingInput:
         return request.param(tmpdir, bucket, s3_folder)
 

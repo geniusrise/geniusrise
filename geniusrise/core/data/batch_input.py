@@ -23,8 +23,13 @@ import boto3
 from pyspark.sql import Row, DataFrame
 import shortuuid
 import json
+from kafka import KafkaConsumer
 
 from .input import Input
+
+
+class KafkaConnectionError(Exception):
+    """❌ Custom exception for kafka connection problems."""
 
 
 class FileNotExistError(Exception):
@@ -170,6 +175,68 @@ class BatchInput(Input):
             self._metrics["from_s3_time"] = end_time - start_time
         else:
             raise Exception("❌ Input folder not specified.")
+
+    def from_kafka(
+        self,
+        input_topic: str,
+        kafka_cluster_connection_string: str,
+        nr_messages: int = 1000,
+        group_id: str = "geniusrise",
+        partition_scheme: Optional[str] = None,
+    ) -> str:
+        """
+        Consume messages from a Kafka topic and save them as JSON files in the input folder.
+        Stops consuming after reaching the latest message or the specified number of messages.
+
+        Args:
+            input_topic (str): Kafka topic to consume data from.
+            kafka_cluster_connection_string (str): Connection string for the Kafka cluster.
+            nr_messages (int, optional): Number of messages to consume. Defaults to 1000.
+            group_id (str, optional): Kafka consumer group ID. Defaults to "geniusrise".
+            partition_scheme (Optional[str]): Optional partitioning scheme for Kafka, e.g., "year/month/day".
+
+        Returns:
+            str: The path to the folder where the consumed messages are saved as JSON files.
+
+        Raises:
+            KafkaConnectionError: If unable to connect to Kafka.
+            Exception: If any other error occurs during processing.
+        """
+        self.input_topic = input_topic
+        self.kafka_cluster_connection_string = kafka_cluster_connection_string
+        self.group_id = group_id
+        self.partition_scheme = partition_scheme
+
+        start_time = time.time()
+        try:
+            self.consumer = KafkaConsumer(
+                self.input_topic,
+                bootstrap_servers=self.kafka_cluster_connection_string,
+                group_id=self.group_id,
+                max_poll_interval_ms=600000,  # 10 minutes
+                session_timeout_ms=10000,  # 10 seconds
+            )
+        except Exception as e:
+            self.log.exception(f"🚫 Failed to create Kafka consumer: {e}")
+            raise KafkaConnectionError("Failed to connect to Kafka.")
+
+        try:
+            buffered_messages = []
+            for i, message in enumerate(self.consumer):
+                if i >= nr_messages:
+                    break
+                buffered_messages.append(json.loads(message.value.decode("utf-8")))  # type: ignore
+
+            for i, message in enumerate(buffered_messages):
+                with open(os.path.join(self.input_folder, f"message_{i}.json"), "w") as f:
+                    json.dump(message, f)
+
+            end_time = time.time()
+            self._metrics["from_kafka_time"] = end_time - start_time
+            return self.input_folder
+        except Exception as e:
+            self.log.exception(f"An error occurred: {e}")
+            raise
 
     def compose(self, *inputs: "Input") -> Union[bool, str]:
         """

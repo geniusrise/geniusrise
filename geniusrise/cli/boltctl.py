@@ -56,8 +56,8 @@ class BoltCtl:
         # fmt: off
         # Create subparser for 'run' command
         run_parser = subparsers.add_parser("rise", help="Run a bolt locally.", formatter_class=RichHelpFormatter)
-        run_parser.add_argument("input_type", choices=["batch", "streaming", "batch_to_stream", "stream_to_batch"], help="Choose the type of input data: batch or streaming.", default="batch")
-        run_parser.add_argument("output_type", choices=["batch", "streaming", "stream_to_batch"], help="Choose the type of output data: batch or streaming.", default="batch")
+        run_parser.add_argument("input_type", choices=["batch", "streaming", "batch_to_stream"], help="Choose the type of input data: batch or streaming.", default="batch")
+        run_parser.add_argument("output_type", choices=["batch", "streaming"], help="Choose the type of output data: batch or streaming.", default="batch")
         run_parser.add_argument("state_type", choices=["none", "redis", "postgres", "dynamodb", "prometheus"], help="Select the type of state manager: none, redis, postgres, or dynamodb.", default="none")
         # input
         run_parser.add_argument("--buffer_size", help="Specify the size of the buffer.", default=100, type=int)
@@ -91,8 +91,8 @@ class BoltCtl:
         run_parser.add_argument("--args", nargs=argparse.REMAINDER, help="Additional keyword arguments to pass to the bolt.")
 
         deploy_parser = subparsers.add_parser("deploy", help="Run a spout remotely.", formatter_class=RichHelpFormatter)
-        deploy_parser.add_argument("input_type", choices=["batch", "streaming", "batch_to_stream", "stream_to_batch"], help="Choose the type of input data: batch or streaming.", default="batch")
-        deploy_parser.add_argument("output_type", choices=["batch", "streaming", "stream_to_batch"], help="Choose the type of output data: batch or streaming.", default="batch")
+        deploy_parser.add_argument("input_type", choices=["batch", "streaming", "batch_to_stream"], help="Choose the type of input data: batch or streaming.", default="batch")
+        deploy_parser.add_argument("output_type", choices=["batch", "streaming"], help="Choose the type of output data: batch or streaming.", default="batch")
         deploy_parser.add_argument("state_type", choices=["none", "redis", "postgres", "dynamodb", "prometheus"], help="Select the type of state manager: none, redis, postgres, or dynamodb.", default="none")
         deploy_parser.add_argument("deployment_type", choices=["k8s"], help="Choose the type of deployment.", default="k8s")
         # input
@@ -415,12 +415,6 @@ class BoltCtl:
                     "input_kafka_topic": args.input_kafka_topic,
                     "input_kafka_cluster_connection_string": args.input_kafka_cluster_connection_string,
                 }
-            elif args.input_type == "stream_to_batch":
-                input = {
-                    "input_s3_bucket": args.input_s3_bucket,
-                    "input_s3_folder": args.input_s3_folder,
-                    "buffer_size": args.buffer_size,
-                }
             else:
                 raise ValueError(f"Invalid input type: {args.input_type}")
 
@@ -434,12 +428,6 @@ class BoltCtl:
                 output = {
                     "output_kafka_topic": args.output_kafka_topic,
                     "output_kafka_cluster_connection_string": args.output_kafka_cluster_connection_string,
-                }
-            elif args.output_type == "stream_to_batch":
-                output = {
-                    "output_s3_bucket": args.output_s3_bucket,
-                    "output_s3_folder": args.output_s3_folder,
-                    "buffer_size": args.buffer_size,
                 }
             else:
                 raise ValueError(f"Invalid output type: {args.output_type}")
