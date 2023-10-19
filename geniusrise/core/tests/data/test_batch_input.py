@@ -113,13 +113,13 @@ def test_batch_input_get_partitioned_key(batch_input):
 
 
 # Test that the BatchInput can copy files from the S3 bucket
-def test_batch_input_copy_from_remote(batch_input):
+def test_batch_input_from_s3(batch_input):
     # Upload a test file to the S3 bucket
     s3 = boto3.client("s3")
     s3.put_object(Body="test content", Bucket=BUCKET, Key=f"{S3_FOLDER}/test_file_from_s3.txt")
 
-    # Run the copy_from_remote method
-    batch_input.copy_from_remote()
+    # Run the from_s3 method
+    batch_input.from_s3()
 
     # Check that the files were copied to the input folder
     copied_files = os.listdir(os.path.join(batch_input.input_folder, S3_FOLDER))
