@@ -29,7 +29,7 @@ GROUP_ID = "test_group"
 
 # Define a fixture for your StreamingOutput
 @pytest.fixture
-def streaming_output_config():
+def streaming_output():
     return StreamingOutput(OUTPUT_TOPIC, KAFKA_SERVERS)
 
 
@@ -42,10 +42,10 @@ def kafka_consumer():
 
 
 # Test that the StreamingOutput can save data to the Kafka topic
-def test_streaming_output_config_save(streaming_output_config, kafka_consumer):
+def test_streaming_output_save(streaming_output, kafka_consumer):
     data = {"test": "buffer"}
     for _ in range(10):
-        streaming_output_config.save(data)
+        streaming_output.save(data)
 
     # Consume from the Kafka topic and test that the data was saved
     for message in kafka_consumer:
@@ -55,27 +55,14 @@ def test_streaming_output_config_save(streaming_output_config, kafka_consumer):
 
 
 # Test that the StreamingOutput can save data to a specific partition in the Kafka topic
-def test_streaming_output_config_save_to_partition(streaming_output_config, kafka_consumer):
+def test_streaming_output_save_to_partition(streaming_output, kafka_consumer):
     data = {"test": "buffer"}
     partition = 0  # Replace with the number of a partition in your Kafka topic
-    streaming_output_config.save_to_partition(data, partition)
+    streaming_output.save_to_partition(data, partition)
 
     # Consume from the Kafka topic and test that the data was saved
     for message in kafka_consumer:
         if message.partition == partition:
             assert message.value == bytes(json.dumps(data).encode("utf-8"))
             break  # Only consume one message for this test
-    kafka_consumer.unsubscribe()
-
-
-# Test that the StreamingOutput can save data in bulk to the Kafka topic
-def test_streaming_output_config_save_bulk(streaming_output_config, kafka_consumer):
-    data = [{"test": "buffer"}, {"test": "buffer"}, {"test": "buffer"}]
-    streaming_output_config.save_bulk(data)
-
-    # Consume from the Kafka topic and test that the data was saved
-    for i, message in enumerate(kafka_consumer):
-        assert message.value == bytes(json.dumps(data[i]).encode("utf-8"))
-        if i == len(data) - 1:
-            break  # Only consume the number of messages that were saved
     kafka_consumer.unsubscribe()

@@ -57,11 +57,6 @@ def test_spoutctl_init(discovered_spout):
         ("streaming", "postgres"),
         ("streaming", "dynamodb"),
         ("streaming", "prometheus"),
-        ("stream_to_batch", "none"),
-        ("stream_to_batch", "redis"),
-        ("stream_to_batch", "postgres"),
-        ("stream_to_batch", "dynamodb"),
-        ("stream_to_batch", "prometheus"),
     ],
 )
 def test_spoutctl_run(spoutctl, output_type, state_type, tmpdir):
@@ -111,11 +106,6 @@ def test_spoutctl_run(spoutctl, output_type, state_type, tmpdir):
         ("streaming", "postgres"),
         ("streaming", "dynamodb"),
         ("streaming", "prometheus"),
-        ("stream_to_batch", "none"),
-        ("stream_to_batch", "redis"),
-        ("stream_to_batch", "postgres"),
-        ("stream_to_batch", "dynamodb"),
-        ("stream_to_batch", "prometheus"),
     ],
 )
 def test_spoutctl_create_spout(spoutctl, output_type, state_type, tmpdir):

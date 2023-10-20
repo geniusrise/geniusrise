@@ -25,7 +25,7 @@ from rich_argparse import RichHelpFormatter
 
 from geniusrise.cli.discover import DiscoveredSpout
 from geniusrise.core import Spout
-from geniusrise.runners.k8s import Deployment, Service, Job, CronJob
+from geniusrise.runners.k8s import CronJob, Deployment, Job, Service
 
 
 class SpoutCtl:
@@ -56,7 +56,7 @@ class SpoutCtl:
 
         # Create subparser for 'create' command
         create_parser = subparsers.add_parser("rise", help="Run a spout locally.", formatter_class=RichHelpFormatter)
-        create_parser.add_argument("output_type", choices=["batch", "streaming", "stream_to_batch"], help="Choose the type of output data: batch or streaming.", default="batch")
+        create_parser.add_argument("output_type", choices=["batch", "streaming"], help="Choose the type of output data: batch or streaming.", default="batch")
         create_parser.add_argument("state_type", choices=["none", "redis", "postgres", "dynamodb", "prometheus"], help="Select the type of state manager: none, redis, postgres, or dynamodb.", default="none")
         create_parser.add_argument("--buffer_size", help="Specify the size of the buffer.", default=100, type=int)
         # output
@@ -83,7 +83,7 @@ class SpoutCtl:
         create_parser.add_argument("--args", nargs=argparse.REMAINDER, help="Additional keyword arguments to pass to the spout.")
 
         deploy_parser = subparsers.add_parser("deploy", help="Run a spout remotely.", formatter_class=RichHelpFormatter)
-        deploy_parser.add_argument("output_type", choices=["batch", "streaming", "stream_to_batch"], help="Choose the type of output data: batch or streaming.", default="batch")
+        deploy_parser.add_argument("output_type", choices=["batch", "streaming"], help="Choose the type of output data: batch or streaming.", default="batch")
         deploy_parser.add_argument("state_type", choices=["none", "redis", "postgres", "dynamodb", "prometheus"], help="Select the type of state manager: none, redis, postgres, or dynamodb.", default="none")
         deploy_parser.add_argument("deployment_type", choices=["k8s"], help="Choose the type of deployment.", default="k8s")
         # output
@@ -375,12 +375,6 @@ class SpoutCtl:
                 output = {
                     "output_kafka_topic": args.output_kafka_topic,
                     "output_kafka_cluster_connection_string": args.output_kafka_cluster_connection_string,
-                }
-            elif args.output_type == "stream_to_batch":
-                output = {
-                    "output_s3_bucket": args.output_s3_bucket,
-                    "output_s3_folder": args.output_s3_folder,
-                    "buffer_size": args.buffer_size,
                 }
             else:
                 raise ValueError(f"Invalid output type: {args.output_type}")

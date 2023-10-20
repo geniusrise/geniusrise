@@ -18,7 +18,7 @@ import argparse
 import json
 
 import pytest
-from kafka import KafkaProducer
+from kafka import KafkaProducer  # type: ignore
 
 from geniusrise.cli.boltctl import BoltCtl
 from geniusrise.cli.discover import Discover
@@ -62,12 +62,6 @@ def test_boltctl_init(discovered_bolt):
         ("batch", "streaming", "dynamodb"),
         ("batch", "streaming", "prometheus"),
 
-        ("batch", "stream_to_batch", "none"),
-        ("batch", "stream_to_batch", "redis"),
-        ("batch", "stream_to_batch", "postgres"),
-        ("batch", "stream_to_batch", "dynamodb"),
-        ("batch", "stream_to_batch", "prometheus"),
-
         ("streaming", "batch", "none"),
         ("streaming", "batch", "redis"),
         ("streaming", "batch", "postgres"),
@@ -79,49 +73,6 @@ def test_boltctl_init(discovered_bolt):
         ("streaming", "streaming", "postgres"),
         ("streaming", "streaming", "dynamodb"),
         ("streaming", "streaming", "prometheus"),
-
-        ("streaming", "stream_to_batch", "none"),
-        ("streaming", "stream_to_batch", "redis"),
-        ("streaming", "stream_to_batch", "postgres"),
-        ("streaming", "stream_to_batch", "dynamodb"),
-        ("streaming", "stream_to_batch", "prometheus"),
-
-        ("stream_to_batch", "batch", "none"),
-        ("stream_to_batch", "batch", "redis"),
-        ("stream_to_batch", "batch", "postgres"),
-        ("stream_to_batch", "batch", "dynamodb"),
-        ("stream_to_batch", "batch", "prometheus"),
-
-        ("stream_to_batch", "streaming", "none"),
-        ("stream_to_batch", "streaming", "redis"),
-        ("stream_to_batch", "streaming", "postgres"),
-        ("stream_to_batch", "streaming", "dynamodb"),
-        ("stream_to_batch", "streaming", "prometheus"),
-
-        ("stream_to_batch", "stream_to_batch", "none"),
-        ("stream_to_batch", "stream_to_batch", "redis"),
-        ("stream_to_batch", "stream_to_batch", "postgres"),
-        ("stream_to_batch", "stream_to_batch", "dynamodb"),
-        ("stream_to_batch", "stream_to_batch", "prometheus"),
-
-        ("batch_to_stream", "batch", "none"),
-        ("batch_to_stream", "batch", "redis"),
-        ("batch_to_stream", "batch", "postgres"),
-        ("batch_to_stream", "batch", "dynamodb"),
-        ("batch_to_stream", "batch", "prometheus"),
-
-        ("batch_to_stream", "streaming", "none"),
-        ("batch_to_stream", "streaming", "redis"),
-        ("batch_to_stream", "streaming", "postgres"),
-        ("batch_to_stream", "streaming", "dynamodb"),
-        ("batch_to_stream", "streaming", "prometheus"),
-
-        ("batch_to_stream", "stream_to_batch", "none"),
-        ("batch_to_stream", "stream_to_batch", "redis"),
-        ("batch_to_stream", "stream_to_batch", "postgres"),
-        ("batch_to_stream", "stream_to_batch", "dynamodb"),
-        ("batch_to_stream", "stream_to_batch", "prometheus"),
-
     ],
 )
 def test_boltctl_run(boltctl, input_type, output_type, state_type, tmpdir):
@@ -205,11 +156,6 @@ def test_boltctl_execute_bolt(boltctl, tmpdir):
         ("batch", "streaming", "postgres"),
         ("batch", "streaming", "dynamodb"),
         ("batch", "streaming", "prometheus"),
-        ("batch", "stream_to_batch", "none"),
-        ("batch", "stream_to_batch", "redis"),
-        ("batch", "stream_to_batch", "postgres"),
-        ("batch", "stream_to_batch", "dynamodb"),
-        ("batch", "stream_to_batch", "prometheus"),
         ("streaming", "batch", "none"),
         ("streaming", "batch", "redis"),
         ("streaming", "batch", "postgres"),
@@ -220,41 +166,6 @@ def test_boltctl_execute_bolt(boltctl, tmpdir):
         ("streaming", "streaming", "postgres"),
         ("streaming", "streaming", "dynamodb"),
         ("streaming", "streaming", "prometheus"),
-        ("streaming", "stream_to_batch", "none"),
-        ("streaming", "stream_to_batch", "redis"),
-        ("streaming", "stream_to_batch", "postgres"),
-        ("streaming", "stream_to_batch", "dynamodb"),
-        ("streaming", "stream_to_batch", "prometheus"),
-        ("stream_to_batch", "batch", "none"),
-        ("stream_to_batch", "batch", "redis"),
-        ("stream_to_batch", "batch", "postgres"),
-        ("stream_to_batch", "batch", "dynamodb"),
-        ("stream_to_batch", "batch", "prometheus"),
-        ("stream_to_batch", "streaming", "none"),
-        ("stream_to_batch", "streaming", "redis"),
-        ("stream_to_batch", "streaming", "postgres"),
-        ("stream_to_batch", "streaming", "dynamodb"),
-        ("stream_to_batch", "streaming", "prometheus"),
-        ("stream_to_batch", "stream_to_batch", "none"),
-        ("stream_to_batch", "stream_to_batch", "redis"),
-        ("stream_to_batch", "stream_to_batch", "postgres"),
-        ("stream_to_batch", "stream_to_batch", "dynamodb"),
-        ("stream_to_batch", "stream_to_batch", "prometheus"),
-        ("batch_to_stream", "batch", "none"),
-        ("batch_to_stream", "batch", "redis"),
-        ("batch_to_stream", "batch", "postgres"),
-        ("batch_to_stream", "batch", "dynamodb"),
-        ("batch_to_stream", "batch", "prometheus"),
-        ("batch_to_stream", "streaming", "none"),
-        ("batch_to_stream", "streaming", "redis"),
-        ("batch_to_stream", "streaming", "postgres"),
-        ("batch_to_stream", "streaming", "dynamodb"),
-        ("batch_to_stream", "streaming", "prometheus"),
-        ("batch_to_stream", "stream_to_batch", "none"),
-        ("batch_to_stream", "stream_to_batch", "redis"),
-        ("batch_to_stream", "stream_to_batch", "postgres"),
-        ("batch_to_stream", "stream_to_batch", "dynamodb"),
-        ("batch_to_stream", "stream_to_batch", "prometheus"),
     ],
 )
 def test_boltctl_create_bolt(boltctl, input_type, output_type, state_type, tmpdir):

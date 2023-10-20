@@ -14,12 +14,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from argparse import ArgumentParser, Namespace
-import json
 import ast
+import json
+from argparse import ArgumentParser, Namespace
+from typing import List, Optional
+
 from kubernetes import client
 from kubernetes.client import ApiClient
-from typing import Optional, List
 
 from .deployment import Deployment
 
@@ -186,7 +187,7 @@ class Service(Deployment):
         elif args.service == "describe":
             self.describe(args.name)
         else:
-            self.log.error("Unknown command: %s", args.service)
+            self.log.exception("Unknown command: %s", args.service)
 
     def __create_service_spec(self, port: int, target_port: int) -> client.V1ServiceSpec:
         """

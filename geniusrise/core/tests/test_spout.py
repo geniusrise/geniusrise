@@ -17,14 +17,8 @@
 import pytest
 
 from geniusrise.core import Spout
-from geniusrise.core.data import BatchOutput, StreamingOutput, StreamToBatchOutput
-from geniusrise.core.state import (
-    DynamoDBState,
-    InMemoryState,
-    PostgresState,
-    RedisState,
-    PrometheusState,
-)
+from geniusrise.core.data import BatchOutput, StreamingOutput
+from geniusrise.core.state import DynamoDBState, InMemoryState, PostgresState, PrometheusState, RedisState
 
 output_topic = "test_topic"
 kafka_servers = "localhost:9094"
@@ -79,14 +73,12 @@ def state(request):
 
 
 # Define a fixture for the output
-@pytest.fixture(params=[BatchOutput, StreamingOutput, StreamToBatchOutput])  # Add StreamToBatchOutput
+@pytest.fixture(params=[BatchOutput, StreamingOutput])  # Add StreamToBatchOutput
 def output(request, tmpdir):
     if request.param == BatchOutput:
         return request.param(tmpdir, s3_bucket, s3_folder)
     elif request.param == StreamingOutput:
         return request.param(output_topic, kafka_servers)
-    elif request.param == StreamToBatchOutput:
-        return request.param(tmpdir, s3_bucket, s3_folder, buffer_size=1000)
 
 
 def test_spout_init(output, state):
@@ -104,7 +96,7 @@ def test_spout_call(output, state):
     assert result == 6 * (4 + 5 + 6)
 
 
-@pytest.fixture(params=["batch", "streaming", "stream_to_batch"])
+@pytest.fixture(params=["batch", "streaming"])
 def output_type(request):
     return request.param
 
@@ -143,8 +135,6 @@ def test_spout_create(output_type, state_type, tmpdir):
         assert isinstance(spout.output, BatchOutput)
     elif output_type == "streaming":
         assert isinstance(spout.output, StreamingOutput)
-    elif output_type == "stream_to_batch":
-        assert isinstance(spout.output, StreamToBatchOutput)
 
     if state_type == "none":
         assert isinstance(spout.state, InMemoryState)

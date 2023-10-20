@@ -14,10 +14,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from prometheus_client import push_to_gateway
-from geniusrise.core.state import State
 import logging
 from typing import Dict, Optional
+
+from prometheus_client import push_to_gateway
+
+from geniusrise.core.state import State
 
 
 class PrometheusState(State):

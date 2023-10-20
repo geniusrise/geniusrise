@@ -15,9 +15,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-from typing import Any, AsyncIterator, Callable, Dict, Iterator, Union
+from typing import Dict, List, Union, Generator, Any, Callable
+from queue import Queue, Empty
 
 from kafka import KafkaConsumer, TopicPartition
+from pyspark.sql import DataFrame, Row
+from pyspark.sql.streaming import StreamingQuery
+from pyspark.rdd import RDD
+from pyflink.table import Table
+from pyflink.datastream import DataStream
+from streamz.dataframe import DataFrame as ZDataFrame
 
 from .input import Input
 
@@ -27,32 +34,101 @@ KafkaMessage = dict
 class KafkaConnectionError(Exception):
     """❌ Custom exception for kafka connection problems."""
 
-    pass
-
 
 class StreamingInput(Input):
-    """
-    📡 **StreamingInput**: Manages streaming input data.
+    r"""
+    📡 **StreamingInput**: Manages streaming input data from Kafka and other streaming sources.
 
     Attributes:
-        input_topic (str): Kafka topic to consume data.
-        consumer (KafkaConsumer): Kafka consumer for consuming data.
+        input_topic (str): Kafka topic to consume data from.
+        kafka_cluster_connection_string (str): Connection string for the Kafka cluster.
+        group_id (str): Kafka consumer group ID.
+        consumer (KafkaConsumer): Kafka consumer instance.
 
     Usage:
-    ```python
-    config = StreamingInput("my_topic", "localhost:9094")
-    for message in config.iterator():
-        print(message.value)
-    ```
+        input = StreamingInput("my_topic", "localhost:9094")
+        for message in input.get():
+            print(message.value)
 
-    Note:
-    - Ensure the Kafka cluster is running and accessible.
-    - Adjust the `group_id` if needed.
+    Args:
+        input_topic (str): Kafka topic to consume data from.
+        kafka_cluster_connection_string (str): Connection string for the Kafka cluster.
+        group_id (str, optional): Kafka consumer group ID. Defaults to "geniusrise".
+        **kwargs: Additional keyword arguments for KafkaConsumer.
+
+    Raises:
+        KafkaConnectionError: If unable to connect to Kafka.
+
+    Usage:
+
+        ### Using `get` method to consume from Kafka
+        ```python
+        input = StreamingInput("my_topic", "localhost:9094")
+        consumer = input.get()
+        for message in consumer:
+            print(message.value)
+        ```
+
+        ### Using `from_streamz` method to process streamz DataFrame
+        ```python
+        input = StreamingInput("my_topic", "localhost:9094")
+        streamz_df = ...  # Assume this is a streamz DataFrame
+        for row in input.from_streamz(streamz_df):
+            print(row)
+        ```
+
+        ### Using `from_spark` method to process Spark DataFrame
+        ```python
+        input = StreamingInput("my_topic", "localhost:9094")
+        spark_df = ...  # Assume this is a Spark DataFrame
+        map_func = lambda row: {"key": row.key, "value": row.value}
+        query_or_rdd = input.from_spark(spark_df, map_func)
+        ```
+
+        ### Using `from_flink` method to process Flink Table
+        ```python
+        input = StreamingInput("my_topic", "localhost:9094")
+        flink_table = ...  # Assume this is a Flink Table
+        map_func = lambda row: {"key": row[0], "value": row[1]}
+        data_stream = input.from_flink(flink_table, map_func)
+        ```
+
+        ### Using `compose` method to merge multiple StreamingInput instances
+        ```python
+        input1 = StreamingInput("topic1", "localhost:9094")
+        input2 = StreamingInput("topic2", "localhost:9094")
+        result = input1.compose(input2)
+        ```
+
+        ### Using `close` method to close the Kafka consumer
+        ```python
+        input = StreamingInput("my_topic", "localhost:9094")
+        input.close()
+        ```
+
+        ### Using `seek` method to seek to a specific offset
+        ```python
+        input = StreamingInput("my_topic", "localhost:9094")
+        input.seek(42)
+        ```
+
+        ### Using `commit` method to manually commit offsets
+        ```python
+        input = StreamingInput("my_topic", "localhost:9094")
+        input.commit()
+        ```
+
+        ### Using `collect_metrics` method to collect Kafka metrics
+        ```python
+        input = StreamingInput("my_topic", "localhost:9094")
+        metrics = input.collect_metrics()
+        print(metrics)
+        ```
     """
 
     def __init__(
         self,
-        input_topic: str,
+        input_topic: Union[str, List[str]],
         kafka_cluster_connection_string: str,
         group_id: str = "geniusrise",
         **kwargs,
@@ -106,85 +182,124 @@ class StreamingInput(Input):
         else:
             raise KafkaConnectionError("No Kafka consumer available.")
 
-    def iterator(self) -> Iterator:
+    def from_streamz(
+        self, streamz_df: ZDataFrame, sentinel: Any = None, timeout: int = 5
+    ) -> Generator[Any, None, None]:
         """
-        🔄 Iterator method for yielding data from the Kafka consumer.
-
-        Yields:
-            Kafka message: The next message from the Kafka consumer.
-
-        Raises:
-            Exception: If no Kafka consumer is available.
-        """
-        if self.consumer:
-            try:
-                for message in self.consumer:
-                    yield message
-            except Exception as e:
-                self.log.exception(f"🚫 Failed to iterate over Kafka consumer: {e}")
-                raise
-        else:
-            raise KafkaConnectionError("No Kafka consumer available.")
-
-    async def async_iterator(self) -> AsyncIterator[KafkaMessage]:
-        """
-        🔄 Asynchronous iterator method for yielding data from the Kafka consumer.
-
-        Yields:
-            KafkaMessage: The next message from the Kafka consumer.
-
-        Raises:
-            Exception: If no Kafka consumer is available.
-        """
-        if self.consumer:
-            try:
-                async for message in self.consumer:
-                    yield message
-            except Exception as e:
-                self.log.exception(f"🚫 Failed to iterate over Kafka consumer: {e}")
-                raise
-        else:
-            raise KafkaConnectionError("No Kafka consumer available.")
-
-    def ack(self) -> None:
-        """
-        ✅ Acknowledge the processing of a Kafka message.
+        Process a streamz DataFrame as a stream, similar to Kafka processing.
 
         Args:
-            message (KafkaMessage): The Kafka message to acknowledge.
+            streamz_df (ZDataFrame): The streamz DataFrame to process.
+            sentinel (Any): The value that, when received, will stop the generator.
+            timeout (int): The time to wait for an item from the queue before raising an exception.
+
+        Yields:
+            Any: Yields each row as a dictionary.
+        """
+        q: Any = Queue()
+
+        def enqueue(x):
+            q.put(x)
+
+        stream = streamz_df.stream
+        stream.sink(enqueue)
+
+        while True:
+            try:
+                item = q.get(timeout=timeout)
+            except Empty:
+                self.log.warn("Queue is empty.")
+                continue
+
+            if sentinel is not None and item.equals(sentinel.reset_index(drop=True)):
+                break
+            yield item
+
+    def from_spark(self, spark_df: DataFrame, map_func: Callable[[Row], Any]) -> Union[StreamingQuery, RDD[Any]]:
+        """
+        Process a Spark DataFrame as a stream, similar to Kafka processing.
+
+        Args:
+            spark_df (DataFrame): The Spark DataFrame to process.
+            map_func (Callable[[Row], Any]): Function to map each row of the DataFrame.
+
+        Returns:
+            Union[StreamingQuery, RDD[Any]]: Returns a StreamingQuery for streaming DataFrames, and an RDD for batch DataFrames.
 
         Raises:
-            Exception: If an error occurs while acknowledging the message.
+            Exception: If an error occurs during processing.
         """
         try:
-            self.consumer.commit()
-            self.log.info("Acknowledged")
+            if spark_df.isStreaming:
+                return spark_df.writeStream.foreach(map_func).start()
+            else:
+                return spark_df.rdd.map(map_func)
         except Exception as e:
-            raise KafkaConnectionError(f"🚫 Failed to acknowledge message: {e}")
+            self.log.exception(f"❌ Failed to process Spark DataFrame: {e}")
+            raise
 
-    def __iter__(self) -> Iterator:
+    def from_flink(self, flink_table: Table, map_func: Callable[[Row], Any]) -> DataStream:
         """
-        🔄 Make the class iterable.
-        """
-        return self
+        Process a Flink Table as a stream, similar to Kafka processing.
 
-    def __next__(self) -> Any:
-        """
-        🔥 Get the next message from the Kafka consumer.
+        Args:
+            flink_table (Table): The Flink Table to process.
+            map_func (Callable[[Row], Any]): Function to map each row of the Table.
+
+        Returns:
+            DataStream: Returns a Flink DataStream after applying the map function.
 
         Raises:
-            Exception: If no Kafka consumer is available or an error occurs.
+            Exception: If an error occurs during processing.
         """
-        if self.consumer:
-            try:
-                return next(self.consumer)
-            except StopIteration:
-                raise
-            except Exception as e:
-                self.log.exception(f"🚫 Failed to get next message from Kafka consumer: {e}")
-                raise
-        else:
-            raise KafkaConnectionError("🚫 No Kafka consumer available.")
+        try:
+            # Apply the map function to the DataStream
+            mapped_stream = flink_table.map(map_func)
+            return mapped_stream
+        except Exception as e:
+            self.log.exception(f"❌ Failed to process Flink Table: {e}")
+            raise
+
+    def compose(self, *inputs: "StreamingInput") -> Union[bool, str]:  # type: ignore
+        """
+        Compose multiple StreamingInput instances by merging their iterators.
+
+        Args:
+            inputs (StreamingInput): Variable number of StreamingInput instances.
+
+        Returns:
+            Union[bool, str]: True if successful, error message otherwise.
+
+        Caveat:
+            On merging different topics, other operations such as
+        """
+        try:
+            # Validate that all inputs are of type StreamingInput
+            for input_instance in inputs:
+                if not isinstance(input_instance, StreamingInput):
+                    return f"❌ Incompatible input type: {type(input_instance).__name__}"
+
+            # Merge the topics from all the StreamingInput instances
+            all_topics = [self.input_topic] + [input_instance.input_topic for input_instance in inputs]
+
+            # Create a new KafkaConsumer subscribed to all topics
+            merged_consumer = KafkaConsumer(
+                *all_topics,
+                bootstrap_servers=self.kafka_cluster_connection_string,
+                group_id=self.group_id,
+                max_poll_interval_ms=600000,  # 10 minutes
+                session_timeout_ms=10000,  # 10 seconds
+            )
+
+            # Replace the existing consumer with the new merged consumer
+            self.consumer.close()
+            self.consumer = merged_consumer
+            self.input_topic = [t for t in all_topics if type(t) is str]  # store all the topics as a list
+
+            return True
+        except Exception as e:
+            self.log.exception(f"❌ Error during composition: {e}")
+            raise
 
     def close(self) -> None:
         """
@@ -200,7 +315,7 @@ class StreamingInput(Input):
                 self.log.debug(f"🚫 Failed to close Kafka consumer: {e}")
 
     def seek(self, target_offset: int) -> None:
-        if self.consumer:
+        if self.consumer and type(self.input_topic) is str:
             try:
                 # Check if consumer is subscribed to the topic
                 if not self.consumer.subscription():
@@ -247,30 +362,6 @@ class StreamingInput(Input):
                 self.consumer.commit()
             except Exception as e:
                 raise KafkaConnectionError(f"🚫 Failed to commit offsets: {e}")
-
-    def filter_messages(self, filter_func: Callable) -> Iterator:
-        """
-        🔍 Filter messages from the Kafka consumer based on a filter function.
-
-        Args:
-            filter_func (callable): A function that takes a Kafka message and returns a boolean.
-
-        Yields:
-            Kafka message: The next message from the Kafka consumer that passes the filter.
-
-        Raises:
-            Exception: If no Kafka consumer is available or an error occurs.
-        """
-        if self.consumer:
-            try:
-                for message in self.consumer:
-                    if filter_func(message):
-                        yield message
-            except Exception as e:
-                self.log.exception(f"🚫 Failed to filter messages from Kafka consumer: {e}")
-                raise
-        else:
-            raise KafkaConnectionError("🚫 No Kafka consumer available.")
 
     def collect_metrics(self) -> Dict[str, Union[int, float]]:
         """

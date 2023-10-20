@@ -14,9 +14,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import time
-from kafka import KafkaProducer
 import json
+import time
+
+from kafka import KafkaProducer
 
 test_topic = "test_topic"
 kafka_cluster_connection_string = "localhost:9094"

@@ -90,7 +90,7 @@ class Task(ABC):
         if callable(method):
             return method(*args, **kwargs)
         else:
-            self.log.error(f"🚫 Method '{method_name}' not found!")
+            self.log.exception(f"🚫 Method '{method_name}' not found!")
             raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{method_name}'")
 
     @staticmethod
