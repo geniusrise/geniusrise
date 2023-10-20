@@ -107,7 +107,7 @@ class BatchOutput(Output):
         self.log = logging.getLogger(self.__class__.__name__)
         self._metrics: Dict[str, float] = {}
 
-    def save(self, data: Any, filename: Optional[str] = None) -> None:
+    def save(self, data: Any, filename: Optional[str] = None, **kwargs) -> None:
         """
         💾 Save data to a file in the output folder.
 

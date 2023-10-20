@@ -16,7 +16,7 @@
 
 import json
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from kafka import KafkaProducer
 
@@ -62,7 +62,7 @@ class StreamingOutput(Output):
     def __del__(self):
         self.close()
 
-    def save(self, data: Any, filename: Optional[str] = None) -> None:
+    def save(self, data: Any, **kwargs) -> None:
         """
         📤 Ingest data into the Kafka topic.
 
