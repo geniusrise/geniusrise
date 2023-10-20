@@ -17,7 +17,7 @@
 import pytest
 
 from geniusrise.core import Spout
-from geniusrise.core.data import BatchOutput, StreamingOutput, StreamToBatchOutput
+from geniusrise.core.data import BatchOutput, StreamingOutput
 from geniusrise.core.state import DynamoDBState, InMemoryState, PostgresState, PrometheusState, RedisState
 
 output_topic = "test_topic"
@@ -73,14 +73,12 @@ def state(request):
 
 
 # Define a fixture for the output
-@pytest.fixture(params=[BatchOutput, StreamingOutput, StreamToBatchOutput])  # Add StreamToBatchOutput
+@pytest.fixture(params=[BatchOutput, StreamingOutput])  # Add StreamToBatchOutput
 def output(request, tmpdir):
     if request.param == BatchOutput:
         return request.param(tmpdir, s3_bucket, s3_folder)
     elif request.param == StreamingOutput:
         return request.param(output_topic, kafka_servers)
-    elif request.param == StreamToBatchOutput:
-        return request.param(tmpdir, s3_bucket, s3_folder, buffer_size=1000)
 
 
 def test_spout_init(output, state):

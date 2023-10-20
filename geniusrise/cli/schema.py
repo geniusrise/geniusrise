@@ -166,7 +166,6 @@ class Input(BaseModel):
         if v not in [
             "batch",
             "streaming",
-            "batch_to_stream",
             "spout",
             "bolt",
         ]:
@@ -182,9 +181,6 @@ class Input(BaseModel):
             elif values["type"] == "streaming":
                 if not v or "input_topic" not in v or "kafka_servers" not in v:
                     raise ValueError("Missing required fields for streaming input type")
-            elif values["type"] == "batch_to_stream":
-                if not v or "bucket" not in v or "folder" not in v:
-                    raise ValueError("Missing required fields for batch_to_stream input type")
             elif values["type"] in ["spout", "bolt"]:
                 if not v or "name" not in v:
                     raise ValueError(f"Missing required fields for {values['type']} input type")

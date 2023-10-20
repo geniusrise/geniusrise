@@ -534,10 +534,6 @@ class YamlCtl:
             bolt_args.append(f"--input_kafka_consumer_group_id={bolt.input.args.group_id}")
             bolt_args.append(f"--input_kafka_cluster_connection_string={bolt.input.args.kafka_servers}")
             bolt_args.append(f"--input_kafka_consumer_group_id={bolt.input.args.group_id}")
-        elif bolt.input.type == "batch_to_stream":
-            bolt_args.append(f"--input_folder={bolt.input.args.folder}")
-            bolt_args.append(f"--input_s3_bucket={bolt.input.args.bucket}")
-            bolt_args.append(f"--input_s3_folder={bolt.input.args.folder}")
 
         # Convert output
         if bolt.output.type == "batch":
