@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from abc import ABC, abstractmethod
-from typing import Any, Optional
+from typing import Any
 
 
 class Output(ABC):
@@ -24,7 +24,7 @@ class Output(ABC):
     """
 
     @abstractmethod
-    def save(self, data: Any, filename: Optional[str] = None) -> None:
+    def save(self, data: Any, **kwargs) -> None:
         """
         Save data to a file or ingest it into a Kafka topic.
 
@@ -32,11 +32,9 @@ class Output(ABC):
             data (Any): The data to save or ingest.
             filename (str): The filename to use when saving the data to a file.
         """
-        pass
 
     @abstractmethod
     def flush(self):
         """
         Flush the output. This method should be implemented by subclasses.
         """
-        pass

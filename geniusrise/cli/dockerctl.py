@@ -14,14 +14,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
-import subprocess
-import logging
 import argparse
 import json
-from rich_argparse import RichHelpFormatter
+import logging
+import os
+import subprocess
 from typing import Optional
+
 import boto3
+from rich_argparse import RichHelpFormatter
 
 
 class DockerCtl:
@@ -158,7 +159,7 @@ class DockerCtl:
             # Build Docker image
             build_success = self.build_image(args.image_name, dockerfile_path)
             if not build_success:
-                self.log.error("Failed to build Docker image.")
+                self.log.exception("Failed to build Docker image.")
                 return
 
             # Upload to repository
@@ -168,12 +169,12 @@ class DockerCtl:
 
             upload_success = self.upload_to_repository(args.image_name, args.repository, auth=auth_dict)
             if not upload_success:
-                self.log.error("Failed to upload Docker image.")
+                self.log.exception("Failed to upload Docker image.")
                 return
 
             self.log.info("Successfully built and uploaded Docker image.")
         else:
-            self.log.error(f"Unrecognized command: {args.docker}")
+            self.log.exception(f"Unrecognized command: {args.docker}")
 
     def create_dockerfile(self) -> str:
         """
@@ -258,7 +259,7 @@ class DockerCtl:
             self.log.info(f"Successfully built Docker image: {image_name}")
             return True
         except subprocess.CalledProcessError as e:
-            self.log.error(f"Failed to build Docker image: {e}")
+            self.log.exception(f"Failed to build Docker image: {e}")
             return False
 
     def upload_to_repository(self, image_name: str, repository: str, auth: dict = {}) -> bool:
@@ -289,7 +290,7 @@ class DockerCtl:
             return self.upload_to_acr(image_name=image_name, auth=auth)
 
         else:
-            self.log.error(f"Unsupported repository: {repository}")
+            self.log.exception(f"Unsupported repository: {repository}")
             return False
 
     def upload_to_ecr(self, image_name: str, auth: dict, ecr_repo: Optional[str] = None) -> bool:
@@ -326,7 +327,7 @@ class DockerCtl:
             self.log.info(f"Successfully uploaded {image_name} to ECR repository {ecr_repo}")
             return True
         except subprocess.CalledProcessError as e:
-            self.log.error(f"Failed to upload to ECR: {e}")
+            self.log.exception(f"Failed to upload to ECR: {e}")
             return False
 
     def upload_to_acr(self, image_name: str, auth: dict) -> bool:
@@ -353,7 +354,7 @@ class DockerCtl:
             self.log.info(f"Successfully uploaded {image_name} to ACR")
             return True
         except subprocess.CalledProcessError as e:
-            self.log.error(f"Failed to upload to ACR: {e}")
+            self.log.exception(f"Failed to upload to ACR: {e}")
             return False
 
     def upload_to_gcr(self, image_name: str, auth: dict) -> bool:
@@ -379,7 +380,7 @@ class DockerCtl:
             self.log.info(f"Successfully uploaded {image_name} to GCR")
             return True
         except subprocess.CalledProcessError as e:
-            self.log.error(f"Failed to upload to GCR: {e}")
+            self.log.exception(f"Failed to upload to GCR: {e}")
             return False
 
     def upload_to_dockerhub(self, image_name: str, auth: dict) -> bool:
@@ -408,7 +409,7 @@ class DockerCtl:
             self.log.info(f"Successfully uploaded {image_name} to DockerHub")
             return True
         except subprocess.CalledProcessError as e:
-            self.log.error(f"Failed to upload to DockerHub: {e}")
+            self.log.exception(f"Failed to upload to DockerHub: {e}")
             return False
 
     def upload_to_quay(self, image_name: str, auth: dict) -> bool:
@@ -440,5 +441,5 @@ class DockerCtl:
             self.log.info(f"Successfully uploaded {image_name} to Quay.io")
             return True
         except subprocess.CalledProcessError as e:
-            self.log.error(f"Failed to upload to Quay.io: {e}")
+            self.log.exception(f"Failed to upload to Quay.io: {e}")
             return False

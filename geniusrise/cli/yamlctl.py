@@ -17,18 +17,18 @@
 import argparse
 import logging
 import typing
+from concurrent.futures import ThreadPoolExecutor, wait
 from typing import Dict, List
-
-# import os
 
 import emoji  # type: ignore
 import yaml  # type: ignore
-from concurrent.futures import ThreadPoolExecutor, wait
 from rich_argparse import RichHelpFormatter
 
 from geniusrise.cli.boltctl import BoltCtl
 from geniusrise.cli.schema import Bolt, Geniusfile, Spout
 from geniusrise.cli.spoutctl import SpoutCtl
+
+# import os
 
 
 class YamlCtl:
@@ -160,72 +160,6 @@ class YamlCtl:
         args:
             kind: deployment
             name: sentiment-analyzer
-            context_name: arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
-            namespace: geniusrise
-            image: geniusrise/geniusrise
-            kube_config_path: ~/.kube/config
-    ```
-
-
-    ```yaml
-    version: 1
-
-    spouts:
-    http_listener:
-        name: Webhook
-        method: listen
-        args:
-        port: 8080
-        state:
-        type: none
-        output:
-        type: stream_to_batch
-        args:
-            bucket: geniusrise-test
-            folder: train
-        deploy:
-        type: k8s
-        args:
-            kind: deployment
-            name: webhook
-            context_name: arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
-            namespace: geniusrise
-            image: geniusrise/geniusrise
-            kube_config_path: ~/.kube/config
-    bolts:
-    http_classifier:
-        name: HuggingFaceClassificationFineTuner
-        method: fine_tune
-        args:
-        model_name: bert-base-uncased
-        tokenizer_name: bert-base-uncased
-        num_train_epochs: 2
-        per_device_train_batch_size: 2
-        model_class: BertForSequenceClassification
-        tokenizer_class: BertTokenizer
-        data_masked: true
-        data_extractor_lambda: "lambda x: x['data']"
-        hf_repo_id: ixaxaar/geniusrise-api-status-code-prediction
-        hf_commit_message: initial local testing
-        hf_create_pr: true
-        hf_token: ***REMOVED***
-        state:
-        type: none
-        input:
-        type: batch
-        args:
-            bucket: geniusrise-test
-            folder: train
-        output:
-        type: batch
-        args:
-            bucket: geniusrise-test
-            folder: model
-        deploy:
-        type: k8s
-        args:
-            kind: deployment
-            name: classifier
             context_name: arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
             namespace: geniusrise
             image: geniusrise/geniusrise
@@ -364,12 +298,12 @@ class YamlCtl:
         """
         spout = self.geniusfile.spouts.get(spout_name)
         if not spout:
-            self.log.error(emoji.emojize(f":x: Spout {spout_name} not found."))
+            self.log.exception(emoji.emojize(f":x: Spout {spout_name} not found."))
             return
 
         spout_ctl = self.spout_ctls.get(spout.name)
         if not spout_ctl:
-            self.log.error(emoji.emojize(f":x: SpoutCtl for {spout_name} - {spout.name} not found."))
+            self.log.exception(emoji.emojize(f":x: SpoutCtl for {spout_name} - {spout.name} not found."))
             return
 
         self.log.info(emoji.emojize(f":rocket: Running spout {spout_name}..."))
@@ -397,12 +331,12 @@ class YamlCtl:
         """
         spout = self.geniusfile.spouts.get(spout_name)
         if not spout:
-            self.log.error(emoji.emojize(f":x: Spout {spout_name} not found."))
+            self.log.exception(emoji.emojize(f":x: Spout {spout_name} not found."))
             return
 
         spout_ctl = self.spout_ctls.get(spout.name)
         if not spout_ctl:
-            self.log.error(emoji.emojize(f":x: SpoutCtl for {spout_name} - {spout.name} not found."))
+            self.log.exception(emoji.emojize(f":x: SpoutCtl for {spout_name} - {spout.name} not found."))
             return
 
         self.log.info(emoji.emojize(f":rocket: Deploying spout {spout_name}..."))
@@ -435,7 +369,7 @@ class YamlCtl:
         """
         bolt = self.geniusfile.bolts.get(bolt_name)
         if not bolt:
-            self.log.error(emoji.emojize(f":x: Bolt {bolt_name} not found."))
+            self.log.exception(emoji.emojize(f":x: Bolt {bolt_name} not found."))
             return
 
         # Resolve reference if input type is "spout" or "bolt"
@@ -445,14 +379,14 @@ class YamlCtl:
             ref_name = bolt.input.args.name
             resolved_output = self.resolve_reference(bolt.input.type, ref_name)
             if not resolved_output:
-                self.log.error(emoji.emojize(f":x: Failed to resolve reference for bolt {bolt_name}."))
+                self.log.exception(emoji.emojize(f":x: Failed to resolve reference for bolt {bolt_name}."))
                 return
             bolt.input.type = resolved_output.type  # Set the resolved output type as the bolt's input type
             bolt.input.args = resolved_output.args  # Set the resolved output args as the bolt's input args
 
         bolt_ctl = self.bolt_ctls.get(bolt.name)
         if not bolt_ctl:
-            self.log.error(emoji.emojize(f":x: BoltCtl for {bolt_name} = {bolt.name} not found."))
+            self.log.exception(emoji.emojize(f":x: BoltCtl for {bolt_name} = {bolt.name} not found."))
             return
 
         self.log.info(emoji.emojize(f":rocket: Running bolt {bolt_name}..."))
@@ -479,7 +413,7 @@ class YamlCtl:
         """
         bolt = self.geniusfile.bolts.get(bolt_name)
         if not bolt:
-            self.log.error(emoji.emojize(f":x: Bolt {bolt_name} not found."))
+            self.log.exception(emoji.emojize(f":x: Bolt {bolt_name} not found."))
             return
 
         # Resolve reference if input type is "spout" or "bolt"
@@ -489,14 +423,14 @@ class YamlCtl:
             ref_name = bolt.input.args.name
             resolved_output = self.resolve_reference(bolt.input.type, ref_name)
             if not resolved_output:
-                self.log.error(emoji.emojize(f":x: Failed to resolve reference for bolt {bolt_name}."))
+                self.log.exception(emoji.emojize(f":x: Failed to resolve reference for bolt {bolt_name}."))
                 return
             bolt.input.type = resolved_output.type  # Set the resolved output type as the bolt's input type
             bolt.input.args = resolved_output.args  # Set the resolved output args as the bolt's input args
 
         bolt_ctl = self.bolt_ctls.get(bolt.name)
         if not bolt_ctl:
-            self.log.error(emoji.emojize(f":x: BoltCtl for {bolt_name} = {bolt.name} not found."))
+            self.log.exception(emoji.emojize(f":x: BoltCtl for {bolt_name} = {bolt.name} not found."))
             return
 
         self.log.info(emoji.emojize(f":rocket: Running bolt {bolt_name}..."))
@@ -534,17 +468,17 @@ class YamlCtl:
         if input_type == "spout":
             referred_spout = self.geniusfile.spouts.get(ref_name)
             if not referred_spout:
-                self.log.error(emoji.emojize(f":x: Referred spout {ref_name} not found."))
+                self.log.exception(emoji.emojize(f":x: Referred spout {ref_name} not found."))
                 return None
             return referred_spout.output
         elif input_type == "bolt":
             referred_bolt = self.geniusfile.bolts.get(ref_name)
             if not referred_bolt:
-                self.log.error(emoji.emojize(f":x: Referred bolt {ref_name} not found."))
+                self.log.exception(emoji.emojize(f":x: Referred bolt {ref_name} not found."))
                 return None
             return referred_bolt.output
         else:
-            self.log.error(emoji.emojize(f":x: Invalid reference type {input_type}."))
+            self.log.exception(emoji.emojize(f":x: Invalid reference type {input_type}."))
             return None
 
     # TODO: maybe create argparse namespaces instead of this nonsense
@@ -560,11 +494,6 @@ class YamlCtl:
         elif spout.output.type == "streaming":
             spout_args.append(f"--output_kafka_topic={spout.output.args.output_topic}")
             spout_args.append(f"--output_kafka_cluster_connection_string={spout.output.args.kafka_servers}")
-        elif spout.output.type == "stream_to_batch":
-            spout_args.append(f"--output_folder={spout.output.args.folder}")
-            spout_args.append(f"--output_s3_bucket={spout.output.args.bucket}")
-            spout_args.append(f"--output_s3_folder={spout.output.args.folder}")
-            spout_args.append(f"--buffer_size={spout.output.args.buffer_size}")
 
         # Convert state
         if spout.state.type == "redis":
@@ -605,16 +534,6 @@ class YamlCtl:
             bolt_args.append(f"--input_kafka_consumer_group_id={bolt.input.args.group_id}")
             bolt_args.append(f"--input_kafka_cluster_connection_string={bolt.input.args.kafka_servers}")
             bolt_args.append(f"--input_kafka_consumer_group_id={bolt.input.args.group_id}")
-        elif bolt.input.type == "batch_to_stream":
-            bolt_args.append(f"--input_folder={bolt.input.args.folder}")
-            bolt_args.append(f"--input_s3_bucket={bolt.input.args.bucket}")
-            bolt_args.append(f"--input_s3_folder={bolt.input.args.folder}")
-        elif bolt.input.type == "stream_to_batch":
-            bolt_args.append(f"--input_kafka_topic={bolt.input.args.input_topic}")
-            bolt_args.append(f"--input_kafka_consumer_group_id={bolt.input.args.group_id}")
-            bolt_args.append(f"--input_kafka_cluster_connection_string={bolt.input.args.kafka_servers}")
-            bolt_args.append(f"--input_kafka_consumer_group_id={bolt.input.args.group_id}")
-            bolt_args.append(f"--buffer_size={bolt.output.args.buffer_size}")
 
         # Convert output
         if bolt.output.type == "batch":
@@ -624,11 +543,6 @@ class YamlCtl:
         elif bolt.output.type == "streaming":
             bolt_args.append(f"--output_kafka_topic={bolt.output.args.output_topic}")
             bolt_args.append(f"--output_kafka_cluster_connection_string={bolt.output.args.kafka_servers}")
-        elif bolt.output.type == "stream_to_batch":
-            bolt_args.append(f"--output_folder={bolt.output.args.folder}")
-            bolt_args.append(f"--output_s3_bucket={bolt.output.args.bucket}")
-            bolt_args.append(f"--output_s3_folder={bolt.output.args.folder}")
-            bolt_args.append(f"--buffer_size={bolt.output.args.buffer_size}")
 
         # Convert state
         if bolt.state.type == "redis":

@@ -17,25 +17,16 @@
 import json
 
 import pytest
-from kafka import KafkaProducer
+from kafka import KafkaProducer  # type: ignore
 
 from geniusrise.core import Bolt
 from geniusrise.core.data import (
     BatchInput,
     BatchOutput,
-    BatchToStreamingInput,
     StreamingInput,
     StreamingOutput,
-    StreamToBatchInput,
-    StreamToBatchOutput,
 )
-from geniusrise.core.state import (
-    DynamoDBState,
-    InMemoryState,
-    PostgresState,
-    RedisState,
-    PrometheusState,
-)
+from geniusrise.core.state import DynamoDBState, InMemoryState, PostgresState, PrometheusState, RedisState
 
 # Define the parameters for the tests
 bucket = "geniusrise-test-bucket"
@@ -66,32 +57,21 @@ class TestBolt(Bolt):
 
 
 # Define a fixture for the input
-@pytest.fixture(params=[BatchInput, StreamingInput, StreamToBatchInput, BatchToStreamingInput])
+@pytest.fixture(params=[BatchInput, StreamingInput])
 def input(request, tmpdir):
     if request.param == BatchInput:
         return request.param(tmpdir, bucket, s3_folder)
     elif request.param == StreamingInput:
         return request.param(input_topic, kafka_cluster_connection_string, group_id)
-    elif request.param == StreamToBatchInput:
-        return request.param(
-            input_topic,
-            kafka_cluster_connection_string,
-            group_id,
-            buffer_size=buffer_size,
-        )
-    elif request.param == BatchToStreamingInput:
-        return request.param(tmpdir, bucket, s3_folder)
 
 
 # Define a fixture for the output
-@pytest.fixture(params=[BatchOutput, StreamingOutput, StreamToBatchOutput])
+@pytest.fixture(params=[BatchOutput, StreamingOutput])
 def output(request, tmpdir):
     if request.param == BatchOutput:
         return request.param(tmpdir, bucket, s3_folder)
     elif request.param == StreamingOutput:
         return request.param(output_topic, kafka_servers)
-    elif request.param == StreamToBatchOutput:
-        return request.param(tmpdir, bucket, s3_folder, buffer_size)
 
 
 # Define a fixture for the state manager

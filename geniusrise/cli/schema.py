@@ -115,7 +115,7 @@ class Output(BaseModel):
 
     @validator("type")
     def validate_type(cls, v, values, **kwargs):
-        if v not in ["batch", "streaming", "stream_to_batch"]:
+        if v not in ["batch", "streaming"]:
             raise ValueError("Invalid output type")
         return v
 
@@ -128,9 +128,6 @@ class Output(BaseModel):
             elif values["type"] == "streaming":
                 if not v or "output_topic" not in v or "kafka_servers" not in v:
                     raise ValueError("Missing required fields for streaming output type")
-            elif values["type"] == "stream_to_batch":
-                if not v or "bucket" not in v or "folder" not in v:
-                    raise ValueError("Missing required fields for stream_to_batch output type")
             else:
                 raise ValueError(f"Unknown type of output {values['type']}")
         else:
@@ -169,8 +166,6 @@ class Input(BaseModel):
         if v not in [
             "batch",
             "streaming",
-            "batch_to_stream",
-            "stream_to_batch",
             "spout",
             "bolt",
         ]:
@@ -186,12 +181,6 @@ class Input(BaseModel):
             elif values["type"] == "streaming":
                 if not v or "input_topic" not in v or "kafka_servers" not in v:
                     raise ValueError("Missing required fields for streaming input type")
-            elif values["type"] == "batch_to_stream":
-                if not v or "bucket" not in v or "folder" not in v:
-                    raise ValueError("Missing required fields for batch_to_stream input type")
-            elif values["type"] == "stream_to_batch":
-                if not v or "input_topic" not in v or "kafka_servers" not in v:
-                    raise ValueError("Missing required fields for stream_to_batch input type")
             elif values["type"] in ["spout", "bolt"]:
                 if not v or "name" not in v:
                     raise ValueError(f"Missing required fields for {values['type']} input type")

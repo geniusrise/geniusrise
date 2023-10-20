@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
+
 from geniusrise.core.state import PrometheusState
 
 # Define your Prometheus PushGateway URL as a constant

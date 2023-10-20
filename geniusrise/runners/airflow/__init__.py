@@ -14,8 +14,4 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# TODO: probably useless
-
-
-def test_nothing():
-    pass
+from geniusrise.runners.airflow.python import AirflowPythonMixin

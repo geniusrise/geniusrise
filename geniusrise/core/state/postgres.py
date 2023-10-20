@@ -15,8 +15,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
-from typing import Dict, Optional
 from datetime import datetime
+from typing import Dict, Optional
 
 import jsonpickle
 import psycopg2
@@ -145,4 +145,4 @@ class PostgresState(State):
                 self.log.exception(f"🚫 Failed to set state in PostgreSQL: {e}")
                 raise
         else:
-            self.log.error("🚫 No PostgreSQL connection.")
+            self.log.exception("🚫 No PostgreSQL connection.")

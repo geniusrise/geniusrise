@@ -14,12 +14,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from argparse import ArgumentParser, Namespace
-import json
 import ast
+import json
+from argparse import ArgumentParser, Namespace
+from typing import List, Optional
+
 from kubernetes import client
 from kubernetes.client import BatchV1Api
-from typing import List, Optional
 
 from .job import Job
 
@@ -176,7 +177,7 @@ class CronJob(Job):
         elif args.command == "get_cronjob_status":
             self.status(args.name)
         else:
-            self.log.error("Unknown command: %s", args.command)
+            self.log.exception("Unknown command: %s", args.command)
 
     def __create_cronjob_spec(
         self,
