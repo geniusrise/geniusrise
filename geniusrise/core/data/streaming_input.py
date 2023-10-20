@@ -257,12 +257,8 @@ class StreamingInput(Input):
             Exception: If an error occurs during processing.
         """
         try:
-            # Convert the Table to a DataStream
-            data_stream = flink_table.to_append_stream()
-
             # Apply the map function to the DataStream
-            mapped_stream = data_stream.map(map_func)
-
+            mapped_stream = flink_table.map(map_func)
             return mapped_stream
         except Exception as e:
             self.log.exception(f"❌ Failed to process Flink Table: {e}")
