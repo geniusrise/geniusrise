@@ -244,7 +244,7 @@ class BoltCtl:
                     - input_folder (str): The input folder argument.
                     - input_s3_bucket (str): The input bucket argument.
                     - input_s3_folder (str): The input S3 folder argument.
-                    Batch outupt config:
+                    Batch outupt:
                     - output_folder (str): The output folder argument.
                     - output_s3_bucket (str): The output bucket argument.
                     - output_s3_folder (str): The output S3 folder argument.
@@ -255,21 +255,6 @@ class BoltCtl:
                     Streaming output:
                     - output_kafka_cluster_connection_string (str): The output Kafka servers argument.
                     - output_kafka_topic (str): The output kafka topic argument.
-                    Stream-to-Batch input:
-                    - buffer_size (int): Number of messages to buffer.
-                    - input_kafka_cluster_connection_string (str): The input Kafka servers argument.
-                    - input_kafka_topic (str): The input kafka topic argument.
-                    - input_kafka_consumer_group_id (str): The Kafka consumer group id.
-                    Batch-to-Streaming input:
-                    - buffer_size (int): Number of messages to buffer.
-                    - input_folder (str): The input folder argument.
-                    - input_s3_bucket (str): The input bucket argument.
-                    - input_s3_folder (str): The input S3 folder argument.
-                    Stream-to-Batch output:
-                    - buffer_size (int): Number of messages to buffer.
-                    - output_folder (str): The output folder argument.
-                    - output_s3_bucket (str): The output bucket argument.
-                    - output_s3_folder (str): The output S3 folder argument.
                     Redis state manager config:
                     - redis_host (str): The Redis host argument.
                     - redis_port (str): The Redis port argument.
@@ -322,18 +307,21 @@ class BoltCtl:
             **kwargs: Additional keyword arguments for initializing the spout.
                 ```
                 Keyword Arguments:
-                    Batch output:
-                    - output_folder (str): The directory where output files should be stored temporarily.
-                    - output_s3_bucket (str): The name of the S3 bucket for output storage.
-                    - output_s3_folder (str): The S3 folder for output storage.
+                    Batch input:
+                    - input_folder (str): The input folder argument.
+                    - input_s3_bucket (str): The input bucket argument.
+                    - input_s3_folder (str): The input S3 folder argument.
+                    Batch outupt:
+                    - output_folder (str): The output folder argument.
+                    - output_s3_bucket (str): The output bucket argument.
+                    - output_s3_folder (str): The output S3 folder argument.
+                    Streaming input:
+                    - input_kafka_cluster_connection_string (str): The input Kafka servers argument.
+                    - input_kafka_topic (str): The input kafka topic argument.
+                    - input_kafka_consumer_group_id (str): The Kafka consumer group id.
                     Streaming output:
-                    - output_kafka_topic (str): Kafka output topic for streaming spouts.
-                    - output_kafka_cluster_connection_string (str): Kafka connection string for streaming spouts.
-                    Stream to Batch output:
-                    - output_folder (str): The directory where output files should be stored temporarily.
-                    - output_s3_bucket (str): The name of the S3 bucket for output storage.
-                    - output_s3_folder (str): The S3 folder for output storage.
-                    - buffer_size (int): Number of messages to buffer.
+                    - output_kafka_cluster_connection_string (str): The output Kafka servers argument.
+                    - output_kafka_topic (str): The output kafka topic argument.
                     Redis state manager config:
                     - redis_host (str): The host address for the Redis server.
                     - redis_port (int): The port number for the Redis server.

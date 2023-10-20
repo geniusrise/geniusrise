@@ -18,7 +18,7 @@ import argparse
 import json
 
 import pytest
-from kafka import KafkaProducer
+from kafka import KafkaProducer  # type: ignore
 
 from geniusrise.cli.boltctl import BoltCtl
 from geniusrise.cli.discover import Discover
@@ -73,18 +73,6 @@ def test_boltctl_init(discovered_bolt):
         ("streaming", "streaming", "postgres"),
         ("streaming", "streaming", "dynamodb"),
         ("streaming", "streaming", "prometheus"),
-
-        ("batch_to_stream", "batch", "none"),
-        ("batch_to_stream", "batch", "redis"),
-        ("batch_to_stream", "batch", "postgres"),
-        ("batch_to_stream", "batch", "dynamodb"),
-        ("batch_to_stream", "batch", "prometheus"),
-
-        ("batch_to_stream", "streaming", "none"),
-        ("batch_to_stream", "streaming", "redis"),
-        ("batch_to_stream", "streaming", "postgres"),
-        ("batch_to_stream", "streaming", "dynamodb"),
-        ("batch_to_stream", "streaming", "prometheus"),
     ],
 )
 def test_boltctl_run(boltctl, input_type, output_type, state_type, tmpdir):
@@ -178,16 +166,6 @@ def test_boltctl_execute_bolt(boltctl, tmpdir):
         ("streaming", "streaming", "postgres"),
         ("streaming", "streaming", "dynamodb"),
         ("streaming", "streaming", "prometheus"),
-        ("batch_to_stream", "batch", "none"),
-        ("batch_to_stream", "batch", "redis"),
-        ("batch_to_stream", "batch", "postgres"),
-        ("batch_to_stream", "batch", "dynamodb"),
-        ("batch_to_stream", "batch", "prometheus"),
-        ("batch_to_stream", "streaming", "none"),
-        ("batch_to_stream", "streaming", "redis"),
-        ("batch_to_stream", "streaming", "postgres"),
-        ("batch_to_stream", "streaming", "dynamodb"),
-        ("batch_to_stream", "streaming", "prometheus"),
     ],
 )
 def test_boltctl_create_bolt(boltctl, input_type, output_type, state_type, tmpdir):

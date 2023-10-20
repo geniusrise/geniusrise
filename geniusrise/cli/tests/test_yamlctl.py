@@ -19,7 +19,7 @@ import json
 import os
 
 import pytest
-from kafka import KafkaProducer
+from kafka import KafkaProducer  # type: ignore
 
 from geniusrise.cli.boltctl import BoltCtl
 from geniusrise.cli.discover import Discover

@@ -20,12 +20,10 @@ from typing import Any
 from geniusrise.core.data import (
     BatchInput,
     BatchOutput,
-    BatchToStreamingInput,
     Input,
     Output,
     StreamingInput,
     StreamingOutput,
-    StreamToBatchOutput,
 )
 from geniusrise.core.state import DynamoDBState, InMemoryState, PostgresState, PrometheusState, RedisState, State
 from geniusrise.logging import setup_logger
@@ -116,10 +114,6 @@ class Bolt(Task):
             elif type(self.input) is StreamingInput:
                 kafka_consumer = self.input.get()
                 kwargs["kafka_consumer"] = kafka_consumer
-            elif isinstance(self.input, BatchToStreamingInput):
-                self.input.from_s3()
-                iterator = self.input.get()
-                kwargs["kafka_consumer"] = iterator
 
             # Execute the task's method
             result = self.execute(method_name, *args, **kwargs)
@@ -214,7 +208,7 @@ class Bolt(Task):
             ValueError: If an invalid input type, output type, or state type is provided.
         """
         # Create the input
-        input: BatchInput | StreamingInput | BatchToStreamingInput
+        input: BatchInput | StreamingInput
         if input_type == "batch":
             input = BatchInput(
                 input_folder=kwargs["input_folder"] if "input_folder" in kwargs else tempfile.mkdtemp(),
@@ -229,17 +223,11 @@ class Bolt(Task):
                 else None,
                 group_id=kwargs["input_kafka_consumer_group_id"] if "input_kafka_consumer_group_id" in kwargs else None,
             )
-        elif input_type == "batch_to_stream":
-            input = BatchToStreamingInput(
-                input_folder=kwargs["input_folder"] if "input_folder" in kwargs else tempfile.mkdtemp(),
-                bucket=kwargs["input_s3_bucket"] if "input_s3_bucket" in kwargs else None,
-                s3_folder=kwargs["input_s3_folder"] if "input_s3_folder" in kwargs else None,
-            )
         else:
             raise ValueError(f"Invalid input type: {input_type}")
 
         # Create the output
-        output: BatchOutput | StreamingOutput | StreamToBatchOutput
+        output: BatchOutput | StreamingOutput
         if output_type == "batch":
             output = BatchOutput(
                 output_folder=kwargs["output_folder"] if "output_folder" in kwargs else tempfile.mkdtemp(),

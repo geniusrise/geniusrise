@@ -61,5 +61,6 @@ repos:
       - id: mypy
         additional_dependencies:
           - types-requests
+        exclude: ^geniusrise/cli/tests/
 
 exclude: ^(tests|test)/
