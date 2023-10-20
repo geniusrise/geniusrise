@@ -66,16 +66,3 @@ def test_streaming_output_save_to_partition(streaming_output, kafka_consumer):
             assert message.value == bytes(json.dumps(data).encode("utf-8"))
             break  # Only consume one message for this test
     kafka_consumer.unsubscribe()
-
-
-# Test that the StreamingOutput can save data in bulk to the Kafka topic
-def test_streaming_output_save_bulk(streaming_output, kafka_consumer):
-    data = [{"test": "buffer"}, {"test": "buffer"}, {"test": "buffer"}]
-    streaming_output.save_bulk(data)
-
-    # Consume from the Kafka topic and test that the data was saved
-    for i, message in enumerate(kafka_consumer):
-        assert message.value == bytes(json.dumps(data[i]).encode("utf-8"))
-        if i == len(data) - 1:
-            break  # Only consume the number of messages that were saved
-    kafka_consumer.unsubscribe()

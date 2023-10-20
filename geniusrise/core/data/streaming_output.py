@@ -16,7 +16,7 @@
 
 import json
 import logging
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 from kafka import KafkaProducer
 
@@ -97,32 +97,6 @@ class StreamingOutput(Output):
             self.log.exception("🚫 No Kafka producer available.")
             raise
 
-    def send_key_value(self, key: Any, value: Any) -> None:
-        """
-        🔑 Send a message with a key to the Kafka topic.
-
-        Args:
-            key (Any): The key of the message.
-            value (Any): The value of the message.
-
-        Raises:
-            Exception: If no Kafka producer is available or an error occurs.
-        """
-        if self.producer:
-            try:
-                self.producer.send(
-                    self.output_topic,
-                    key=bytes(json.dumps(key).encode("utf-8")),
-                    value=bytes(json.dumps(value).encode("utf-8")),
-                )
-                self.log.debug(f"✅ Inserted the key-value pair into {self.output_topic} topic.")
-            except Exception as e:
-                self.log.exception(f"🚫 Failed to send key-value pair to Kafka topic: {e}")
-                raise
-        else:
-            self.log.exception("🚫 No Kafka producer available.")
-            raise
-
     def close(self) -> None:
         """
         🚪 Close the Kafka producer.
@@ -178,28 +152,6 @@ class StreamingOutput(Output):
                 self.log.debug(f"✅ Inserted the message into partition {partition} of {self.output_topic} topic.")
             except Exception as e:
                 self.log.exception(f"🚫 Failed to send message to Kafka topic: {e}")
-                raise
-        else:
-            self.log.exception("🚫 No Kafka producer available.")
-            raise
-
-    def save_bulk(self, messages: List[Any]) -> None:
-        """
-        📦 Send multiple messages at once to the Kafka topic.
-
-        Args:
-            messages (list): The messages to send.
-
-        Raises:
-            Exception: If no Kafka producer is available or an error occurs.
-        """
-        if self.producer:
-            try:
-                for message in messages:
-                    self.producer.send(self.output_topic, bytes(json.dumps(message).encode("utf-8")))
-                self.log.debug(f"✅ Inserted {len(messages)} messages into {self.output_topic} topic.")
-            except Exception as e:
-                self.log.exception(f"🚫 Failed to send messages to Kafka topic: {e}")
                 raise
         else:
             self.log.exception("🚫 No Kafka producer available.")

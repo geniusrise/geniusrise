@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-from typing import Dict, List, Union, Optional, Generator, Any, Callable
+from typing import Dict, List, Union, Generator, Any, Callable
 from queue import Queue, Empty
 
 from kafka import KafkaConsumer, TopicPartition
@@ -44,7 +44,6 @@ class StreamingInput(Input):
         kafka_cluster_connection_string (str): Connection string for the Kafka cluster.
         group_id (str): Kafka consumer group ID.
         consumer (KafkaConsumer): Kafka consumer instance.
-        partition_scheme (Optional[str]): Partitioning scheme for Kafka, e.g., "year/month/day".
 
     Usage:
         input = StreamingInput("my_topic", "localhost:9094")
@@ -55,7 +54,6 @@ class StreamingInput(Input):
         input_topic (str): Kafka topic to consume data from.
         kafka_cluster_connection_string (str): Connection string for the Kafka cluster.
         group_id (str, optional): Kafka consumer group ID. Defaults to "geniusrise".
-        partition_scheme (Optional[str]): Partitioning scheme for Kafka, e.g., "year/month/day".
         **kwargs: Additional keyword arguments for KafkaConsumer.
 
     Raises:
@@ -133,7 +131,6 @@ class StreamingInput(Input):
         input_topic: Union[str, List[str]],
         kafka_cluster_connection_string: str,
         group_id: str = "geniusrise",
-        partition_scheme: Optional[str] = None,
         **kwargs,
     ) -> None:
         """
@@ -149,7 +146,6 @@ class StreamingInput(Input):
         self.input_topic = input_topic
         self.kafka_cluster_connection_string = kafka_cluster_connection_string
         self.group_id = group_id
-        self.partition_scheme = partition_scheme
 
         try:
             self.consumer = KafkaConsumer(
