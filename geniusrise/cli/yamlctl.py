@@ -65,7 +65,7 @@ class YamlCtl:
         args:
             kind: deployment
             name: webhook-listener
-            context_name: arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+            context_name: arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
             namespace: geniusrise
             image: geniusrise/geniusrise
             kube_config_path: ~/.kube/config
@@ -93,7 +93,7 @@ class YamlCtl:
         args:
             kind: deployment
             name: text-classifier
-            context_name: arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+            context_name: arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
             namespace: geniusrise
             image: geniusrise/geniusrise
             kube_config_path: ~/.kube/config
@@ -128,7 +128,7 @@ class YamlCtl:
         args:
             kind: deployment
             name: twitter-stream
-            context_name: arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+            context_name: arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
             namespace: geniusrise
             image: geniusrise/geniusrise
             kube_config_path: ~/.kube/config
@@ -160,7 +160,7 @@ class YamlCtl:
         args:
             kind: deployment
             name: sentiment-analyzer
-            context_name: arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+            context_name: arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
             namespace: geniusrise
             image: geniusrise/geniusrise
             kube_config_path: ~/.kube/config

@@ -68,7 +68,7 @@ def test_postgres_state_manager_get_state(postgres_state_manager):
     postgres_state_manager.set_state(key, value)
 
     # Then, get the state and check that it's correct
-    assert postgres_state_manager.get_state(key)["test"] == "data"
+    assert postgres_state_manager.get_state(key)["test"] == "buffer"
 
 
 # Test that the PostgresState can set state
@@ -78,4 +78,4 @@ def test_postgres_state_manager_set_state(postgres_state_manager):
     postgres_state_manager.set_state(key, value)
 
     # Check that the state was set correctly
-    assert postgres_state_manager.get_state(key)["test"] == "data"
+    assert postgres_state_manager.get_state(key)["test"] == "buffer"

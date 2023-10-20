@@ -35,17 +35,17 @@ class Job(Deployment):
         Examples:
             ```bash
             genius job create --name example-job --image example-image --command "echo hello" --cpu "100m" --memory "256Mi" --namespace geniusrise \
-                --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+                --context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
             ```
 
             ```bash
             genius job delete --name example-job --namespace geniusrise \
-                --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+                --context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
             ```
 
             ```bash
             genius job status --name example-job --namespace geniusrise \
-                --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+                --context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
             ```
 
     YAML Configuration:
@@ -69,7 +69,7 @@ class Job(Deployment):
         genius job create \
           --k8s_kind job \
           --k8s_namespace geniusrise \
-          --k8s_context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev \
+          --k8s_context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev \
           --k8s_name example-job \
           --k8s_image "genius-dev.dkr.ecr.ap-south-1.amazonaws.com/geniusrise" \
           --k8s_env_vars '{"AWS_DEFAULT_REGION": "ap-south-1", "AWS_SECRET_ACCESS_KEY": "", "AWS_ACCESS_KEY_ID": ""}' \
@@ -81,14 +81,14 @@ class Job(Deployment):
         genius job delete \
           example-job \
           --namespace geniusrise \
-          --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+          --context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
     ```
 
     ```yaml
         genius job status \
           example-job \
           --namespace geniusrise \
-          --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+          --context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
     ```
     """
 
@@ -297,15 +297,25 @@ class Job(Deployment):
         """
         job = self.batch_api_instance.read_namespaced_job(name, self.namespace)
         self.log.info(f"📊 Job {name} status: {job.status}")
-        self.log.info(f"📊 Job {name} status details: {job.status.details}")
-        self.log.info(f"📊 Job {name} status message: {job.status.message}")
-        self.log.info(f"📊 Job {name} status reason: {job.status.reason}")
-        self.log.info(f"📊 Job {name} status status: {job.status.status}")
-        self.log.info(f"📊 Job {name} status type: {job.status.type}")
-        self.log.info(f"📊 Job {name} status uid: {job.status.uid}")
-        self.log.info(f"📊 Job {name} status updated_at: {job.status.updated_at}")
-        self.log.info(f"📊 Job {name} status conditions: {job.status.conditions}")
-        self.log.info(f"📊 Job {name} status active: {job.status.active}")
-        self.log.info(f"📊 Job {name} status completion_time: {job.status.completion_time}")
+        if hasattr(job.status, "details"):
+            self.log.info(f"📊 Job {name} status details: {job.status.details}")
+        if hasattr(job.status, "message"):
+            self.log.info(f"📊 Job {name} status message: {job.status.message}")
+        if hasattr(job.status, "reason"):
+            self.log.info(f"📊 Job {name} status reason: {job.status.reason}")
+        if hasattr(job.status, "status"):
+            self.log.info(f"📊 Job {name} status status: {job.status.status}")
+        if hasattr(job.status, "type"):
+            self.log.info(f"📊 Job {name} status type: {job.status.type}")
+        if hasattr(job.status, "uid"):
+            self.log.info(f"📊 Job {name} status uid: {job.status.uid}")
+        if hasattr(job.status, "updated_at"):
+            self.log.info(f"📊 Job {name} status updated_at: {job.status.updated_at}")
+        if hasattr(job.status, "conditions"):
+            self.log.info(f"📊 Job {name} status conditions: {job.status.conditions}")
+        if hasattr(job.status, "active"):
+            self.log.info(f"📊 Job {name} status active: {job.status.active}")
+        if hasattr(job.status, "completion_time"):
+            self.log.info(f"📊 Job {name} status completion_time: {job.status.completion_time}")
 
         return {"job_status": job.status}

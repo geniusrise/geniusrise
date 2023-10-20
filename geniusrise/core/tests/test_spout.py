@@ -33,7 +33,7 @@ postgres_database = "geniusrise"
 postgres_table = "geniusrise_state"
 dynamodb_table_name = "test_table"
 dynamodb_region_name = "ap-south-1"
-s3_bucket = "geniusrise-test-bucket"
+s3_bucket = "geniusrise-test"
 s3_folder = "whatever"
 prometheus_gateway = "localhost:9091"
 

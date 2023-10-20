@@ -64,14 +64,14 @@ spouts:
       args:
         kind: deployment
         name: my_fine_tuner
-        context_name: arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+        context_name: arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
         namespace: geniusrise
         image: geniusrise/geniusrise
         kube_config_path: ~/.kube/config
     output:
       type: "{output_type}"
       args:
-        bucket: "geniusrise-test-bucket"
+        bucket: "geniusrise-test"
         folder: "{tmpdir}"
         kafka_servers: "localhost:9094"
         output_topic: "test_topic"
@@ -105,14 +105,14 @@ bolts:
       args:
         kind: deployment
         name: my_fine_tuner
-        context_name: arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+        context_name: arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
         namespace: geniusrise
         image: geniusrise/geniusrise
         kube_config_path: ~/.kube/config
     input:
       type: "{input_type}"
       args:
-        bucket: "geniusrise-test-bucket"
+        bucket: "geniusrise-test"
         folder: "{tmpdir}"
         kafka_servers: "localhost:9094"
         input_topic: "test_topic"
@@ -121,7 +121,7 @@ bolts:
     output:
       type: "{output_type}"
       args:
-        bucket: "geniusrise-test-bucket"
+        bucket: "geniusrise-test"
         folder: "{tmpdir}"
         kafka_servers: "localhost:9094"
         output_topic: "test_topic"

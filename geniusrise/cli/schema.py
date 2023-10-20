@@ -200,7 +200,7 @@ class DeployArgs(BaseModel):
     # k8s
     kind: Optional[str] = "deployment"
     name: Optional[str] = None
-    replicas: Optional[str] = None
+    replicas: Optional[int] = None
     storage: Optional[str] = None
     gpu: Optional[str] = None
     kube_config_path: Optional[str] = "~/.kube/config"

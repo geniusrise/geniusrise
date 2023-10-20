@@ -82,7 +82,7 @@ def test_spoutctl_run(spoutctl, output_type, state_type, tmpdir):
         "--dynamodb_region_name", "ap-south-1",
         "--prometheus_gateway", "localhost:9091",
         "--output_folder", str(tmpdir),
-        "--output_s3_bucket", "geniusrise-test-bucket",
+        "--output_s3_bucket", "geniusrise-test",
         "--output_s3_folder", "whatever",
         "--buffer_size", "1",
         "--args", "1", "2", "3", "a=4", "b=5", "c=6"
@@ -125,7 +125,7 @@ def test_spoutctl_create_spout(spoutctl, output_type, state_type, tmpdir):
         "dynamodb_table_name": "test_table",
         "dynamodb_region_name": "ap-south-1",
         "prometheus_gateway": "localhost:9091",
-        "output_s3_bucket": "geniusrise-test-bucket",
+        "output_s3_bucket": "geniusrise-test",
         "output_s3_folder": "whatever",
         "buffer_size": 1,
     }
@@ -139,7 +139,7 @@ def test_spoutctl_execute_spout(spoutctl, tmpdir):
         "batch",
         "none",
         output_folder=tmpdir,
-        output_s3_bucket="geniusrise-test-bucket",
+        output_s3_bucket="geniusrise-test",
         output_s3_folder="whatever",
     )
     result = spoutctl.execute_spout(spout, "test_method", 1, 2, 3, a=4, b=5, c=6)

@@ -29,7 +29,7 @@ from geniusrise.core.data import (
 from geniusrise.core.state import DynamoDBState, InMemoryState, PostgresState, PrometheusState, RedisState
 
 # Define the parameters for the tests
-bucket = "geniusrise-test-bucket"
+bucket = "geniusrise-test"
 s3_folder = "bolt-test"
 input_topic = "test_topic"
 kafka_cluster_connection_string = "localhost:9094"

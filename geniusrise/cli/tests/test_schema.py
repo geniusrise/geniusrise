@@ -37,6 +37,8 @@ base_yaml_data = {
             "deploy": {
                 "type": "k8s",
                 "args": {
+                    "kind": "deployment",
+                    "context_name": "arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev",
                     "name": "github-dump",
                     "namespace": "geniusrise",
                     "image": "geniusrise/geniusrise",

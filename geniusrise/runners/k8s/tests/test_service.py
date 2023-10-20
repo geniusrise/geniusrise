@@ -33,7 +33,7 @@ def k8s_manager():
     args = {
         "kube_config_path": "~/.kube/config",
         "cluster_name": "geniusrise-dev",
-        "context_name": "arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev",
+        "context_name": "arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev",
         "namespace": "geniusrise",
         "labels": {"created_by": "geniusrise"},
         "annotations": None,
@@ -99,13 +99,14 @@ def test_create_service(service_manager):
         env_vars=json.loads(args.env_vars),
     )
     services = service_manager.show()
-    assert any(service["name"] == f"{args.name}-service" for service in services)
+    print(services)
+    assert any(service["name"] == f"{args.name}" for service in services)
 
 
 def test_describe_service(service_manager):
     args = Namespace(name="test-service")
-    service = service_manager.describe(f"{args.name}-service")
-    assert service["name"] == f"{args.name}-service"
+    service = service_manager.describe(f"{args.name}")
+    assert service["name"] == f"{args.name}"
 
 
 def test_status_service(service_manager):

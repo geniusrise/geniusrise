@@ -34,27 +34,27 @@ class Deployment(K8sResourceManager):
 
         ```bash
         genius deployment create --name example-deployment --image example-image --command "echo hello" --namespace geniusrise \
-            --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+            --context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
         ```
 
         ```bash
         genius deployment scale --name example-deployment --replicas 3 --namespace geniusrise \
-            --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+            --context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
         ```
 
         ```bash
         genius deployment describe --name example-deployment --namespace geniusrise \
-            --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+            --context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
         ```
 
         ```bash
         genius deployment delete --name example-deployment --namespace geniusrise \
-            --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+            --context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
         ```
 
         ```bash
         genius deployment status --name example-deployment --namespace geniusrise \
-            --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+            --context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
         ```
 
     YAML Configuration:

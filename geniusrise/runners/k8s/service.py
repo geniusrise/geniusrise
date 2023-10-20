@@ -35,22 +35,22 @@ class Service(Deployment):
 
         ```bash
         genius service create --name example-service --image example-image --command "echo hello" --port 8080 --target_port 8080 --namespace geniusrise \
-            --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+            --context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
         ```
 
         ```bash
         genius service delete --name example-service --namespace geniusrise \
-            --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+            --context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
         ```
 
         ```bash
         genius service describe --name example-service --namespace geniusrise \
-            --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+            --context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
         ```
 
         ```bash
         genius service show --namespace geniusrise \
-            --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+            --context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
         ```
 
     YAML Configuration:
@@ -78,7 +78,7 @@ class Service(Deployment):
             genius service deploy \
             --k8s_kind service \
             --k8s_namespace geniusrise \
-            --k8s_context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev \
+            --k8s_context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev \
             --k8s_name webhook \
             --k8s_image "genius-dev.dkr.ecr.ap-south-1.amazonaws.com/geniusrise" \
             --k8s_env_vars '{"AWS_DEFAULT_REGION": "ap-south-1", "AWS_SECRET_ACCESS_KEY": "", "AWS_ACCESS_KEY_ID": ""}' \
@@ -90,7 +90,7 @@ class Service(Deployment):
             genius service delete \
             webhook \
             --namespace geniusrise \
-            --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+            --context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
         ```
     """
 

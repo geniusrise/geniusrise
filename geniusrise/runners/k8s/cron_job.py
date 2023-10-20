@@ -35,17 +35,17 @@ class CronJob(Job):
         Examples:
             ```bash
             genius cronjob create_cronjob --name example-cronjob --image example-image --command "echo hello" --schedule "*/5 * * * *" --namespace geniusrise \
-                --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+                --context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
             ```
 
             ```bash
             genius cronjob delete_cronjob --name example-cronjob --namespace geniusrise \
-                --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+                --context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
             ```
 
             ```bash
             genius cronjob get_cronjob_status --name example-cronjob --namespace geniusrise \
-                --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+                --context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
             ```
 
     YAML Configuration:
@@ -69,7 +69,7 @@ class CronJob(Job):
         genius cronjob create_cronjob \
           --k8s_kind cronjob \
           --k8s_namespace geniusrise \
-          --k8s_context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev \
+          --k8s_context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev \
           --k8s_name example-cronjob \
           --k8s_image "genius-dev.dkr.ecr.ap-south-1.amazonaws.com/geniusrise" \
           --k8s_schedule "*/5 * * * *" \
@@ -82,14 +82,14 @@ class CronJob(Job):
         genius cronjob delete_cronjob \
           example-cronjob \
           --namespace geniusrise \
-          --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+          --context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
         ```
 
         ```bash
         genius cronjob get_cronjob_status \
           example-cronjob \
           --namespace geniusrise \
-          --context_name arn:aws:eks:us-east-1:genius-dev:cluster/geniusrise-dev
+          --context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
         ```
     """
 
