@@ -18,9 +18,12 @@ import logging
 from typing import Any, Optional
 
 import colorlog
+import os
 
-from geniusrise.config import LOGLEVEL
 from geniusrise.core.state import State
+
+
+LOGLEVEL = os.getenv("LOGLEVEL", "INFO")
 
 
 class StateHandler(logging.Handler):
