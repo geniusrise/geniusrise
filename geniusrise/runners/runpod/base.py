@@ -15,22 +15,69 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-from typing import Optional
+import json
 from argparse import ArgumentParser, Namespace
-import runpod
+from typing import Optional
+import runpod as rp
+import os
 
 
 class RunPodResourceManager:
+    """
+    RunPodResourceManager manages RunPod tasks and pod operations.
+
+    This class interfaces with the RunPod API to perform operations such as running tasks,
+    checking their status, managing pods, and more. It is designed to be used as a command-line tool.
+
+    Attributes:
+        api_key (Optional[str]): API key for RunPod authentication.
+    """
+
     def __init__(self):
+        """
+        Initialize the RunPod resource manager.
+
+        This constructor method sets up the logging configuration and loads the API key from
+        an environment variable. The API key is essential for authenticating requests to the
+        RunPod service.
+
+        The API key should be set as an environment variable named 'RUNPOD_API_KEY'.
+        If the environment variable is not set, logging will record a warning.
+        """
         self.log = logging.getLogger(self.__class__.__name__)
-        self.api_key: Optional[str] = None
-        runpod.api_key = self.api_key
+        self.api_key: Optional[str] = os.getenv("RUNPOD_API_KEY")
+        rp.api_key = self.api_key
 
     def _add_connection_args(self, parser: ArgumentParser) -> ArgumentParser:
-        parser.add_argument("--api_key", help="API key for RunPod.", type=str, required=True)
+        """
+        Add common connection arguments to an argparse parser.
+
+        This method enhances a given ArgumentParser object by adding the '--api_key' argument
+        to it, which is required for connecting to RunPod services.
+
+        Args:
+            parser (ArgumentParser): An existing ArgumentParser object to be extended.
+
+        Returns:
+            ArgumentParser: The modified parser with additional connection arguments.
+        """
+        parser.add_argument("--api_key", help="API key for rp.", type=str, required=True)
         return parser
 
     def create_parser(self, parser: ArgumentParser) -> ArgumentParser:
+        """
+        Create and configure a parser for RunPod resource manager CLI commands.
+
+        This method sets up subparsers for various command-line actions such as 'status',
+        'run', 'get_pods', 'stop', and 'terminate'. Each subparser is configured with necessary
+        arguments for its corresponding action.
+
+        Args:
+            parser (ArgumentParser): The main argparse parser to which subparsers are added.
+
+        Returns:
+            ArgumentParser: The main parser configured with all subparsers for RunPod operations.
+        """
         subparsers = parser.add_subparsers(dest="command")
 
         # Parser for status
@@ -62,8 +109,18 @@ class RunPodResourceManager:
         return parser
 
     def run(self, args: Namespace) -> None:
+        """
+        Execute the appropriate action based on the parsed command-line arguments.
+
+        This method acts as a dispatcher, calling the relevant internal method (like 'status',
+        'run_task', etc.) based on the user's input command. It also ensures that the RunPod
+        API key is set correctly before any action is performed.
+
+        Args:
+            args (Namespace): Parsed command-line arguments.
+        """
         self.api_key = args.api_key  # Set the API key from arguments
-        runpod.api_key = self.api_key  # Update the RunPod API key globally
+        rp.api_key = self.api_key  # Update the RunPod API key globally
 
         if args.command == "status":
             self.status(args.endpoint_id, args.task_id)
@@ -77,28 +134,88 @@ class RunPodResourceManager:
             self.terminate_pod(args.pod_id)
         else:
             self.log.exception("Unknown command: %s", args.command)
+            raise
 
     def status(self, endpoint_id: str, task_id: str) -> None:
-        endpoint = runpod.Endpoint(endpoint_id)
+        """
+        Retrieve and log the status of a specific task in RunPod.
+
+        This method queries the status of a task identified by its 'task_id' on a specific
+        'endpoint_id'. The status is logged for review.
+
+        Args:
+            endpoint_id (str): The identifier for the RunPod endpoint.
+            task_id (str): The identifier of the task whose status is to be retrieved.
+
+        The method logs the status of the specified task along with its ID.
+        """
+        endpoint = rp.Endpoint(endpoint_id)
         run_request = endpoint.get_run(task_id)
         self.log.info(f"Status of task {task_id}: {run_request.status()}")
 
     def run_task(self, endpoint_id: str, input_data: str) -> None:
-        endpoint = runpod.Endpoint(endpoint_id)
-        run_request = endpoint.run(input_data)
-        self.log.info(f"Task submitted. ID: {run_request.id}")
+        """
+        Submit a task to be run on a RunPod endpoint.
+
+        This method takes JSON-formatted input data and an endpoint ID, and submits a task
+        to the RunPod service. It handles JSON parsing and logs the ID of the submitted task.
+
+        Args:
+            endpoint_id (str): The identifier for the RunPod endpoint where the task will be run.
+            input_data (str): A JSON string containing the data for the task.
+
+        Throws an error if the input data is not valid JSON or if the task submission fails.
+        """
+        try:
+            input_data_json = json.loads(input_data)
+        except json.JSONDecodeError:
+            self.log.error("Invalid JSON input data.")
+            return
+
+        try:
+            endpoint = rp.Endpoint(endpoint_id)
+            run_request = endpoint.run(input_data_json)
+            self.log.info(f"Task submitted. ID: {run_request.id}")
+        except Exception as e:
+            self.log.exception(f"Error running task: {e}")
+            raise
 
     def get_pods(self) -> None:
-        pods = runpod.get_pods()
+        """
+        Retrieve and log the list of all active pods from RunPod.
+
+        This method queries RunPod for all active pods and logs their IDs and statuses.
+
+        Each pod's ID and status are logged for review.
+        """
+        pods = rp.get_pods()
         for pod in pods:
             self.log.info(f"Pod ID: {pod.id}, Status: {pod.status}")
 
     def stop_pod(self, pod_id: str) -> None:
-        pod = runpod.Pod(pod_id)
+        """
+        Stop a specific pod on RunPod.
+
+        This method sends a request to stop a pod identified by 'pod_id'. The action is logged
+        for confirmation.
+
+        Args:
+            pod_id (str): The identifier of the RunPod pod to be stopped.
+        """
+        pod = rp.Pod(pod_id)
         pod.stop()
         self.log.info(f"Stopped pod {pod_id}")
 
     def terminate_pod(self, pod_id: str) -> None:
-        pod = runpod.Pod(pod_id)
+        """
+        Terminate a specific pod on RunPod.
+
+        This method sends a request to terminate a pod identified by 'pod_id'. The termination
+        action is logged for confirmation.
+
+        Args:
+            pod_id (str): The identifier of the RunPod pod to be terminated.
+        """
+        pod = rp.Pod(pod_id)
         pod.terminate()
         self.log.info(f"Terminated pod {pod_id}")

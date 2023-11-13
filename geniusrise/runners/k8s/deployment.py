@@ -33,27 +33,27 @@ class Deployment(K8sResourceManager):
         Examples:
 
         ```bash
-        genius deployment create --name example-deployment --image example-image --command "echo hello" --namespace geniusrise \
+        genius deployment create example-deployment --image example-image --command "echo hello" --namespace geniusrise \
             --context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
         ```
 
         ```bash
-        genius deployment scale --name example-deployment --replicas 3 --namespace geniusrise \
+        genius deployment scale example-deployment --replicas 3 --namespace geniusrise \
             --context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
         ```
 
         ```bash
-        genius deployment describe --name example-deployment --namespace geniusrise \
+        genius deployment describe example-deployment --namespace geniusrise \
             --context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
         ```
 
         ```bash
-        genius deployment delete --name example-deployment --namespace geniusrise \
+        genius deployment delete example-deployment --namespace geniusrise \
             --context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
         ```
 
         ```bash
-        genius deployment status --name example-deployment --namespace geniusrise \
+        genius deployment status example-deployment --namespace geniusrise \
             --context_name arn:aws:eks:us-east-1:143601010266:cluster/geniusrise-dev
         ```
 
