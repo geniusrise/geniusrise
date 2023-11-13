@@ -17,7 +17,7 @@
 import logging
 import json
 from argparse import ArgumentParser, Namespace
-from typing import Optional
+from typing import Optional, Dict, Any
 import runpod as rp
 import os
 
@@ -78,9 +78,10 @@ class RunPodResourceManager:
         Returns:
             ArgumentParser: The main parser configured with all subparsers for RunPod operations.
         """
-        subparsers = parser.add_subparsers(dest="command")
+        subparsers = parser.add_subparsers(dest="runpod_command")
 
         # Parser for status
+        # fmt: off
         status_parser = subparsers.add_parser("status", help="Get the status of a RunPod task.")
         status_parser.add_argument("endpoint_id", help="ID of the RunPod endpoint.", type=str)
         status_parser.add_argument("task_id", help="ID of the task.", type=str)
@@ -88,8 +89,25 @@ class RunPodResourceManager:
 
         # Parser for run
         run_parser = subparsers.add_parser("run", help="Run a task on a RunPod endpoint.")
-        run_parser.add_argument("endpoint_id", help="ID of the RunPod endpoint.", type=str)
-        run_parser.add_argument("input_data", help="Input data for the task as a JSON string.", type=str)
+        run_parser.add_argument("--pod_name", help="Name of the pod to create.", type=str, required=True)
+        run_parser.add_argument("--image_name", help="Docker image name for the pod.", type=str, required=True)
+        run_parser.add_argument("--gpu_type_id", help="GPU type ID for the pod.", type=str, required=True)
+        run_parser.add_argument("--cloud_type", help="Type of cloud for the pod. Defaults to 'ALL'.", type=str, default="ALL")
+        run_parser.add_argument("--support_public_ip", help="Whether to support public IP. Defaults to True.", type=bool, default=True)
+        run_parser.add_argument("--start_ssh", help="Whether to start SSH. Defaults to True.", type=bool, default=True)
+        run_parser.add_argument("--data_center_id", help="The ID of the data center.", type=str)
+        run_parser.add_argument("--country_code", help="The code for the country to start the pod in.", type=str)
+        run_parser.add_argument("--gpu_count", help="How many GPUs should be attached to the pod. Defaults to 1.", type=int, default=1)
+        run_parser.add_argument("--volume_in_gb", help="How big should the pod volume be. Defaults to 0.", type=int, default=0)
+        run_parser.add_argument("--container_disk_in_gb", help="Size of the container disk in GB.", type=int)
+        run_parser.add_argument("--min_vcpu_count", help="Minimum vCPU count. Defaults to 1.", type=int, default=1)
+        run_parser.add_argument("--min_memory_in_gb", help="Minimum memory in GB. Defaults to 1.", type=int, default=1)
+        run_parser.add_argument("--docker_args", help="Docker arguments.", type=str, default="")
+        run_parser.add_argument("--ports", help="The ports to open in the pod.", type=str)
+        run_parser.add_argument("--volume_mount_path", help="Where to mount the volume. Defaults to '/runpod-volume'.", type=str, default="/runpod-volume")
+        run_parser.add_argument("--env", help="Environment variables to inject into the pod as a JSON string.", type=json.loads)
+        run_parser.add_argument("--template_id", help="The ID of the template to use for the pod.", type=str)
+        run_parser.add_argument("--network_volume_id", help="The ID of the network volume to use for the pod.", type=str)
         run_parser = self._add_connection_args(run_parser)
 
         # Parser for get pods
@@ -106,6 +124,7 @@ class RunPodResourceManager:
         terminate_parser.add_argument("pod_id", help="ID of the RunPod pod.", type=str)
         terminate_parser = self._add_connection_args(terminate_parser)
 
+        # fmt: on
         return parser
 
     def run(self, args: Namespace) -> None:
@@ -122,15 +141,35 @@ class RunPodResourceManager:
         self.api_key = args.api_key  # Set the API key from arguments
         rp.api_key = self.api_key  # Update the RunPod API key globally
 
-        if args.command == "status":
+        if args.runpod_command == "status":
             self.status(args.endpoint_id, args.task_id)
-        elif args.command == "run":
-            self.run_task(args.endpoint_id, args.input_data)
-        elif args.command == "get_pods":
+        elif args.runpod_command == "run":
+            self.run_task(
+                pod_name=args.pod_name,
+                image_name=args.image_name,
+                gpu_type_id=args.gpu_type_id,
+                cloud_type=args.cloud_type,
+                support_public_ip=args.support_public_ip,
+                start_ssh=args.start_ssh,
+                data_center_id=args.data_center_id,
+                country_code=args.country_code,
+                gpu_count=args.gpu_count,
+                volume_in_gb=args.volume_in_gb,
+                container_disk_in_gb=args.container_disk_in_gb,
+                min_vcpu_count=args.min_vcpu_count,
+                min_memory_in_gb=args.min_memory_in_gb,
+                docker_args=args.docker_args,
+                ports=args.ports,
+                volume_mount_path=args.volume_mount_path,
+                env=args.env,
+                template_id=args.template_id,
+                network_volume_id=args.network_volume_id,
+            )
+        elif args.runpod_command == "get_pods":
             self.get_pods()
-        elif args.command == "stop":
+        elif args.runpod_command == "stop":
             self.stop_pod(args.pod_id)
-        elif args.command == "terminate":
+        elif args.runpod_command == "terminate":
             self.terminate_pod(args.pod_id)
         else:
             self.log.exception("Unknown command: %s", args.command)
@@ -153,32 +192,159 @@ class RunPodResourceManager:
         run_request = endpoint.get_run(task_id)
         self.log.info(f"Status of task {task_id}: {run_request.status()}")
 
-    def run_task(self, endpoint_id: str, input_data: str) -> None:
+    def create_pod(
+        self,
+        name: str,
+        image_name: str,
+        gpu_type_id: str,
+        cloud_type: str = "ALL",
+        support_public_ip: bool = True,
+        start_ssh: bool = True,
+        data_center_id: Optional[str] = None,
+        country_code: Optional[str] = None,
+        gpu_count: int = 1,
+        volume_in_gb: int = 0,
+        container_disk_in_gb: Optional[int] = None,
+        min_vcpu_count: int = 1,
+        min_memory_in_gb: int = 1,
+        docker_args: str = "",
+        ports: Optional[str] = None,
+        volume_mount_path: str = "/runpod-volume",
+        env: Optional[Dict[str, str]] = None,
+        template_id: Optional[str] = None,
+        network_volume_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
         """
-        Submit a task to be run on a RunPod endpoint.
-
-        This method takes JSON-formatted input data and an endpoint ID, and submits a task
-        to the RunPod service. It handles JSON parsing and logs the ID of the submitted task.
+        Create a new pod on RunPod.
 
         Args:
-            endpoint_id (str): The identifier for the RunPod endpoint where the task will be run.
-            input_data (str): A JSON string containing the data for the task.
+            name (str): The name of the pod.
+            image_name (str): The name of the docker image to be used by the pod.
+            gpu_type_id (str): The GPU type wanted by the pod (retrievable by get_gpus).
+            cloud_type (str): If secure cloud, community cloud, or all is wanted. Defaults to "ALL".
+            support_public_ip (bool): Whether to support public IP. Defaults to True.
+            start_ssh (bool): Whether to start SSH. Defaults to True.
+            data_center_id (Optional[str]): The ID of the data center.
+            country_code (Optional[str]): The code for the country to start the pod in.
+            gpu_count (int): How many GPUs should be attached to the pod. Defaults to 1.
+            volume_in_gb (int): How big should the pod volume be. Defaults to 0.
+            container_disk_in_gb (Optional[int]): Size of the container disk in GB.
+            min_vcpu_count (int): Minimum vCPU count. Defaults to 1.
+            min_memory_in_gb (int): Minimum memory in GB. Defaults to 1.
+            docker_args (str): Docker arguments. Defaults to an empty string.
+            ports (Optional[str]): The ports to open in the pod.
+            volume_mount_path (str): Where to mount the volume. Defaults to "/runpod-volume".
+            env (Optional[Dict[str, str]]): Environment variables to inject into the pod.
+            template_id (Optional[str]): The ID of the template to use for the pod.
+            network_volume_id (Optional[str]): The ID of the network volume to use for the pod.
 
-        Throws an error if the input data is not valid JSON or if the task submission fails.
+        Returns:
+            Dict[str, Any]: The response from the RunPod API after creating the pod.
+
+        Raises:
+            Exception: If the pod creation fails.
         """
         try:
-            input_data_json = json.loads(input_data)
-        except json.JSONDecodeError:
-            self.log.error("Invalid JSON input data.")
-            return
-
-        try:
-            endpoint = rp.Endpoint(endpoint_id)
-            run_request = endpoint.run(input_data_json)
-            self.log.info(f"Task submitted. ID: {run_request.id}")
+            response = rp.create_pod(
+                name=name,
+                image_name=image_name,
+                gpu_type_id=gpu_type_id,
+                cloud_type=cloud_type,
+                support_public_ip=support_public_ip,
+                start_ssh=start_ssh,
+                data_center_id=data_center_id,
+                country_code=country_code,
+                gpu_count=gpu_count,
+                volume_in_gb=volume_in_gb,
+                container_disk_in_gb=container_disk_in_gb,
+                min_vcpu_count=min_vcpu_count,
+                min_memory_in_gb=min_memory_in_gb,
+                docker_args=docker_args,
+                ports=ports,
+                volume_mount_path=volume_mount_path,
+                env=env,
+                template_id=template_id,
+                network_volume_id=network_volume_id,
+            )
+            self.log.info(f"Pod created. ID: {response['id']}")
+            return response
         except Exception as e:
-            self.log.exception(f"Error running task: {e}")
+            self.log.exception(f"Error creating pod: {e}")
             raise
+
+    def run_task(
+        self,
+        pod_name: str,
+        image_name: str,
+        gpu_type_id: str,
+        cloud_type: str = "ALL",
+        support_public_ip: bool = True,
+        start_ssh: bool = True,
+        data_center_id: Optional[str] = None,
+        country_code: Optional[str] = None,
+        gpu_count: int = 1,
+        volume_in_gb: int = 0,
+        container_disk_in_gb: Optional[int] = None,
+        min_vcpu_count: int = 1,
+        min_memory_in_gb: int = 1,
+        docker_args: str = "",
+        ports: Optional[str] = None,
+        volume_mount_path: str = "/runpod-volume",
+        env: Optional[Dict[str, str]] = None,
+        template_id: Optional[str] = None,
+        network_volume_id: Optional[str] = None,
+    ) -> None:
+        """
+        Submit a task with specified parameters to be run on a RunPod endpoint.
+        Optionally, create a new pod before running the task.
+
+        Args:
+            pod_name (str): Name of the pod to create.
+            image_name (str): Docker image name for the pod.
+            gpu_type_id (str): GPU type ID for the pod.
+            cloud_type (str): Type of cloud for the pod. Defaults to "ALL".
+            support_public_ip (bool): Whether to support public IP. Defaults to True.
+            start_ssh (bool): Whether to start SSH. Defaults to True.
+            data_center_id (Optional[str]): The ID of the data center.
+            country_code (Optional[str]): The code for the country to start the pod in.
+            gpu_count (int): How many GPUs should be attached to the pod. Defaults to 1.
+            volume_in_gb (int): How big should the pod volume be. Defaults to 0.
+            container_disk_in_gb (Optional[int]): Size of the container disk in GB.
+            min_vcpu_count (int): Minimum vCPU count. Defaults to 1.
+            min_memory_in_gb (int): Minimum memory in GB. Defaults to 1.
+            docker_args (str): Docker arguments. Defaults to an empty string.
+            ports (Optional[str]): The ports to open in the pod.
+            volume_mount_path (str): Where to mount the volume. Defaults to "/runpod-volume".
+            env (Optional[Dict[str, str]]): Environment variables to inject into the pod.
+            template_id (Optional[str]): The ID of the template to use for the pod.
+            network_volume_id (Optional[str]): The ID of the network volume to use for the pod.
+        """
+        try:
+            pod_response = self.create_pod(
+                name=pod_name,
+                image_name=image_name,
+                gpu_type_id=gpu_type_id,
+                cloud_type=cloud_type,
+                support_public_ip=support_public_ip,
+                start_ssh=start_ssh,
+                data_center_id=data_center_id,
+                country_code=country_code,
+                gpu_count=gpu_count,
+                volume_in_gb=volume_in_gb,
+                container_disk_in_gb=container_disk_in_gb,
+                min_vcpu_count=min_vcpu_count,
+                min_memory_in_gb=min_memory_in_gb,
+                docker_args=docker_args,
+                ports=ports,
+                volume_mount_path=volume_mount_path,
+                env=env,
+                template_id=template_id,
+                network_volume_id=network_volume_id,
+            )
+            self.log.info(f"New pod created with ID: {pod_response['id']}")
+        except Exception as e:
+            self.log.exception(f"Failed to create pod: {e}")
+            return
 
     def get_pods(self) -> None:
         """
