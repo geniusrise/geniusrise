@@ -17,6 +17,7 @@
 import tempfile
 from typing import Any, Optional
 import uuid
+import time
 
 from geniusrise.core.data import (
     BatchInput,
@@ -115,6 +116,9 @@ class Bolt(Task):
             # self.state.set_state(self.id, {})
 
             # Copy input data to local or connect to kafka and pass on the details
+
+            self.state.set_state("status", {"status": "initialized", "time": time.time()})
+
             if type(self.input) is BatchInput:
                 self.input.from_s3()
                 input_folder = self.input.get()
@@ -123,6 +127,8 @@ class Bolt(Task):
                 kafka_consumer = self.input.get()
                 kwargs["kafka_consumer"] = kafka_consumer
 
+            self.state.set_state("status", {"status": "executing", "time": time.time()})
+
             # Execute the task's method
             result = self.execute(method_name, *args, **kwargs)
 
@@ -130,15 +136,11 @@ class Bolt(Task):
             self.output.flush()
 
             # Store the state as successful in the state manager
-            state = {}
-            state["status"] = "success"
-            # self.state.set_state(self.id, state)
+            self.state.set_state("status", {"status": "success", "time": time.time()})
 
             return result
         except Exception as e:
-            state = {}
-            state["status"] = "failed"
-            # self.state.set_state(self.id, state)
+            self.state.set_state("status", {"status": "failed", "time": time.time()})
             self.log.exception(f"Failed to execute method '{method_name}': {e}")
             raise
 
@@ -299,4 +301,5 @@ class Bolt(Task):
             id=id,
             **kwargs,
         )
+        bolt.state.set_state("status", {"status": "created", "time": time.time()})
         return bolt

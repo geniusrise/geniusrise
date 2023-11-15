@@ -17,6 +17,7 @@
 import tempfile
 from typing import Any, Optional
 import uuid
+import time
 
 from geniusrise.core.data import BatchOutput, Output, StreamingOutput
 from geniusrise.core.state import (
@@ -87,11 +88,8 @@ class Spout(Task):
             Any: The result of the method.
         """
         try:
-            # Get the type of state manager
-            # state_type = self.state.get_state(self.id)
-
             # Save the current set of class variables to the state manager
-            # self.state.set_state(self.id, {})
+            self.state.set_state("status", {"status": "executing", "time": time.time()})
 
             # Execute the task's method
             result = self.execute(method_name, *args, **kwargs)
@@ -100,15 +98,11 @@ class Spout(Task):
             self.output.flush()
 
             # Store the state as successful in the state manager
-            state = {}
-            state["status"] = "success"
-            # self.state.set_state(self.id, state)
+            self.state.set_state("status", {"status": "success", "time": time.time()})
 
             return result
         except Exception as e:
-            state = {}
-            state["status"] = "failed"
-            # self.state.set_state(self.id, state)
+            self.state.set_state("status", {"status": "failed", "time": time.time()})
             self.log.exception(f"Failed to execute method '{method_name}': {e}")
             raise
 
@@ -210,4 +204,5 @@ class Spout(Task):
 
         # Create the spout
         spout = klass(output=output, state=state, id=id, **kwargs)
+        spout.state.set_state("status", {"status": "created", "time": time.time()})
         return spout
