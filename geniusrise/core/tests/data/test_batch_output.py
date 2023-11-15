@@ -26,7 +26,7 @@ import json
 spark = SparkSession.builder.master("local[1]").appName("GeniusRise").getOrCreate()
 
 # Define your S3 bucket and folder details as constants
-BUCKET = "geniusrise-test-bucket"
+BUCKET = "geniusrise-test"
 S3_FOLDER = "whatever"
 KAFKA_CLUSTER_CONNECTION_STRING = "localhost:9094"
 OUTPUT_TOPIC = "test_topic"

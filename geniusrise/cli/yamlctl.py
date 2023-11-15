@@ -510,8 +510,6 @@ class YamlCtl:
         elif spout.state.type == "dynamodb":
             spout_args.append(f"--dynamodb_table_name={spout.state.args.dynamodb_table_name}")
             spout_args.append(f"--dynamodb_region_name={spout.state.args.dynamodb_region_name}")
-        elif spout.state.type == "prometheus":
-            spout_args.append(f"--prometheus_gateway={spout.state.args.prometheus_gateway}")
 
         if spout.args:
             method_args = [f'{arg[0]}="{arg[1]}"' for arg in spout.args]
@@ -559,8 +557,6 @@ class YamlCtl:
         elif bolt.state.type == "dynamodb":
             bolt_args.append(f"--dynamodb_table_name={bolt.state.args.dynamodb_table_name}")
             bolt_args.append(f"--dynamodb_region_name={bolt.state.args.dynamodb_region_name}")
-        elif bolt.state.type == "prometheus":
-            bolt_args.append(f"--prometheus_gateway={bolt.state.args.prometheus_gateway}")
 
         if bolt.args:
             method_args = [f'{arg[0]}="{arg[1]}"' for arg in bolt.args]

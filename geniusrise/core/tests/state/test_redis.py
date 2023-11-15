@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
+import uuid
 
 from geniusrise.core.state import RedisState
 
@@ -23,11 +24,14 @@ HOST = "localhost"
 PORT = 6379
 DB = 0
 
+# Generate a unique task_id for testing
+TASK_ID = str(uuid.uuid4())
+
 
 # Define a fixture for your RedisState
 @pytest.fixture
 def redis_state_manager():
-    return RedisState(HOST, PORT, DB)
+    return RedisState(task_id=TASK_ID, host=HOST, port=PORT, db=DB)
 
 
 # Test that the RedisState can be initialized

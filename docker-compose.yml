@@ -46,8 +46,3 @@ services:
         image: redis:latest
         ports:
             - '6379:6379'
-
-    prometheus-pushgateway:
-        image: prom/pushgateway:latest
-        ports:
-            - '9091:9091'

@@ -18,7 +18,8 @@ import argparse
 import json
 import logging
 import tempfile
-from typing import Any
+from typing import Any, Optional
+import uuid
 
 import emoji  # type: ignore
 from rich_argparse import RichHelpFormatter
@@ -58,7 +59,8 @@ class BoltCtl:
         run_parser = subparsers.add_parser("rise", help="Run a bolt locally.", formatter_class=RichHelpFormatter)
         run_parser.add_argument("input_type", choices=["batch", "streaming", "batch_to_stream"], help="Choose the type of input data: batch or streaming.", default="batch")
         run_parser.add_argument("output_type", choices=["batch", "streaming"], help="Choose the type of output data: batch or streaming.", default="batch")
-        run_parser.add_argument("state_type", choices=["none", "redis", "postgres", "dynamodb", "prometheus"], help="Select the type of state manager: none, redis, postgres, or dynamodb.", default="none")
+        run_parser.add_argument("state_type", choices=["none", "redis", "postgres", "dynamodb"], help="Select the type of state manager: none, redis, postgres, or dynamodb.", default="none")
+        run_parser.add_argument("--id", help="A unique identifier for the task", default=None, type=str)
         # input
         run_parser.add_argument("--buffer_size", help="Specify the size of the buffer.", default=100, type=int)
         run_parser.add_argument("--input_folder", help="Specify the directory where output files should be stored temporarily.", default=tempfile.mkdtemp(), type=str)
@@ -85,7 +87,6 @@ class BoltCtl:
         run_parser.add_argument("--postgres_table", help="Specify the PostgreSQL table to be used.", default="mytable", type=str)
         run_parser.add_argument("--dynamodb_table_name", help="Provide the name of the DynamoDB table.", default="mytable", type=str)
         run_parser.add_argument("--dynamodb_region_name", help="Specify the AWS region for DynamoDB.", default="us-west-2", type=str)
-        run_parser.add_argument("--prometheus_gateway", help="Specify the prometheus gateway URL.", default="localhost:9091", type=str)
         # function
         run_parser.add_argument("method_name", help="The name of the method to execute on the bolt.", type=str)
         run_parser.add_argument("--args", nargs=argparse.REMAINDER, help="Additional keyword arguments to pass to the bolt.")
@@ -93,8 +94,9 @@ class BoltCtl:
         deploy_parser = subparsers.add_parser("deploy", help="Run a spout remotely.", formatter_class=RichHelpFormatter)
         deploy_parser.add_argument("input_type", choices=["batch", "streaming", "batch_to_stream"], help="Choose the type of input data: batch or streaming.", default="batch")
         deploy_parser.add_argument("output_type", choices=["batch", "streaming"], help="Choose the type of output data: batch or streaming.", default="batch")
-        deploy_parser.add_argument("state_type", choices=["none", "redis", "postgres", "dynamodb", "prometheus"], help="Select the type of state manager: none, redis, postgres, or dynamodb.", default="none")
+        deploy_parser.add_argument("state_type", choices=["none", "redis", "postgres", "dynamodb"], help="Select the type of state manager: none, redis, postgres, or dynamodb.", default="none")
         deploy_parser.add_argument("deployment_type", choices=["k8s"], help="Choose the type of deployment.", default="k8s")
+        deploy_parser.add_argument("--id", help="A unique identifier for the task", default=None, type=str)
         # input
         deploy_parser.add_argument("--buffer_size", help="Specify the size of the buffer.", default=100, type=int)
         deploy_parser.add_argument("--input_folder", help="Specify the directory where output files should be stored temporarily.", default="/tmp", type=str)
@@ -122,7 +124,6 @@ class BoltCtl:
         deploy_parser.add_argument("--postgres_table", help="Specify the PostgreSQL table to be used.", default="mytable", type=str)
         deploy_parser.add_argument("--dynamodb_table_name", help="Provide the name of the DynamoDB table.", default="mytable", type=str)
         deploy_parser.add_argument("--dynamodb_region_name", help="Specify the AWS region for DynamoDB.", default="us-west-2", type=str)
-        deploy_parser.add_argument("--prometheus_gateway", help="Specify the prometheus gateway URL.", default="localhost:9091", type=str)
         # deployment
         deploy_parser.add_argument("--k8s_kind", choices=["deployment", "service", "job", "cron_job"], help="Choose the type of kubernetes resource.", default="job")
         deploy_parser.add_argument("--k8s_name", help="Name of the Kubernetes resource.", type=str)
@@ -171,11 +172,26 @@ class BoltCtl:
                     k: v
                     for k, v in vars(args).items()
                     if v is not None
-                    and k not in ["input_type", "output_type", "state_type", "args", "method_name", "deployment_type"]
+                    and k
+                    not in [
+                        "input_type",
+                        "output_type",
+                        "state_type",
+                        "args",
+                        "method_name",
+                        "deployment_type",
+                        "--id",
+                    ]
                 }
                 other = args.args or []
                 other_args, other_kwargs = self.parse_args_kwargs(other)
-                self.bolt = self.create_bolt(args.input_type, args.output_type, args.state_type, **kwargs)
+                self.bolt = self.create_bolt(
+                    args.input_type,
+                    args.output_type,
+                    args.state_type,
+                    args.id,
+                    **kwargs,
+                )
 
                 # Pass the method_name from args to execute_bolt
                 result = self.execute_bolt(self.bolt, args.method_name, *other_args, **other_kwargs)
@@ -229,7 +245,14 @@ class BoltCtl:
 
         return args, kwargs
 
-    def create_bolt(self, input_type: str, output_type: str, state_type: str, **kwargs) -> Bolt:
+    def create_bolt(
+        self,
+        input_type: str,
+        output_type: str,
+        state_type: str,
+        id: Optional[str],
+        **kwargs,
+    ) -> Bolt:
         r"""
         Create a bolt of a specific type.
 
@@ -269,8 +292,6 @@ class BoltCtl:
                     DynamoDB state manager config:
                     - dynamodb_table_name (str): The DynamoDB table name argument.
                     - dynamodb_region_name (str): The DynamoDB region name argument.
-                    Prometheus state manager config:
-                    - prometheus_gateway (str): The push gateway for Prometheus metrics.
                 ```
 
         Returns:
@@ -281,6 +302,7 @@ class BoltCtl:
             input_type=input_type,
             output_type=output_type,
             state_type=state_type,
+            id=id,
             **kwargs,
         )
 
@@ -336,8 +358,6 @@ class BoltCtl:
                     DynamoDB state manager config:
                     - dynamodb_table_name (str): The name of the DynamoDB table.
                     - dynamodb_region_name (str): The AWS region for DynamoDB.
-                    Prometheus state manager config:
-                    - prometheus_gateway (str): The push gateway for Prometheus metrics.
                     Deployment
                     - k8s_kind (str): Kind opf kubernetes resource to be deployed as, choices are "deployment", "service", "job", "cron_job"
                     - k8s_name (str): Name of the Kubernetes resource.
@@ -444,21 +464,24 @@ class BoltCtl:
                     "dyanmodb_table_name": args.dynamodb_table_name,
                     "dyanmodb_region_name": args.dynamodb_region_name,
                 }
-            elif args.state_type == "prometheus":
-                state = {
-                    "gateway": args.prometheus_gateway,
-                }
             else:
                 raise ValueError(f"Invalid state type: {args.state_type}")
 
-            command = [
-                "genius",
-                self.discovered_bolt.name,
-                "rise",
-                args.input_type,
-                args.output_type,
-                args.state_type,
-                args.method_name,
-            ] + [y for x in [[f"--{k}", str(v)] for k, v in ({**input, **output, **state}).items()] for y in x]
+            other = args.args or []
+
+            command = (
+                [
+                    "genius",
+                    self.discovered_bolt.name,
+                    "rise",
+                    args.input_type,
+                    args.output_type,
+                    args.state_type,
+                ]
+                + ["--id", args.id if args.id else str(uuid.uuid4())]
+                + [y for x in [[f"--{k}", str(v)] for k, v in ({**input, **output, **state}).items()] for y in x]
+                + [args.method_name]
+                + other
+            )
 
             resource.create(command=command, **k8s_kwargs)

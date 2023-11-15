@@ -26,10 +26,10 @@ from geniusrise.core.data import (
     StreamingInput,
     StreamingOutput,
 )
-from geniusrise.core.state import DynamoDBState, InMemoryState, PostgresState, PrometheusState, RedisState
+from geniusrise.core.state import DynamoDBState, InMemoryState, PostgresState, RedisState
 
 # Define the parameters for the tests
-bucket = "geniusrise-test-bucket"
+bucket = "geniusrise-test"
 s3_folder = "bolt-test"
 input_topic = "test_topic"
 kafka_cluster_connection_string = "localhost:9094"
@@ -48,7 +48,6 @@ postgres_table = "geniusrise_state"
 dynamodb_table_name = "test_table"
 dynamodb_region_name = "ap-south-1"
 buffer_size = 1
-prometheus_gateway = "localhost:9091"
 
 
 class TestBolt(Bolt):
@@ -81,27 +80,24 @@ def output(request, tmpdir):
         RedisState,
         PostgresState,
         DynamoDBState,
-        PrometheusState,
     ]
 )
 def state(request):
     if request.param == InMemoryState:
-        return request.param()
+        return request.param(task_id="test")
     elif request.param == RedisState:
-        return request.param(redis_host, redis_port, redis_db)
+        return request.param(host=redis_host, port=redis_port, db=redis_db, task_id="test")
     elif request.param == PostgresState:
         return request.param(
-            postgres_host,
-            postgres_port,
-            postgres_user,
-            postgres_password,
-            postgres_database,
-            postgres_table,
+            host=postgres_host,
+            port=postgres_port,
+            user=postgres_user,
+            password=postgres_password,
+            database=postgres_database,
+            task_id="test",
         )
     elif request.param == DynamoDBState:
-        return request.param(dynamodb_table_name, dynamodb_region_name)
-    elif request.param == PrometheusState:
-        return request.param(prometheus_gateway)
+        return request.param(table_name=dynamodb_table_name, region_name=dynamodb_region_name, task_id="test")
 
 
 def test_bolt_init(input, output, state):
