@@ -23,8 +23,8 @@ class State(ABC):
     """
     Abstract base class for a state manager.
 
-    This class is responsible for managing task states, capturing metrics related to state transitions,
-    and logging. It provides an interface for state management and captures task-related metrics.
+    This class is responsible for managing task states.
+    It provides an interface for state management and captures task-related metrics.
 
     Attributes:
         buffer (Dict[str, Any]): Buffer for state data.
