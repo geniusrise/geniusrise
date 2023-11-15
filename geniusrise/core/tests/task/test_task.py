@@ -37,7 +37,7 @@
 # from geniusrise.core.data import BatchInput, BatchOutput
 # from geniusrise.core.task import Task
 
-# BUCKET = "geniusrise-test-bucket"
+# BUCKET = "geniusrise-test"
 # S3_FOLDER = "whatever"
 
 
