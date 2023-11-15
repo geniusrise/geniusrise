@@ -51,12 +51,10 @@ def test_spoutctl_init(discovered_spout):
         ("batch", "redis"),
         ("batch", "postgres"),
         ("batch", "dynamodb"),
-        ("batch", "prometheus"),
         ("streaming", "none"),
         ("streaming", "redis"),
         ("streaming", "postgres"),
         ("streaming", "dynamodb"),
-        ("streaming", "prometheus"),
     ],
 )
 def test_spoutctl_run(spoutctl, output_type, state_type, tmpdir):
@@ -80,7 +78,6 @@ def test_spoutctl_run(spoutctl, output_type, state_type, tmpdir):
         "--postgres_table", "geniusrise_state",
         "--dynamodb_table_name", "test_table",
         "--dynamodb_region_name", "ap-south-1",
-        "--prometheus_gateway", "localhost:9091",
         "--output_folder", str(tmpdir),
         "--output_s3_bucket", "geniusrise-test-bucket",
         "--output_s3_folder", "whatever",
@@ -100,12 +97,10 @@ def test_spoutctl_run(spoutctl, output_type, state_type, tmpdir):
         ("batch", "redis"),
         ("batch", "postgres"),
         ("batch", "dynamodb"),
-        ("batch", "prometheus"),
         ("streaming", "none"),
         ("streaming", "redis"),
         ("streaming", "postgres"),
         ("streaming", "dynamodb"),
-        ("streaming", "prometheus"),
     ],
 )
 def test_spoutctl_create_spout(spoutctl, output_type, state_type, tmpdir):
@@ -124,7 +119,6 @@ def test_spoutctl_create_spout(spoutctl, output_type, state_type, tmpdir):
         "postgres_table": "geniusrise_state",
         "dynamodb_table_name": "test_table",
         "dynamodb_region_name": "ap-south-1",
-        "prometheus_gateway": "localhost:9091",
         "output_s3_bucket": "geniusrise-test-bucket",
         "output_s3_folder": "whatever",
         "buffer_size": 1,

@@ -58,7 +58,7 @@ class SpoutCtl:
         # Create subparser for 'create' command
         create_parser = subparsers.add_parser("rise", help="Run a spout locally.", formatter_class=RichHelpFormatter)
         create_parser.add_argument("output_type", choices=["batch", "streaming"], help="Choose the type of output data: batch or streaming.", default="batch")
-        create_parser.add_argument("state_type", choices=["none", "redis", "postgres", "dynamodb", "prometheus"], help="Select the type of state manager: none, redis, postgres, or dynamodb.", default="none")
+        create_parser.add_argument("state_type", choices=["none", "redis", "postgres", "dynamodb"], help="Select the type of state manager: none, redis, postgres, or dynamodb.", default="none")
         create_parser.add_argument("--buffer_size", help="Specify the size of the buffer.", default=100, type=int)
         create_parser.add_argument("--id", help="A unique identifier for the task", default=None, type=str)
         # output
@@ -79,14 +79,13 @@ class SpoutCtl:
         create_parser.add_argument("--postgres_table", help="Specify the PostgreSQL table to be used.", default="mytable", type=str)
         create_parser.add_argument("--dynamodb_table_name", help="Provide the name of the DynamoDB table.", default="mytable", type=str)
         create_parser.add_argument("--dynamodb_region_name", help="Specify the AWS region for DynamoDB.", default="us-west-2", type=str)
-        create_parser.add_argument("--prometheus_gateway", help="Specify the prometheus gateway URL.", default="localhost:9091", type=str)
         # function
         create_parser.add_argument("method_name", help="The name of the method to execute on the spout.", type=str)
         create_parser.add_argument("--args", nargs=argparse.REMAINDER, help="Additional keyword arguments to pass to the spout.")
 
         deploy_parser = subparsers.add_parser("deploy", help="Run a spout remotely.", formatter_class=RichHelpFormatter)
         deploy_parser.add_argument("output_type", choices=["batch", "streaming"], help="Choose the type of output data: batch or streaming.", default="batch")
-        deploy_parser.add_argument("state_type", choices=["none", "redis", "postgres", "dynamodb", "prometheus"], help="Select the type of state manager: none, redis, postgres, or dynamodb.", default="none")
+        deploy_parser.add_argument("state_type", choices=["none", "redis", "postgres", "dynamodb"], help="Select the type of state manager: none, redis, postgres, or dynamodb.", default="none")
         deploy_parser.add_argument("deployment_type", choices=["k8s"], help="Choose the type of deployment.", default="k8s")
         deploy_parser.add_argument("--id", help="A unique identifier for the task", default=None, type=str)
         # output
@@ -108,7 +107,6 @@ class SpoutCtl:
         deploy_parser.add_argument("--postgres_table", help="Specify the PostgreSQL table to be used.", default="mytable", type=str)
         deploy_parser.add_argument("--dynamodb_table_name", help="Provide the name of the DynamoDB table.", default="mytable", type=str)
         deploy_parser.add_argument("--dynamodb_region_name", help="Specify the AWS region for DynamoDB.", default="us-west-2", type=str)
-        deploy_parser.add_argument("--prometheus_gateway", help="Specify the prometheus gateway URL.", default="localhost:9091", type=str)
         # deployment
         deploy_parser.add_argument("--k8s_kind", choices=["deployment", "service", "job", "cron_job"], help="Choose the type of kubernetes resource.", default="job")
         deploy_parser.add_argument("--k8s_name", help="Name of the Kubernetes resource.", type=str)
@@ -256,8 +254,6 @@ class SpoutCtl:
                     DynamoDB state manager config:
                     - dynamodb_table_name (str): The name of the DynamoDB table.
                     - dynamodb_region_name (str): The AWS region for DynamoDB.
-                    Prometheus state manager config:
-                    - prometheus_gateway (str): The push gateway for Prometheus metrics.
                 ```
 
         Returns:
@@ -320,8 +316,6 @@ class SpoutCtl:
                     DynamoDB state manager config:
                     - dynamodb_table_name (str): The name of the DynamoDB table.
                     - dynamodb_region_name (str): The AWS region for DynamoDB.
-                    Prometheus state manager config:
-                    - prometheus_gateway (str): The push gateway for Prometheus metrics.
                     Deployment
                     - k8s_kind (str): Kind opf kubernetes resource to be deployed as, choices are "deployment", "service", "job", "cron_job"
                     - k8s_name (str): Name of the Kubernetes resource.
@@ -414,10 +408,6 @@ class SpoutCtl:
                 state = {
                     "dyanmodb_table_name": args.dynamodb_table_name,
                     "dyanmodb_region_name": args.dynamodb_region_name,
-                }
-            elif args.state_type == "prometheus":
-                state = {
-                    "gateway": args.prometheus_gateway,
                 }
             else:
                 raise ValueError(f"Invalid state type: {args.state_type}")

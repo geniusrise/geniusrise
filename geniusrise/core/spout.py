@@ -16,13 +16,13 @@
 
 import tempfile
 from typing import Any, Optional
+import uuid
 
 from geniusrise.core.data import BatchOutput, Output, StreamingOutput
 from geniusrise.core.state import (
     DynamoDBState,
     InMemoryState,
     PostgresState,
-    PrometheusState,
     RedisState,
     State,
 )
@@ -149,9 +149,7 @@ class Spout(Task):
                     - postgres_table (str): The PostgreSQL table to be used.
                     DynamoDB state manager config:
                     - dynamodb_table_name (str): The name of the DynamoDB table.
-                    - dynamodb_region_name (str): The AWS region for DynamoDB.
-                    Prometheus state manager config:
-                    - prometheus_gateway (str): The push gateway for Prometheus metrics.
+                    - dynamodb_region_name (str): The AWS region for DynamoDB
                 ```
 
         Returns:
@@ -160,6 +158,8 @@ class Spout(Task):
         Raises:
             ValueError: If an invalid output type or state type is provided.
         """
+        id = id if id else f"{klass.__class__.__name__}--{str(uuid.uuid4())}"
+
         # Create the output
         output: BatchOutput | StreamingOutput
         if output_type == "batch":
@@ -179,15 +179,19 @@ class Spout(Task):
         # Create the state manager
         state: State
         if state_type == "none":
-            state = InMemoryState()
+            state = InMemoryState(
+                task_id=id,
+            )
         elif state_type == "redis":
             state = RedisState(
+                task_id=id,
                 host=kwargs["redis_host"] if "redis_host" in kwargs else None,
                 port=kwargs["redis_port"] if "redis_port" in kwargs else None,
                 db=kwargs["redis_db"] if "redis_db" in kwargs else None,
             )
         elif state_type == "postgres":
             state = PostgresState(
+                task_id=id,
                 host=kwargs["postgres_host"] if "postgres_host" in kwargs else None,
                 port=kwargs["postgres_port"] if "postgres_port" in kwargs else None,
                 user=kwargs["postgres_user"] if "postgres_user" in kwargs else None,
@@ -197,12 +201,9 @@ class Spout(Task):
             )
         elif state_type == "dynamodb":
             state = DynamoDBState(
+                task_id=id,
                 table_name=kwargs["dynamodb_table_name"] if "dynamodb_table_name" in kwargs else None,
                 region_name=kwargs["dynamodb_region_name"] if "dynamodb_region_name" in kwargs else None,
-            )
-        elif state_type == "prometheus":
-            state = PrometheusState(
-                gateway=kwargs["prometheus_gateway"] if "prometheus_gateway" in kwargs else None,
             )
         else:
             raise ValueError(f"Invalid state type: {state_type}")
