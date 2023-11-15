@@ -80,15 +80,9 @@ class RunPodResourceManager:
         """
         subparsers = parser.add_subparsers(dest="runpod_command")
 
-        # Parser for status
         # fmt: off
-        status_parser = subparsers.add_parser("status", help="Get the status of a RunPod task.")
-        status_parser.add_argument("endpoint_id", help="ID of the RunPod endpoint.", type=str)
-        status_parser.add_argument("task_id", help="ID of the task.", type=str)
-        status_parser = self._add_connection_args(status_parser)
-
         # Parser for run
-        run_parser = subparsers.add_parser("run", help="Run a task on a RunPod endpoint.")
+        run_parser = subparsers.add_parser("create_pod", help="Run a task on a RunPod endpoint.")
         run_parser.add_argument("--pod_name", help="Name of the pod to create.", type=str, required=True)
         run_parser.add_argument("--image_name", help="Docker image name for the pod.", type=str, required=True)
         run_parser.add_argument("--gpu_type_id", help="GPU type ID for the pod.", type=str, required=True)
@@ -115,12 +109,12 @@ class RunPodResourceManager:
         get_pods_parser = self._add_connection_args(get_pods_parser)
 
         # Parser for stopping a pod
-        stop_parser = subparsers.add_parser("stop", help="Stop a RunPod pod.")
+        stop_parser = subparsers.add_parser("stop_pod", help="Stop a RunPod pod.")
         stop_parser.add_argument("pod_id", help="ID of the RunPod pod.", type=str)
         stop_parser = self._add_connection_args(stop_parser)
 
         # Parser for terminating a pod
-        terminate_parser = subparsers.add_parser("terminate", help="Terminate a RunPod pod.")
+        terminate_parser = subparsers.add_parser("terminate_pod", help="Terminate a RunPod pod.")
         terminate_parser.add_argument("pod_id", help="ID of the RunPod pod.", type=str)
         terminate_parser = self._add_connection_args(terminate_parser)
 
@@ -131,8 +125,8 @@ class RunPodResourceManager:
         """
         Execute the appropriate action based on the parsed command-line arguments.
 
-        This method acts as a dispatcher, calling the relevant internal method (like 'status',
-        'run_task', etc.) based on the user's input command. It also ensures that the RunPod
+        This method acts as a dispatcher, calling the relevant internal method (like
+        'create_pod', etc.) based on the user's input command. It also ensures that the RunPod
         API key is set correctly before any action is performed.
 
         Args:
@@ -141,10 +135,8 @@ class RunPodResourceManager:
         self.api_key = args.api_key  # Set the API key from arguments
         rp.api_key = self.api_key  # Update the RunPod API key globally
 
-        if args.runpod_command == "status":
-            self.status(args.endpoint_id, args.task_id)
-        elif args.runpod_command == "run":
-            self.run_task(
+        if args.runpod_command == "create_pod":
+            self.create_pod(
                 pod_name=args.pod_name,
                 image_name=args.image_name,
                 gpu_type_id=args.gpu_type_id,
@@ -167,32 +159,15 @@ class RunPodResourceManager:
             )
         elif args.runpod_command == "get_pods":
             self.get_pods()
-        elif args.runpod_command == "stop":
+        elif args.runpod_command == "stop_pod":
             self.stop_pod(args.pod_id)
-        elif args.runpod_command == "terminate":
+        elif args.runpod_command == "terminate_pod":
             self.terminate_pod(args.pod_id)
         else:
             self.log.exception("Unknown command: %s", args.command)
             raise
 
-    def status(self, endpoint_id: str, task_id: str) -> None:
-        """
-        Retrieve and log the status of a specific task in RunPod.
-
-        This method queries the status of a task identified by its 'task_id' on a specific
-        'endpoint_id'. The status is logged for review.
-
-        Args:
-            endpoint_id (str): The identifier for the RunPod endpoint.
-            task_id (str): The identifier of the task whose status is to be retrieved.
-
-        The method logs the status of the specified task along with its ID.
-        """
-        endpoint = rp.Endpoint(endpoint_id)
-        run_request = endpoint.get_run(task_id)
-        self.log.info(f"Status of task {task_id}: {run_request.status()}")
-
-    def create_pod(
+    def __create_pod(
         self,
         name: str,
         image_name: str,
@@ -272,7 +247,7 @@ class RunPodResourceManager:
             self.log.exception(f"Error creating pod: {e}")
             raise
 
-    def run_task(
+    def create_pod(
         self,
         pod_name: str,
         image_name: str,
@@ -320,7 +295,7 @@ class RunPodResourceManager:
             network_volume_id (Optional[str]): The ID of the network volume to use for the pod.
         """
         try:
-            pod_response = self.create_pod(
+            pod_response = self.__create_pod(
                 name=pod_name,
                 image_name=image_name,
                 gpu_type_id=gpu_type_id,
