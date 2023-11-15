@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import tempfile
-from typing import Any
+from typing import Any, Optional
 
 from geniusrise.core.data import (
     BatchInput,
@@ -25,7 +25,14 @@ from geniusrise.core.data import (
     StreamingInput,
     StreamingOutput,
 )
-from geniusrise.core.state import DynamoDBState, InMemoryState, PostgresState, PrometheusState, RedisState, State
+from geniusrise.core.state import (
+    DynamoDBState,
+    InMemoryState,
+    PostgresState,
+    PrometheusState,
+    RedisState,
+    State,
+)
 from geniusrise.logging import setup_logger
 
 from .task import Task
@@ -43,6 +50,7 @@ class Bolt(Task):
         input: Input,
         output: Output,
         state: State,
+        id: Optional[str] = None,
         **kwargs,
     ) -> None:
         """
@@ -78,7 +86,7 @@ class Bolt(Task):
             output (Output): The output data.
             state (State): The state manager.
         """
-        super().__init__()
+        super().__init__(id=id)
         self.input = input
         self.output = output
         self.state = state
@@ -135,7 +143,14 @@ class Bolt(Task):
             raise
 
     @staticmethod
-    def create(klass: type, input_type: str, output_type: str, state_type: str, **kwargs) -> "Bolt":
+    def create(
+        klass: type,
+        input_type: str,
+        output_type: str,
+        state_type: str,
+        id: Optional[str] = None,
+        **kwargs,
+    ) -> "Bolt":
         r"""
         Create a bolt of a specific type.
 
@@ -280,6 +295,7 @@ class Bolt(Task):
             input=input,
             output=output,
             state=state,
+            id=id,
             **kwargs,
         )
         return bolt
