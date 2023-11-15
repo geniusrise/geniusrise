@@ -18,35 +18,25 @@ import json
 from datetime import datetime
 from typing import Dict, Optional
 
-import jsonpickle
-import psycopg2
-
+import jsonpickle  # type: ignore
+import psycopg2  # type: ignore
 from geniusrise.core.state import State
 
 
 class PostgresState(State):
     """
-    🗄️ **PostgresState**: A state manager that stores state in a PostgreSQL database.
+    🗄️ PostgresState: A state manager that stores state in a PostgreSQL database.
 
     This manager provides a persistent storage solution using a PostgreSQL database.
 
-    ## Attributes:
-    - `conn` (psycopg2.extensions.connection): The PostgreSQL connection.
-
-    ## Usage:
-    ```python
-    manager = PostgresState(host="localhost", port=5432, user="admin", password="password", database="mydb")
-    manager.set_state("user123", {"status": "active"})
-    state = manager.get_state("user123")
-    print(state)  # Outputs: {"status": "active"}
-    ```
-
-
-    Ensure PostgreSQL is accessible and the table exists.
+    Attributes:
+        conn (psycopg2.extensions.connection): The PostgreSQL connection.
+        table (str): The table to use for storing state data.
     """
 
     def __init__(
         self,
+        task_id: str,
         host: str,
         port: int,
         user: str,
@@ -55,9 +45,10 @@ class PostgresState(State):
         table: str = "geniusrise_state",
     ) -> None:
         """
-        💥 Initialize a new PostgreSQL state manager.
+        Initialize a new PostgreSQL state manager.
 
         Args:
+            task_id (str): The identifier for the task.
             host (str): The host of the PostgreSQL server.
             port (int): The port of the PostgreSQL server.
             user (str): The user to connect as.
@@ -65,84 +56,81 @@ class PostgresState(State):
             database (str): The database to connect to.
             table (str, optional): The table to use. Defaults to "geniusrise_state".
         """
-        super().__init__()
+        super().__init__(task_id)
         self.table = table
         try:
             self.conn = psycopg2.connect(host=host, port=port, user=user, password=password, database=database)
         except psycopg2.Error as e:
-            self.log.exception(f"🚫 Failed to connect to PostgreSQL: {e}")
+            self.log.exception(f"Failed to connect to PostgreSQL: {e}")
             raise
-            self.conn = None
         try:
             with self.conn.cursor() as cur:
                 cur.execute(
                     f"""
                     CREATE TABLE IF NOT EXISTS {self.table} (
-                        key TEXT PRIMARY KEY,
+                        task_id TEXT,
+                        key TEXT,
                         value JSONB,
                         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-                        updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+                        updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                        PRIMARY KEY (task_id, key)
                     );
                     """
                 )
             self.conn.commit()
         except psycopg2.Error as e:
-            self.log.exception(f"🚫 Failed to create table in PostgreSQL: {e}")
+            self.log.exception(f"Failed to create table in PostgreSQL: {e}")
             raise
 
-    def get(self, key: str) -> Optional[Dict]:
+    def get(self, task_id: str, key: str) -> Optional[Dict]:
         """
-        📖 Get the state associated with a key.
+        Get the state associated with a task and key.
 
         Args:
+            task_id (str): The task identifier.
             key (str): The key to get the state for.
 
         Returns:
-            Dict: The state associated with the key, or None if not found.
-
-        Raises:
-            Exception: If there's an error accessing PostgreSQL.
+            Optional[Dict]: The state associated with the task and key, or None if not found.
         """
         if self.conn:
             try:
                 with self.conn.cursor() as cur:
-                    cur.execute(f"SELECT value FROM {self.table} WHERE key = %s", (key,))
+                    cur.execute(f"SELECT value FROM {self.table} WHERE task_id = %s AND key = %s", (task_id, key))
                     result = cur.fetchone()
-                    return jsonpickle.decode(result[0]["data"]) if result else None
+                    return jsonpickle.decode(result[0]) if result else None
             except psycopg2.Error as e:
-                self.log.exception(f"🚫 Failed to get state from PostgreSQL: {e}")
+                self.log.exception(f"Failed to get state from PostgreSQL: {e}")
                 raise
         else:
-            self.log.exception("🚫 No PostgreSQL connection.")
+            self.log.exception("No PostgreSQL connection.")
             raise
 
-    def set(self, key: str, value: Dict) -> None:
+    def set(self, task_id: str, key: str, value: Dict) -> None:
         """
-        📝 Set the state associated with a key.
+        Set the state associated with a task and key.
 
         Args:
+            task_id (str): The task identifier.
             key (str): The key to set the state for.
             value (Dict): The state to set.
-
-        Raises:
-            Exception: If there's an error accessing PostgreSQL.
         """
         if self.conn:
             try:
                 with self.conn.cursor() as cur:
-                    data = {"data": jsonpickle.encode(value)}
+                    data = jsonpickle.encode(value)
                     cur.execute(
                         f"""
-                        INSERT INTO {self.table} (key, value, created_at, updated_at)
-                        VALUES (%s, %s, %s, %s)
-                        ON CONFLICT (key)
-                        DO UPDATE SET value = EXCLUDED.value, updated_at = %s;
+                        INSERT INTO {self.table} (task_id, key, value, created_at, updated_at)
+                        VALUES (%s, %s, %s, %s, %s)
+                        ON CONFLICT (task_id, key)
+                        DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP;
                         """,
-                        (key, json.dumps(data), datetime.utcnow(), datetime.utcnow(), datetime.utcnow()),
+                        (task_id, key, json.dumps(data), datetime.utcnow(), datetime.utcnow()),
                     )
                 self.conn.commit()
             except psycopg2.Error as e:
-                self.log.exception(f"🚫 Failed to set state in PostgreSQL: {e}")
+                self.log.exception(f"Failed to set state in PostgreSQL: {e}")
                 raise
         else:
-            self.log.exception("🚫 No PostgreSQL connection.")
+            self.log.exception("No PostgreSQL connection.")

@@ -41,14 +41,14 @@ class InMemoryState(State):
 
     store: Dict[str, Dict]
 
-    def __init__(self) -> None:
+    def __init__(self, task_id: str) -> None:
         """
         💥 Initialize a new in-memory state manager.
         """
-        super().__init__()
+        super().__init__(task_id=task_id)
         self.store = {}
 
-    def get(self, key: str) -> Optional[Dict]:
+    def get(self, task_id: Optional[str], key: str) -> Optional[Dict]:
         """
         📖 Get the state associated with a key.
 
@@ -65,7 +65,7 @@ class InMemoryState(State):
             self.log.warning(f"🚫 No state found for key: {key}")
         return state
 
-    def set(self, key: str, value: Dict) -> None:
+    def set(self, task_id: Optional[str], key: str, value: Dict) -> None:
         """
         📝 Set the state associated with a key.
 

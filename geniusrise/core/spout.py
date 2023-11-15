@@ -15,10 +15,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import tempfile
-from typing import Any
+from typing import Any, Optional
+import uuid
+import time
 
 from geniusrise.core.data import BatchOutput, Output, StreamingOutput
-from geniusrise.core.state import DynamoDBState, InMemoryState, PostgresState, PrometheusState, RedisState, State
+from geniusrise.core.state import (
+    DynamoDBState,
+    InMemoryState,
+    PostgresState,
+    RedisState,
+    State,
+)
 from geniusrise.core.task import Task
 from geniusrise.logging import setup_logger
 
@@ -28,7 +36,7 @@ class Spout(Task):
     Base class for all spouts.
     """
 
-    def __init__(self, output: Output, state: State, **kwargs) -> None:
+    def __init__(self, output: Output, state: State, id: Optional[str] = None, **kwargs) -> None:
         """
         The `Spout` class is a base class for all spouts in the given context.
         It inherits from the `Task` class and provides methods for executing tasks
@@ -59,7 +67,7 @@ class Spout(Task):
             output (Output): The output data.
             state (State): The state manager.
         """
-        super().__init__()
+        super().__init__(id=id)
         self.output = output
         self.state = state
 
@@ -80,11 +88,8 @@ class Spout(Task):
             Any: The result of the method.
         """
         try:
-            # Get the type of state manager
-            # state_type = self.state.get_state(self.id)
-
             # Save the current set of class variables to the state manager
-            # self.state.set_state(self.id, {})
+            self.state.set_state("status", {"status": "executing", "time": time.time()})
 
             # Execute the task's method
             result = self.execute(method_name, *args, **kwargs)
@@ -93,20 +98,16 @@ class Spout(Task):
             self.output.flush()
 
             # Store the state as successful in the state manager
-            state = {}
-            state["status"] = "success"
-            # self.state.set_state(self.id, state)
+            self.state.set_state("status", {"status": "success", "time": time.time()})
 
             return result
         except Exception as e:
-            state = {}
-            state["status"] = "failed"
-            # self.state.set_state(self.id, state)
+            self.state.set_state("status", {"status": "failed", "time": time.time()})
             self.log.exception(f"Failed to execute method '{method_name}': {e}")
             raise
 
     @staticmethod
-    def create(klass: type, output_type: str, state_type: str, **kwargs) -> "Spout":
+    def create(klass: type, output_type: str, state_type: str, id: Optional[str] = None, **kwargs) -> "Spout":
         r"""
         Create a spout of a specific type.
 
@@ -142,9 +143,7 @@ class Spout(Task):
                     - postgres_table (str): The PostgreSQL table to be used.
                     DynamoDB state manager config:
                     - dynamodb_table_name (str): The name of the DynamoDB table.
-                    - dynamodb_region_name (str): The AWS region for DynamoDB.
-                    Prometheus state manager config:
-                    - prometheus_gateway (str): The push gateway for Prometheus metrics.
+                    - dynamodb_region_name (str): The AWS region for DynamoDB
                 ```
 
         Returns:
@@ -153,6 +152,8 @@ class Spout(Task):
         Raises:
             ValueError: If an invalid output type or state type is provided.
         """
+        id = id if id else f"{klass.__class__.__name__}--{str(uuid.uuid4())}"
+
         # Create the output
         output: BatchOutput | StreamingOutput
         if output_type == "batch":
@@ -172,15 +173,19 @@ class Spout(Task):
         # Create the state manager
         state: State
         if state_type == "none":
-            state = InMemoryState()
+            state = InMemoryState(
+                task_id=id,
+            )
         elif state_type == "redis":
             state = RedisState(
+                task_id=id,
                 host=kwargs["redis_host"] if "redis_host" in kwargs else None,
                 port=kwargs["redis_port"] if "redis_port" in kwargs else None,
                 db=kwargs["redis_db"] if "redis_db" in kwargs else None,
             )
         elif state_type == "postgres":
             state = PostgresState(
+                task_id=id,
                 host=kwargs["postgres_host"] if "postgres_host" in kwargs else None,
                 port=kwargs["postgres_port"] if "postgres_port" in kwargs else None,
                 user=kwargs["postgres_user"] if "postgres_user" in kwargs else None,
@@ -190,16 +195,14 @@ class Spout(Task):
             )
         elif state_type == "dynamodb":
             state = DynamoDBState(
+                task_id=id,
                 table_name=kwargs["dynamodb_table_name"] if "dynamodb_table_name" in kwargs else None,
                 region_name=kwargs["dynamodb_region_name"] if "dynamodb_region_name" in kwargs else None,
-            )
-        elif state_type == "prometheus":
-            state = PrometheusState(
-                gateway=kwargs["prometheus_gateway"] if "prometheus_gateway" in kwargs else None,
             )
         else:
             raise ValueError(f"Invalid state type: {state_type}")
 
         # Create the spout
-        spout = klass(output=output, state=state, **kwargs)
+        spout = klass(output=output, state=state, id=id, **kwargs)
+        spout.state.set_state("status", {"status": "created", "time": time.time()})
         return spout

@@ -18,7 +18,7 @@ import pytest
 
 from geniusrise.core import Spout
 from geniusrise.core.data import BatchOutput, StreamingOutput
-from geniusrise.core.state import DynamoDBState, InMemoryState, PostgresState, PrometheusState, RedisState
+from geniusrise.core.state import DynamoDBState, InMemoryState, PostgresState, RedisState
 
 output_topic = "test_topic"
 kafka_servers = "localhost:9094"
@@ -33,9 +33,8 @@ postgres_database = "geniusrise"
 postgres_table = "geniusrise_state"
 dynamodb_table_name = "test_table"
 dynamodb_region_name = "ap-south-1"
-s3_bucket = "geniusrise-test-bucket"
+s3_bucket = "geniusrise-test"
 s3_folder = "whatever"
-prometheus_gateway = "localhost:9091"
 
 
 class TestSpout(Spout):
@@ -50,26 +49,24 @@ class TestSpout(Spout):
         RedisState,
         PostgresState,
         DynamoDBState,
-        PrometheusState,
     ]
 )
 def state(request):
     if request.param == InMemoryState:
-        return request.param()
+        return request.param(task_id="test")
     elif request.param == RedisState:
-        return request.param(redis_host, redis_port, redis_db)
+        return request.param(host=redis_host, port=redis_port, db=redis_db, task_id="test")
     elif request.param == PostgresState:
         return request.param(
-            postgres_host,
-            postgres_port,
-            postgres_user,
-            postgres_password,
-            postgres_database,
+            host=postgres_host,
+            port=postgres_port,
+            user=postgres_user,
+            password=postgres_password,
+            database=postgres_database,
+            task_id="test",
         )
     elif request.param == DynamoDBState:
-        return request.param(dynamodb_table_name, dynamodb_region_name)
-    elif request.param == PrometheusState:
-        return request.param(prometheus_gateway)
+        return request.param(table_name=dynamodb_table_name, region_name=dynamodb_region_name, task_id="test")
 
 
 # Define a fixture for the output

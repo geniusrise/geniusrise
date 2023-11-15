@@ -15,7 +15,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import tempfile
-from typing import Any
+from typing import Any, Optional
+import uuid
+import time
 
 from geniusrise.core.data import (
     BatchInput,
@@ -25,7 +27,13 @@ from geniusrise.core.data import (
     StreamingInput,
     StreamingOutput,
 )
-from geniusrise.core.state import DynamoDBState, InMemoryState, PostgresState, PrometheusState, RedisState, State
+from geniusrise.core.state import (
+    DynamoDBState,
+    InMemoryState,
+    PostgresState,
+    RedisState,
+    State,
+)
 from geniusrise.logging import setup_logger
 
 from .task import Task
@@ -43,6 +51,7 @@ class Bolt(Task):
         input: Input,
         output: Output,
         state: State,
+        id: Optional[str] = None,
         **kwargs,
     ) -> None:
         """
@@ -78,7 +87,7 @@ class Bolt(Task):
             output (Output): The output data.
             state (State): The state manager.
         """
-        super().__init__()
+        super().__init__(id=id)
         self.input = input
         self.output = output
         self.state = state
@@ -107,6 +116,9 @@ class Bolt(Task):
             # self.state.set_state(self.id, {})
 
             # Copy input data to local or connect to kafka and pass on the details
+
+            self.state.set_state("status", {"status": "initialized", "time": time.time()})
+
             if type(self.input) is BatchInput:
                 self.input.from_s3()
                 input_folder = self.input.get()
@@ -115,6 +127,8 @@ class Bolt(Task):
                 kafka_consumer = self.input.get()
                 kwargs["kafka_consumer"] = kafka_consumer
 
+            self.state.set_state("status", {"status": "executing", "time": time.time()})
+
             # Execute the task's method
             result = self.execute(method_name, *args, **kwargs)
 
@@ -122,20 +136,23 @@ class Bolt(Task):
             self.output.flush()
 
             # Store the state as successful in the state manager
-            state = {}
-            state["status"] = "success"
-            # self.state.set_state(self.id, state)
+            self.state.set_state("status", {"status": "success", "time": time.time()})
 
             return result
         except Exception as e:
-            state = {}
-            state["status"] = "failed"
-            # self.state.set_state(self.id, state)
+            self.state.set_state("status", {"status": "failed", "time": time.time()})
             self.log.exception(f"Failed to execute method '{method_name}': {e}")
             raise
 
     @staticmethod
-    def create(klass: type, input_type: str, output_type: str, state_type: str, **kwargs) -> "Bolt":
+    def create(
+        klass: type,
+        input_type: str,
+        output_type: str,
+        state_type: str,
+        id: Optional[str] = None,
+        **kwargs,
+    ) -> "Bolt":
         r"""
         Create a bolt of a specific type.
 
@@ -197,8 +214,6 @@ class Bolt(Task):
                     DynamoDB state manager config:
                     - dynamodb_table_name (str): The DynamoDB table name argument.
                     - dynamodb_region_name (str): The DynamoDB region name argument.
-                    Prometheus state manager config:
-                    - prometheus_gateway (str): The push gateway for Prometheus metrics.
                 ```
 
         Returns:
@@ -207,6 +222,8 @@ class Bolt(Task):
         Raises:
             ValueError: If an invalid input type, output type, or state type is provided.
         """
+        id = id if id else f"{klass.__class__.__name__}--{str(uuid.uuid4())}"
+
         # Create the input
         input: BatchInput | StreamingInput
         if input_type == "batch":
@@ -247,15 +264,19 @@ class Bolt(Task):
         # Create the state manager
         state: State
         if state_type == "none":
-            state = InMemoryState()
+            state = InMemoryState(
+                task_id=id,
+            )
         elif state_type == "redis":
             state = RedisState(
+                task_id=id,
                 host=kwargs["redis_host"] if "redis_host" in kwargs else None,
                 port=kwargs["redis_port"] if "redis_port" in kwargs else None,
                 db=kwargs["redis_db"] if "redis_db" in kwargs else None,
             )
         elif state_type == "postgres":
             state = PostgresState(
+                task_id=id,
                 host=kwargs["postgres_host"] if "postgres_host" in kwargs else None,
                 port=kwargs["postgres_port"] if "postgres_port" in kwargs else None,
                 user=kwargs["postgres_user"] if "postgres_user" in kwargs else None,
@@ -265,12 +286,9 @@ class Bolt(Task):
             )
         elif state_type == "dynamodb":
             state = DynamoDBState(
+                task_id=id,
                 table_name=kwargs["dynamodb_table_name"] if "dynamodb_table_name" in kwargs else None,
                 region_name=kwargs["dynamodb_region_name"] if "dynamodb_region_name" in kwargs else None,
-            )
-        elif state_type == "prometheus":
-            state = PrometheusState(
-                gateway=kwargs["prometheus_gateway"] if "prometheus_gateway" in kwargs else None,
             )
         else:
             raise ValueError(f"Invalid state type: {state_type}")
@@ -280,6 +298,8 @@ class Bolt(Task):
             input=input,
             output=output,
             state=state,
+            id=id,
             **kwargs,
         )
+        bolt.state.set_state("status", {"status": "created", "time": time.time()})
         return bolt
