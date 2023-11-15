@@ -70,7 +70,7 @@ spouts:
     output:
       type: "{output_type}"
       args:
-        bucket: "geniusrise-test-bucket"
+        bucket: "geniusrise-test"
         folder: "{tmpdir}"
         kafka_servers: "localhost:9094"
         output_topic: "test_topic"
@@ -110,7 +110,7 @@ bolts:
     input:
       type: "{input_type}"
       args:
-        bucket: "geniusrise-test-bucket"
+        bucket: "geniusrise-test"
         folder: "{tmpdir}"
         kafka_servers: "localhost:9094"
         input_topic: "test_topic"
@@ -119,7 +119,7 @@ bolts:
     output:
       type: "{output_type}"
       args:
-        bucket: "geniusrise-test-bucket"
+        bucket: "geniusrise-test"
         folder: "{tmpdir}"
         kafka_servers: "localhost:9094"
         output_topic: "test_topic"

@@ -26,7 +26,7 @@ from pyspark.sql import SparkSession, Row
 from geniusrise.core.data.batch_input import BatchInput
 
 # Define your S3 bucket and folder details as constants
-BUCKET = "geniusrise-test-bucket"
+BUCKET = "geniusrise-test"
 S3_FOLDER = "whatever"
 KAFKA_CLUSTER_CONNECTION_STRING = "localhost:9094"
 GROUP_ID = "geniusrise"
