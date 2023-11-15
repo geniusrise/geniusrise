@@ -1,8 +1,4 @@
 {
-  "python.formatting.provider": "black",
-  "python.formatting.blackArgs": ["--line-length", "120"],
-  "python.linting.flake8Enabled": false,
-  "python.linting.enabled": true,
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
     "source.organizeImports.python": true
@@ -15,14 +11,12 @@
   "[markdown]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "prettier.printWidth": 80,
+  "prettier.printWidth": 120,
   "prettier.proseWrap": "always",
   "prettier.tabWidth": 4,
   "prettier.singleQuote": true,
   "prettier.bracketSpacing": false,
   "prettier.trailingComma": "es5",
-  "python.linting.mypyEnabled": true,
-  "python.linting.mypyArgs": [],
   "editor.tabSize": 4,
   "editor.tokenColorCustomizations": {
     "textMateRules": [
@@ -45,8 +39,7 @@
           "fontStyle": ""
         }
       }
-    ],
-    "comments": ""
+    ]
   },
   "python.analysis.typeCheckingMode": "basic",
   "cSpell.words": ["geniusfile"]

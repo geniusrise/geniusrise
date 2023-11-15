@@ -15,10 +15,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import tempfile
-from typing import Any
+from typing import Any, Optional
 
 from geniusrise.core.data import BatchOutput, Output, StreamingOutput
-from geniusrise.core.state import DynamoDBState, InMemoryState, PostgresState, PrometheusState, RedisState, State
+from geniusrise.core.state import (
+    DynamoDBState,
+    InMemoryState,
+    PostgresState,
+    PrometheusState,
+    RedisState,
+    State,
+)
 from geniusrise.core.task import Task
 from geniusrise.logging import setup_logger
 
@@ -28,7 +35,7 @@ class Spout(Task):
     Base class for all spouts.
     """
 
-    def __init__(self, output: Output, state: State, **kwargs) -> None:
+    def __init__(self, output: Output, state: State, id: Optional[str] = None, **kwargs) -> None:
         """
         The `Spout` class is a base class for all spouts in the given context.
         It inherits from the `Task` class and provides methods for executing tasks
@@ -59,7 +66,7 @@ class Spout(Task):
             output (Output): The output data.
             state (State): The state manager.
         """
-        super().__init__()
+        super().__init__(id=id)
         self.output = output
         self.state = state
 
@@ -106,7 +113,7 @@ class Spout(Task):
             raise
 
     @staticmethod
-    def create(klass: type, output_type: str, state_type: str, **kwargs) -> "Spout":
+    def create(klass: type, output_type: str, state_type: str, id: Optional[str] = None, **kwargs) -> "Spout":
         r"""
         Create a spout of a specific type.
 
@@ -201,5 +208,5 @@ class Spout(Task):
             raise ValueError(f"Invalid state type: {state_type}")
 
         # Create the spout
-        spout = klass(output=output, state=state, **kwargs)
+        spout = klass(output=output, state=state, id=id, **kwargs)
         return spout

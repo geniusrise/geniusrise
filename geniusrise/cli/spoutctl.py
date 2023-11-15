@@ -18,7 +18,8 @@ import argparse
 import json
 import logging
 import tempfile
-from typing import Any
+import uuid
+from typing import Any, Optional
 
 import emoji  # type: ignore
 from rich_argparse import RichHelpFormatter
@@ -59,6 +60,7 @@ class SpoutCtl:
         create_parser.add_argument("output_type", choices=["batch", "streaming"], help="Choose the type of output data: batch or streaming.", default="batch")
         create_parser.add_argument("state_type", choices=["none", "redis", "postgres", "dynamodb", "prometheus"], help="Select the type of state manager: none, redis, postgres, or dynamodb.", default="none")
         create_parser.add_argument("--buffer_size", help="Specify the size of the buffer.", default=100, type=int)
+        create_parser.add_argument("--id", help="A unique identifier for the task", default=None, type=str)
         # output
         create_parser.add_argument("--output_folder", help="Specify the directory where output files should be stored temporarily.", default=tempfile.mkdtemp(), type=str)
         create_parser.add_argument("--output_kafka_topic", help="Kafka output topic for streaming spouts.", default="test", type=str)
@@ -86,6 +88,7 @@ class SpoutCtl:
         deploy_parser.add_argument("output_type", choices=["batch", "streaming"], help="Choose the type of output data: batch or streaming.", default="batch")
         deploy_parser.add_argument("state_type", choices=["none", "redis", "postgres", "dynamodb", "prometheus"], help="Select the type of state manager: none, redis, postgres, or dynamodb.", default="none")
         deploy_parser.add_argument("deployment_type", choices=["k8s"], help="Choose the type of deployment.", default="k8s")
+        deploy_parser.add_argument("--id", help="A unique identifier for the task", default=None, type=str)
         # output
         deploy_parser.add_argument("--buffer_size", help="Specify the size of the buffer.", default=100, type=int)
         deploy_parser.add_argument("--output_folder", help="Specify the directory where output files should be stored temporarily.", default="/tmp", type=str)
@@ -155,11 +158,19 @@ class SpoutCtl:
                     for k, v in vars(args).items()
                     if v is not None
                     and "k8s_" not in k
-                    and k not in ["output_type", "state_type", "args", "method_name", "deployment_type"]
+                    and k
+                    not in [
+                        "output_type",
+                        "state_type",
+                        "args",
+                        "method_name",
+                        "deployment_type",
+                        "--id",
+                    ]
                 }
                 other = args.args or []
                 other_args, other_kwargs = self.parse_args_kwargs(other)
-                self.spout = self.create_spout(args.output_type, args.state_type, **kwargs)
+                self.spout = self.create_spout(args.output_type, args.state_type, id=args.id, **kwargs)
 
                 # Pass the method_name from args to execute_spout
                 result = self.execute_spout(self.spout, args.method_name, *other_args, **other_kwargs)
@@ -209,7 +220,7 @@ class SpoutCtl:
 
         return args, kwargs
 
-    def create_spout(self, output_type: str, state_type: str, **kwargs) -> Spout:
+    def create_spout(self, output_type: str, state_type: str, id: Optional[str], **kwargs) -> Spout:
         r"""
         Create a spout of a specific type.
 
@@ -256,6 +267,7 @@ class SpoutCtl:
             klass=self.discovered_spout.klass,
             output_type=output_type,
             state_type=state_type,
+            id=id,
             **kwargs,
         )
 
@@ -410,13 +422,20 @@ class SpoutCtl:
             else:
                 raise ValueError(f"Invalid state type: {args.state_type}")
 
-            command = [
-                "genius",
-                self.discovered_spout.name,
-                "rise",
-                args.output_type,
-                args.state_type,
-                args.method_name,
-            ] + [y for x in [[f"--{k}", str(v)] for k, v in ({**output, **state}).items()] for y in x]
+            other = args.args or []
+
+            command = (
+                [
+                    "genius",
+                    self.discovered_spout.name,
+                    "rise",
+                    args.output_type,
+                    args.state_type,
+                ]
+                + ["--id", args.id if args.id else str(uuid.uuid4())]
+                + [y for x in [[f"--{k}", str(v)] for k, v in ({**output, **state}).items()] for y in x]
+                + [args.method_name]
+                + other
+            )
 
             resource.create(command=command, **k8s_kwargs)
