@@ -54,25 +54,21 @@ def test_boltctl_init(discovered_bolt):
         ("batch", "batch", "redis"),
         ("batch", "batch", "postgres"),
         ("batch", "batch", "dynamodb"),
-        ("batch", "batch", "prometheus"),
 
         ("batch", "streaming", "none"),
         ("batch", "streaming", "redis"),
         ("batch", "streaming", "postgres"),
         ("batch", "streaming", "dynamodb"),
-        ("batch", "streaming", "prometheus"),
 
         ("streaming", "batch", "none"),
         ("streaming", "batch", "redis"),
         ("streaming", "batch", "postgres"),
         ("streaming", "batch", "dynamodb"),
-        ("streaming", "batch", "prometheus"),
 
         ("streaming", "streaming", "none"),
         ("streaming", "streaming", "redis"),
         ("streaming", "streaming", "postgres"),
         ("streaming", "streaming", "dynamodb"),
-        ("streaming", "streaming", "prometheus"),
     ],
 )
 def test_boltctl_run(boltctl, input_type, output_type, state_type, tmpdir):
@@ -105,7 +101,6 @@ def test_boltctl_run(boltctl, input_type, output_type, state_type, tmpdir):
         "--postgres_table", "geniusrise_state",
         "--dynamodb_table_name", "test_table",
         "--dynamodb_region_name", "ap-south-1",
-        "--prometheus_gateway", "localhost:9091",
         "--buffer_size", "1",
         "test_method",
         "--args", "1", "2", "3", "a=4", "b=5", "c=6"
@@ -150,22 +145,18 @@ def test_boltctl_execute_bolt(boltctl, tmpdir):
         ("batch", "batch", "redis"),
         ("batch", "batch", "postgres"),
         ("batch", "batch", "dynamodb"),
-        ("batch", "batch", "prometheus"),
         ("batch", "streaming", "none"),
         ("batch", "streaming", "redis"),
         ("batch", "streaming", "postgres"),
         ("batch", "streaming", "dynamodb"),
-        ("batch", "streaming", "prometheus"),
         ("streaming", "batch", "none"),
         ("streaming", "batch", "redis"),
         ("streaming", "batch", "postgres"),
         ("streaming", "batch", "dynamodb"),
-        ("streaming", "batch", "prometheus"),
         ("streaming", "streaming", "none"),
         ("streaming", "streaming", "redis"),
         ("streaming", "streaming", "postgres"),
         ("streaming", "streaming", "dynamodb"),
-        ("streaming", "streaming", "prometheus"),
     ],
 )
 def test_boltctl_create_bolt(boltctl, input_type, output_type, state_type, tmpdir):
@@ -192,7 +183,6 @@ def test_boltctl_create_bolt(boltctl, input_type, output_type, state_type, tmpdi
         "postgres_table": "geniusrise_state",
         "dynamodb_table_name": "test_table",
         "dynamodb_region_name": "ap-south-1",
-        "prometheus_gateway": "localhost:9091",
         "buffer_size": 1,
     }
 

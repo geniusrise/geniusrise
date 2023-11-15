@@ -58,7 +58,6 @@ spouts:
         postgres_table: "geniusrise_state"
         dynamodb_table_name: "test_table"
         dynamodb_region_name: "ap-south-1"
-        prometheus_gateway: "http://localhost:9091"
     deploy:
       type: k8s
       args:
@@ -99,7 +98,6 @@ bolts:
         postgres_table: "geniusrise_state"
         dynamodb_table_name: "test_table"
         dynamodb_region_name: "ap-south-1"
-        prometheus_gateway: "http://localhost:9091"
     deploy:
       type: k8s
       args:
@@ -161,23 +159,19 @@ def test_yamlctl_init(yamlctl):
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "dynamodb"),
-        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "prometheus"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "none"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "dynamodb"),
-        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "prometheus"),
 
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "none"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "dynamodb"),
-        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "prometheus"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "none"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "dynamodb"),
-        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "prometheus"),
     ],
 )
 def test_yamlctl_run(
@@ -214,23 +208,19 @@ def test_yamlctl_run(
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "dynamodb"),
-        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "batch", "prometheus"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "none"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "dynamodb"),
-        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "batch", "streaming", "prometheus"),
 
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "none"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "dynamodb"),
-        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "batch", "prometheus"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "none"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "redis"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "postgres"),
         ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "dynamodb"),
-        ("TestSpoutCtlSpout", "TestBoltCtlBolt", "streaming", "streaming", "prometheus"),
     ],
 )
 def test_yamlctl_run_2(

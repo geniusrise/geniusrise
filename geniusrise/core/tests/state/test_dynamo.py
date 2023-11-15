@@ -23,6 +23,7 @@ from geniusrise.core.state import DynamoDBState
 # Define your DynamoDB connection details as constants
 TABLE_NAME = "test_table"
 REGION_NAME = "ap-south-1"
+TASK_ID = "test_task"
 
 
 # Define a fixture for your DynamoDBState
@@ -33,27 +34,20 @@ def dynamodb_state_manager():
     try:
         table = dynamodb.create_table(
             TableName=TABLE_NAME,
-            KeySchema=[
-                {"AttributeName": "id", "KeyType": "HASH"},
-            ],
-            AttributeDefinitions=[
-                {"AttributeName": "id", "AttributeType": "S"},
-            ],
+            KeySchema=[{"AttributeName": "id", "KeyType": "HASH"}],
+            AttributeDefinitions=[{"AttributeName": "id", "AttributeType": "S"}],
             ProvisionedThroughput={"ReadCapacityUnits": 5, "WriteCapacityUnits": 5},
         )
-        # Wait until the table exists, this will take a minute or so
+        # Wait until the table exists
         table.meta.client.get_waiter("table_exists").wait(TableName=TABLE_NAME)
     except ClientError as e:
-        if e.response["Error"]["Code"] == "ResourceInUseException":
-            pass
-        else:
+        if e.response["Error"]["Code"] != "ResourceInUseException":
             raise
 
-    # Yield the DynamoDBState
-    yield DynamoDBState(TABLE_NAME, REGION_NAME)
+    # Yield the DynamoDBState with a task_id
+    yield DynamoDBState(task_id=TASK_ID, table_name=TABLE_NAME, region_name=REGION_NAME)
 
-    # # Tear down the DynamoDB table
-    # table = dynamodb.Table(TABLE_NAME)
+    # Tear down the DynamoDB table (optional)
     # table.delete()
 
 
@@ -65,12 +59,11 @@ def test_dynamodb_state_manager_init(dynamodb_state_manager):
 
 # Test that the DynamoDBState can get state
 def test_dynamodb_state_manager_get_state(dynamodb_state_manager):
-    # First, set some state
     key = "test_key"
     value = {"test": "buffer"}
     dynamodb_state_manager.set_state(key, value)
 
-    # Then, get the state and check that it's correct
+    # Get the state and check that it's correct
     assert dynamodb_state_manager.get_state(key)["test"] == "buffer"
 
 

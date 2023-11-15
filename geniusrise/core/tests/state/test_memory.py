@@ -22,7 +22,8 @@ from geniusrise.core.state import InMemoryState
 # Define a fixture for your InMemoryState
 @pytest.fixture
 def in_memory_state_manager():
-    return InMemoryState()
+    task_id = "test_task"
+    return InMemoryState(task_id=task_id)
 
 
 # Test that the InMemoryState can be initialized
