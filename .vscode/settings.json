@@ -42,5 +42,6 @@
     ]
   },
   "python.analysis.typeCheckingMode": "basic",
-  "cSpell.words": ["geniusfile", "jsonpickle", "psycopg", "TIMESTAMPTZ"]
+  "cSpell.words": ["geniusfile", "jsonpickle", "psycopg", "TIMESTAMPTZ"],
+  "python.formatting.provider": "black"
 }
