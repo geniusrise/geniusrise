@@ -20,6 +20,7 @@ from typing import Dict, Optional
 
 import jsonpickle  # type: ignore
 import psycopg2  # type: ignore
+
 from geniusrise.core.state import State
 
 

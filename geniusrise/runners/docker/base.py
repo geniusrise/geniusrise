@@ -14,12 +14,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
+import logging
+from argparse import ArgumentParser, Namespace
+from typing import Any, Dict, List, Optional
+
 import docker
 from docker.errors import APIError
-import logging
-from typing import List, Dict, Any, Optional
-from argparse import ArgumentParser, Namespace
-import json
 
 
 class DockerResourceManager:

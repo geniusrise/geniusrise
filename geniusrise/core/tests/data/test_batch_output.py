@@ -14,13 +14,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
 import os
+
 import boto3
 import pytest
-from pyspark.sql import SparkSession
-from geniusrise.core.data import BatchOutput
 from kafka import KafkaConsumer
-import json
+from pyspark.sql import SparkSession
+
+from geniusrise.core.data import BatchOutput
 
 # Initialize Spark session for testing
 spark = SparkSession.builder.master("local[1]").appName("GeniusRise").getOrCreate()

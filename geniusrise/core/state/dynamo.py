@@ -14,9 +14,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import jsonpickle
+from typing import Any, Dict, Optional
+
 import boto3
-from typing import Dict, Optional, Any
+import jsonpickle
 
 from geniusrise.core.state import State
 

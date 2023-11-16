@@ -20,12 +20,7 @@ import pytest
 from kafka import KafkaProducer  # type: ignore
 
 from geniusrise.core import Bolt
-from geniusrise.core.data import (
-    BatchInput,
-    BatchOutput,
-    StreamingInput,
-    StreamingOutput,
-)
+from geniusrise.core.data import BatchInput, BatchOutput, StreamingInput, StreamingOutput
 from geniusrise.core.state import DynamoDBState, InMemoryState, PostgresState, RedisState
 
 # Define the parameters for the tests

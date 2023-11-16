@@ -14,14 +14,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
 import json
+import os
 import time
 
 import boto3
 import pytest
 from kafka import KafkaProducer
-from pyspark.sql import SparkSession, Row
+from pyspark.sql import Row, SparkSession
 
 from geniusrise.core.data.batch_input import BatchInput
 

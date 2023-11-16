@@ -18,8 +18,8 @@ import argparse
 import json
 import logging
 import tempfile
-from typing import Any, Optional
 import uuid
+from typing import Any, Optional
 
 import emoji  # type: ignore
 from rich_argparse import RichHelpFormatter

@@ -15,18 +15,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import tempfile
-from typing import Any, Optional
-import uuid
 import time
+import uuid
+from typing import Any, Optional
 
 from geniusrise.core.data import BatchOutput, Output, StreamingOutput
-from geniusrise.core.state import (
-    DynamoDBState,
-    InMemoryState,
-    PostgresState,
-    RedisState,
-    State,
-)
+from geniusrise.core.state import DynamoDBState, InMemoryState, PostgresState, RedisState, State
 from geniusrise.core.task import Task
 from geniusrise.logging import setup_logger
 

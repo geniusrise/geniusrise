@@ -24,10 +24,10 @@ from typing import Any, Dict, Optional, Union
 
 import boto3
 import pyspark
-from pyspark.sql import SparkSession, Row
-from retrying import retry
 import shortuuid
 from kafka import KafkaProducer
+from pyspark.sql import Row, SparkSession
+from retrying import retry
 
 from .output import Output
 

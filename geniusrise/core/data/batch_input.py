@@ -14,16 +14,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
 import os
 import shutil
 import time
 from typing import Dict, Optional, Union
 
 import boto3
-from pyspark.sql import Row, DataFrame
 import shortuuid
-import json
 from kafka import KafkaConsumer
+from pyspark.sql import DataFrame, Row
 
 from .input import Input
 

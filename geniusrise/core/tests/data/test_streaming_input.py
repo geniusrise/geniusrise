@@ -15,22 +15,22 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import pytest
-from kafka import KafkaConsumer
-from pyflink.table import StreamTableEnvironment, EnvironmentSettings
-from pyflink.datastream import DataStream
-from pyflink.common import Row
-from pyflink.datastream import StreamExecutionEnvironment
-from pyspark.sql import SparkSession
-from pyflink.table.udf import udf
-from streamz import Stream
-import pandas as pd
-import threading
-import time
-import tempfile
 import csv
 import os
-from pyspark.sql.types import StructType, StructField, IntegerType
+import tempfile
+import threading
+import time
+
+import pandas as pd
+import pytest
+from kafka import KafkaConsumer
+from pyflink.common import Row
+from pyflink.datastream import DataStream, StreamExecutionEnvironment
+from pyflink.table import EnvironmentSettings, StreamTableEnvironment
+from pyflink.table.udf import udf
+from pyspark.sql import SparkSession
+from pyspark.sql.types import IntegerType, StructField, StructType
+from streamz import Stream
 
 from geniusrise.core.data.streaming_input import StreamingInput
 

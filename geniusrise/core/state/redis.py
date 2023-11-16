@@ -14,9 +14,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Any, Dict, Optional
+
 import jsonpickle  # type: ignore
 import redis  # type: ignore
-from typing import Dict, Optional, Any
 
 from geniusrise.core.state import State
 

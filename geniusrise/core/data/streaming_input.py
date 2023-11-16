@@ -15,15 +15,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-from typing import Dict, List, Union, Generator, Any, Callable
-from queue import Queue, Empty
+from queue import Empty, Queue
+from typing import Any, Callable, Dict, Generator, List, Union
 
 from kafka import KafkaConsumer, TopicPartition
+from pyflink.datastream import DataStream
+from pyflink.table import Table
+from pyspark.rdd import RDD
 from pyspark.sql import DataFrame, Row
 from pyspark.sql.streaming import StreamingQuery
-from pyspark.rdd import RDD
-from pyflink.table import Table
-from pyflink.datastream import DataStream
 from streamz.dataframe import DataFrame as ZDataFrame
 
 from .input import Input

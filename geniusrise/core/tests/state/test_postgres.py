@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import uuid
+
 import psycopg2
 import pytest
 from psycopg2 import sql
