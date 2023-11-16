@@ -96,7 +96,10 @@ class PostgresState(State):
         if self.conn:
             try:
                 with self.conn.cursor() as cur:
-                    cur.execute(f"SELECT value FROM {self.table} WHERE task_id = %s AND key = %s", (task_id, key))
+                    cur.execute(
+                        f"SELECT value FROM {self.table} WHERE task_id = %s AND key = %s",
+                        (task_id, key),
+                    )
                     result = cur.fetchone()
                     return jsonpickle.decode(result[0]) if result else None
             except psycopg2.Error as e:
@@ -126,7 +129,13 @@ class PostgresState(State):
                         ON CONFLICT (task_id, key)
                         DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP;
                         """,
-                        (task_id, key, json.dumps(data), datetime.utcnow(), datetime.utcnow()),
+                        (
+                            task_id,
+                            key,
+                            json.dumps(data),
+                            datetime.utcnow(),
+                            datetime.utcnow(),
+                        ),
                     )
                 self.conn.commit()
             except psycopg2.Error as e:

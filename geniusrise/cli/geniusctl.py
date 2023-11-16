@@ -21,7 +21,7 @@ import sys
 from typing import Dict
 
 from prettytable import PrettyTable
-from rich import print
+from rich import print as richprint
 from rich.style import Style
 from rich.text import Text
 from rich_argparse import RichHelpFormatter
@@ -68,13 +68,13 @@ class GeniusCtl:
         """
 
         # Print the text in red with a box around it and a dark background
-        print(Text(text, style=Style(color="red")))
+        richprint(Text(text, style=Style(color="red")))
 
         # Print the link without a panel
         link_text = Text("🧠 https://geniusrise.ai", style=Style(color="deep_pink4"))
         link_text.stylize("link", 0, len(link_text))
-        print(link_text)
-        print("")
+        richprint(link_text)
+        richprint("")
 
     def create_parser(self):
         """

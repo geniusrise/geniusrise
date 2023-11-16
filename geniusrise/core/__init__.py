@@ -15,7 +15,20 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from geniusrise.core.bolt import Bolt
-from geniusrise.core.data import BatchInput, BatchOutput, Input, Output, StreamingInput, StreamingOutput
+from geniusrise.core.data import (
+    BatchInput,
+    BatchOutput,
+    Input,
+    Output,
+    StreamingInput,
+    StreamingOutput,
+)
 from geniusrise.core.spout import Spout
-from geniusrise.core.state import DynamoDBState, InMemoryState, PostgresState, RedisState, State
+from geniusrise.core.state import (
+    DynamoDBState,
+    InMemoryState,
+    PostgresState,
+    RedisState,
+    State,
+)
 from geniusrise.core.task import Task
