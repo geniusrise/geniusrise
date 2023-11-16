@@ -20,7 +20,7 @@ from argparse import ArgumentParser, Namespace
 from typing import List, Optional
 
 from kubernetes import client
-from kubernetes.client import BatchV1Api
+from kubernetes.client import BatchV1Api, V1CronJob
 
 from .job import Job
 
@@ -113,11 +113,10 @@ class CronJob(Job):
         subparsers = parser.add_subparsers(dest="command")
 
         # Parser for create_cronjob
+        # fmt: off
         create_parser = subparsers.add_parser("create_cronjob", help="Create a new cronjob.")
         create_parser.add_argument("name", help="Name of the cronjob.", type=str)
-        create_parser.add_argument(
-            "image", help="Docker image for the cronjob.", type=str, default="geniusrise/geniusrise"
-        )
+        create_parser.add_argument("image", help="Docker image for the cronjob.", type=str, default="geniusrise/geniusrise")
         create_parser.add_argument("command", help="Command to run in the container.", type=str)
         create_parser.add_argument("schedule", help="Cron schedule.", type=str)
         create_parser.add_argument("--env_vars", help="Environment variables as a JSON string.", type=str, default="{}")
@@ -137,6 +136,7 @@ class CronJob(Job):
         status_parser.add_argument("name", help="Name of the cronjob.", type=str)
         status_parser = self._add_connection_args(status_parser)
 
+        # fmt: on
         return parser
 
     def run(self, args: Namespace) -> None:
@@ -237,7 +237,7 @@ class CronJob(Job):
         gpu: Optional[str] = None,
         image_pull_secret_name: Optional[str] = None,
         **kwargs,
-    ) -> None:
+    ) -> V1CronJob:
         """
         🛠 Create a Kubernetes CronJob.
 
@@ -267,6 +267,7 @@ class CronJob(Job):
         )
         self.batch_api_instance.create_namespaced_cron_job(self.namespace, cronjob)
         self.log.info(f"🛠️ Created CronJob {name}")
+        return cronjob
 
     def delete(self, name: str) -> None:
         """
@@ -278,7 +279,7 @@ class CronJob(Job):
         self.batch_api_instance.delete_namespaced_cron_job(name, self.namespace)
         self.log.info(f"🗑️ Deleted CronJob {name}")
 
-    def status(self, name: str) -> dict:  # type: ignore
+    def status(self, name: str) -> V1CronJob:  # type: ignore
         """
         📊 Get the status of a Kubernetes CronJob.
 
@@ -292,4 +293,4 @@ class CronJob(Job):
 
         self.log.info(f"📊 Status of CronJob {name}: {cronjob.status}")
 
-        return {"cronjob_status": cronjob.status}
+        return cronjob

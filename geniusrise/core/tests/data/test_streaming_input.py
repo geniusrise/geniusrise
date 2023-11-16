@@ -145,7 +145,8 @@ def test_streaming_input_from_streamz(streaming_input):
 
     # Validate the collected data
     pd.testing.assert_frame_equal(
-        collected_data[0].reset_index(drop=True), pd.DataFrame({"x": [1, 2, 3], "y": [4, 5, 6]}).reset_index(drop=True)
+        collected_data[0].reset_index(drop=True),
+        pd.DataFrame({"x": [1, 2, 3], "y": [4, 5, 6]}).reset_index(drop=True),
     )
 
 
@@ -197,7 +198,8 @@ def test_from_flink(streaming_input):
     env = StreamExecutionEnvironment.get_execution_environment()
     env.set_parallelism(1)
     t_env = StreamTableEnvironment.create(
-        env, environment_settings=EnvironmentSettings.new_instance().in_streaming_mode().build()
+        env,
+        environment_settings=EnvironmentSettings.new_instance().in_streaming_mode().build(),
     )
 
     # Create a Flink Table from Pandas DataFrame

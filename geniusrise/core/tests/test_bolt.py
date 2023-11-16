@@ -26,7 +26,12 @@ from geniusrise.core.data import (
     StreamingInput,
     StreamingOutput,
 )
-from geniusrise.core.state import DynamoDBState, InMemoryState, PostgresState, RedisState
+from geniusrise.core.state import (
+    DynamoDBState,
+    InMemoryState,
+    PostgresState,
+    RedisState,
+)
 
 # Define the parameters for the tests
 bucket = "geniusrise-test"
@@ -97,7 +102,11 @@ def state(request):
             task_id="test",
         )
     elif request.param == DynamoDBState:
-        return request.param(table_name=dynamodb_table_name, region_name=dynamodb_region_name, task_id="test")
+        return request.param(
+            table_name=dynamodb_table_name,
+            region_name=dynamodb_region_name,
+            task_id="test",
+        )
 
 
 def test_bolt_init(input, output, state):

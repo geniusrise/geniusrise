@@ -255,7 +255,10 @@ class DockerCtl:
             bool: True if the build was successful, False otherwise.
         """
         try:
-            subprocess.run(["docker", "build", "-t", image_name, "-f", dockerfile_path, "."], check=True)
+            subprocess.run(
+                ["docker", "build", "-t", image_name, "-f", dockerfile_path, "."],
+                check=True,
+            )
             self.log.info(f"Successfully built Docker image: {image_name}")
             return True
         except subprocess.CalledProcessError as e:
