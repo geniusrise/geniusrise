@@ -18,6 +18,8 @@ import json
 import logging
 from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List, Optional
+from rich.console import Console
+from rich.table import Table
 
 import docker
 from docker.errors import APIError
@@ -30,6 +32,7 @@ class DockerResourceManager:
         """
         self.client = None
         self.log = logging.getLogger(self.__class__.__name__)
+        self.console = Console()
 
     def _add_connection_args(self, parser: ArgumentParser) -> ArgumentParser:
         parser.add_argument(
@@ -126,7 +129,7 @@ class DockerResourceManager:
 
             container_id = self.create_container(
                 image=args.image,
-                command=args.docker_command,
+                command=args.command,
                 name=args.name,
                 env_vars=env_vars,
                 ports=ports,
@@ -172,7 +175,7 @@ class DockerResourceManager:
             self.log.error(f"Failed to connect to Docker daemon: {e}")
             raise
 
-    def list_containers(self, all_containers: bool = False) -> List[Dict[str, Any]]:
+    def list_containers(self, all_containers: bool = False) -> List[Any]:
         """
         List all containers.
 
@@ -180,18 +183,26 @@ class DockerResourceManager:
             all_containers (bool): Flag to list all containers, including stopped ones.
 
         Returns:
-            List[Dict[str, Any]]: List of containers and their details.
+            List[Any]: List of containers.
         """
         try:
             containers = self.client.containers.list(all=all_containers)
-            return [
-                {
-                    "id": container.short_id,
-                    "image": container.image.tags,
-                    "status": container.status,
-                }
-                for container in containers
-            ]
+
+            table = Table(show_header=True, header_style="bold magenta")
+            table.add_column("ID", style="dim")
+            table.add_column("Image")
+            table.add_column("Status")
+
+            for container in containers:
+                table.add_row(
+                    container.short_id,
+                    ", ".join(container.image.tags),
+                    container.status,
+                )
+
+            self.console.print(table)
+
+            return containers
         except APIError as e:
             self.log.error(f"Error listing containers: {e}")
             raise
@@ -208,6 +219,7 @@ class DockerResourceManager:
         """
         try:
             container = self.client.containers.get(container_id)
+            self.console.print(container.attrs, style="bold green")
             return container.attrs
         except APIError as e:
             self.log.error(f"Error inspecting container {container_id}: {e}")
@@ -238,6 +250,7 @@ class DockerResourceManager:
             str: ID of the created container.
         """
         try:
+            self.log.info(f"🌒 Creating container with image: {image}")
             container = self.client.containers.create(
                 image,
                 command=command,
@@ -247,6 +260,7 @@ class DockerResourceManager:
                 volumes=volumes,
                 **kwargs,
             )
+            self.log.info(f"🌕 Container created with ID: {container.id}")
             return container.id
         except APIError as e:
             self.log.error(f"Error creating container: {e}")
@@ -260,9 +274,10 @@ class DockerResourceManager:
             container_id (str): ID of the container to start.
         """
         try:
+            self.log.info(f"🌒 Starting container with ID: {container_id}")
             container = self.client.containers.get(container_id)
             container.start()
-            self.log.info(f"Started container {container_id}")
+            self.log.info(f"🌕 Started container {container_id}")
         except APIError as e:
             self.log.error(f"Error starting container {container_id}: {e}")
             raise
@@ -275,23 +290,33 @@ class DockerResourceManager:
             container_id (str): ID of the container to stop.
         """
         try:
+            self.log.info(f"🌒 Stopping container with ID: {container_id}")
             container = self.client.containers.get(container_id)
             container.stop()
-            self.log.info(f"Stopped container {container_id}")
+            self.log.info(f"🌑 Stopped container {container_id}")
         except APIError as e:
             self.log.error(f"Error stopping container {container_id}: {e}")
             raise
 
-    def list_images(self) -> List[Dict[str, Any]]:
+    def list_images(self) -> List[Any]:
         """
         List all Docker images.
 
         Returns:
-            List[Dict[str, Any]]: List of images and their details.
+            List[Any]: List of images.
         """
         try:
             images = self.client.images.list()
-            return [{"id": image.short_id, "tags": image.tags} for image in images]
+
+            table = Table(show_header=True, header_style="bold magenta")
+            table.add_column("ID", style="dim")
+            table.add_column("Tags")
+
+            for image in images:
+                table.add_row(image.short_id, ", ".join(image.tags))
+            self.console.print(table)
+
+            return images
         except APIError as e:
             self.log.error(f"Error listing images: {e}")
             raise
@@ -308,6 +333,9 @@ class DockerResourceManager:
         """
         try:
             image = self.client.images.get(image_id)
+
+            self.console.print(image.attrs, style="bold green")
+
             return image.attrs
         except APIError as e:
             self.log.error(f"Error inspecting image {image_id}: {e}")
@@ -322,7 +350,7 @@ class DockerResourceManager:
         """
         try:
             self.client.images.pull(image)
-            self.log.info(f"Pulled image {image}")
+            self.log.info(f"✅ Pulled image {image}")
         except APIError as e:
             self.log.error(f"Error pulling image {image}: {e}")
             raise
@@ -336,7 +364,7 @@ class DockerResourceManager:
         """
         try:
             self.client.images.push(image)
-            self.log.info(f"Pushed image {image}")
+            self.log.info(f"✅ Pushed image {image}")
         except APIError as e:
             self.log.error(f"Error pushing image {image}: {e}")
             raise
