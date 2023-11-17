@@ -107,7 +107,13 @@ class Spout(Task):
             raise
 
     @staticmethod
-    def create(klass: type, output_type: str, state_type: str, id: Optional[str] = None, **kwargs) -> "Spout":
+    def create(
+        klass: type,
+        output_type: str,
+        state_type: str,
+        id: Optional[str] = None,
+        **kwargs,
+    ) -> "Spout":
         r"""
         Create a spout of a specific type.
 

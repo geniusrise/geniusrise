@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-from typing import Any, Optional
+from typing import Optional
 
 import colorlog
 import os
@@ -26,20 +26,20 @@ from geniusrise.core.state import State
 LOGLEVEL = os.getenv("LOGLEVEL", "INFO")
 
 
-class StateHandler(logging.Handler):
-    """
-    🛠️ **StateHandler**: Handler for logging state changes.
+# class StateHandler(logging.Handler):
+#     """
+#     🛠️ **StateHandler**: Handler for logging state changes.
 
-    This class is used to capture logging via state module in geniusrise.
-    """
+#     This class is used to capture logging via state module in geniusrise.
+#     """
 
-    def __init__(self, state_instance: State):
-        super().__init__()
-        self.state = state_instance
+#     def __init__(self, state_instance: State):
+#         super().__init__()
+#         self.state = state_instance
 
-    def emit(self, record: Any):
-        log_entry = self.format(record)
-        self.state.capture_log(log_entry)
+#     def emit(self, record: Any):
+#         log_entry = self.format(record)
+#         self.state.capture_log(log_entry)
 
 
 def setup_logger(state_instance: Optional[State] = None) -> logging.Logger:
@@ -98,9 +98,9 @@ def setup_logger(state_instance: Optional[State] = None) -> logging.Logger:
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
 
-    if state_instance:
-        state_handler = StateHandler(state_instance)
-        state_handler.setFormatter(formatter)
+    # if state_instance:
+    #     state_handler = StateHandler(state_instance)
+    #     state_handler.setFormatter(formatter)
 
     logging.basicConfig(encoding="utf-8", level=logging.getLevelName(LOGLEVEL), handlers=[handler])
     logger = logging.getLogger("geniusrise")

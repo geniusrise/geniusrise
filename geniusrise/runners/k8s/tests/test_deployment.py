@@ -89,7 +89,11 @@ def test_create_deployment(deployment_manager):
         env_vars=json.dumps({"TEST_ENV": "test_value"}),
     )
     deployment_manager.create(
-        args.name, args.image, args.command, replicas=args.replicas, env_vars=json.loads(args.env_vars)
+        args.name,
+        args.image,
+        args.command,
+        replicas=args.replicas,
+        env_vars=json.loads(args.env_vars),
     )
     deployments = deployment_manager.show()
     assert any(deployment["name"] == args.name for deployment in deployments)

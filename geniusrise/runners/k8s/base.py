@@ -22,7 +22,13 @@ from argparse import ArgumentParser, Namespace
 from typing import List, Optional
 
 from kubernetes import client, config
-from kubernetes.client import ApiClient, BatchV1Api, Configuration, V1ResourceRequirements
+from kubernetes.client import (
+    ApiClient,
+    BatchV1Api,
+    Configuration,
+    V1ResourceRequirements,
+    V1Pod,
+)
 
 
 class K8sResourceManager:
@@ -58,23 +64,19 @@ class K8sResourceManager:
         Returns:
             ArgumentParser: The parser with added arguments.
         """
-        parser.add_argument(
-            "--kube_config_path", help="Path to the kubeconfig file.", type=str, default="~/.kube/config"
-        )
+        # fmt: off
+        parser.add_argument("--kube_config_path", help="Path to the kubeconfig file.", type=str, default="~/.kube/config")
         parser.add_argument("--cluster_name", help="Name of the Kubernetes cluster.", type=str)
         parser.add_argument("--context_name", help="Name of the kubeconfig context.", type=str)
         parser.add_argument("--namespace", help="Kubernetes namespace.", default="default", type=str)
-        parser.add_argument(
-            "--labels",
-            help="Labels for Kubernetes resources, as a JSON string.",
-            type=str,
-            default='{"created_by": "geniusrise"}',
-        )
+        parser.add_argument("--labels", help="Labels for Kubernetes resources, as a JSON string.", type=str, default='{"created_by": "geniusrise"}')
         parser.add_argument("--annotations", help="Annotations for Kubernetes resources, as a JSON string.", type=str)
         parser.add_argument("--api_key", help="API key for Kubernetes cluster.", type=str)
         parser.add_argument("--api_host", help="API host for Kubernetes cluster.", type=str)
         parser.add_argument("--verify_ssl", help="Whether to verify SSL certificates.", default=True, type=bool)
         parser.add_argument("--ssl_ca_cert", help="Path to the SSL CA certificate.", type=str)
+
+        # fmt: on
         return parser
 
     def create_parser(self, parser: ArgumentParser) -> ArgumentParser:
@@ -294,7 +296,7 @@ class K8sResourceManager:
             time.sleep(poll_interval)
         raise TimeoutError(f"Timed out waiting for pod {pod_name} to complete.")
 
-    def status(self, pod_name: str) -> str:
+    def status(self, pod_name: str) -> V1Pod:
         """
         📜 Get the status of a Pod.
 
@@ -308,9 +310,9 @@ class K8sResourceManager:
 
         self.log.info(f"✳️ Status of pod {pod_name}: {pod.status.phase}")
 
-        return pod.status.phase
+        return pod
 
-    def show(self) -> list:
+    def show(self) -> List[V1Pod]:
         """
         📋 Show all pods in the namespace.
 
@@ -323,9 +325,9 @@ class K8sResourceManager:
         for pod in pod_list.items:
             self.log.info(f"✳️ {pod.metadata.name}: {pod.status.phase}")
 
-        return [{"name": pod.metadata.name, "status": pod.status.phase} for pod in pod_list.items]
+        return pod_list
 
-    def describe(self, pod_name: str) -> dict:
+    def describe(self, pod_name: str) -> V1Pod:
         """
         📝 Describe a Kubernetes pod.
 
@@ -362,11 +364,7 @@ class K8sResourceManager:
         self.log.info(f"✳️ Host PID: {pod.spec.host_pid}")
         self.log.info(f"✳️ Host IPC: {pod.spec.host_ipc}")
 
-        return {
-            "name": pod.metadata.name,
-            "status": pod.status.phase,
-            "containers": [container.name for container in pod.spec.containers],
-        }
+        return pod
 
     def logs(self, name: str, tail: int = 10, follow: bool = True) -> str:
         """

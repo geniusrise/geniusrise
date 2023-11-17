@@ -20,6 +20,7 @@ from argparse import ArgumentParser, Namespace
 from typing import List, Optional
 
 from kubernetes import client
+from kubernetes.client import V1Deployment
 
 from .base import K8sResourceManager
 
@@ -94,11 +95,10 @@ class Deployment(K8sResourceManager):
         subparsers = parser.add_subparsers(dest="deployment")
 
         # Parser for create
+        # fmt: off
         create_parser = subparsers.add_parser("create", help="Create a new deployment.")
         create_parser.add_argument("name", help="Name of the deployment.", type=str)
-        create_parser.add_argument(
-            "image", help="Docker image for the deployment.", type=str, default="geniusrise/geniusrise"
-        )
+        create_parser.add_argument("image", help="Docker image for the deployment.", type=str, default="geniusrise/geniusrise")
         create_parser.add_argument("command", help="Command to run in the container.", type=str)
         create_parser.add_argument("--replicas", help="Number of replicas.", default=1, type=int)
         create_parser.add_argument("--env_vars", help="Environment variables as a JSON string.", type=str, default="{}")
@@ -133,6 +133,7 @@ class Deployment(K8sResourceManager):
         status_parser.add_argument("name", help="Name of the deployment.", type=str)
         status_parser = self._add_connection_args(status_parser)
 
+        # fmt: on
         return parser
 
     def run(self, args: Namespace) -> None:
@@ -215,7 +216,16 @@ class Deployment(K8sResourceManager):
             selector=client.V1LabelSelector(match_labels=self.labels),
             template=client.V1PodTemplateSpec(
                 metadata=client.V1ObjectMeta(labels=self.labels, annotations=self.annotations),
-                spec=self._create_pod_spec(image, command, image_pull_secret_name, env_vars, cpu, memory, storage, gpu),
+                spec=self._create_pod_spec(
+                    image,
+                    command,
+                    image_pull_secret_name,
+                    env_vars,
+                    cpu,
+                    memory,
+                    storage,
+                    gpu,
+                ),
             ),
         )
 
@@ -232,7 +242,7 @@ class Deployment(K8sResourceManager):
         storage: Optional[str] = None,
         gpu: Optional[str] = None,
         **kwargs,
-    ) -> None:
+    ) -> V1Deployment:
         """
         🛠 Create a Kubernetes resource Deployment.
 
@@ -274,8 +284,9 @@ class Deployment(K8sResourceManager):
         )
         self.apps_api_instance.create_namespaced_deployment(self.namespace, deployment)
         self.log.info(f"🛠️ Created deployment {name}")
+        return deployment
 
-    def scale(self, name: str, replicas: int) -> None:
+    def scale(self, name: str, replicas: int) -> V1Deployment:
         """
         📈 Scale a Kubernetes deployment.
 
@@ -287,8 +298,9 @@ class Deployment(K8sResourceManager):
         deployment.spec.replicas = replicas
         self.apps_api_instance.patch_namespaced_deployment(name, self.namespace, deployment)
         self.log.info(f"📈 Scaled deployment {name} to {replicas} replicas")
+        return deployment
 
-    def show(self) -> list:
+    def show(self) -> List[V1Deployment]:
         """
         🗂 List all deployments in the namespace.
 
@@ -321,12 +333,9 @@ class Deployment(K8sResourceManager):
             self.log.info(f"✨ Deployment: {deployment.metadata.name} image: {deployment.spec.template.spec.containers[0].image}")
             # fmt: on
 
-        return [
-            {"name": deployment.metadata.name, "replicas": deployment.spec.replicas}
-            for deployment in deployment_list.items
-        ]
+        return deployment_list
 
-    def describe(self, deployment_name: str) -> dict:
+    def describe(self, deployment_name: str) -> V1Deployment:
         """
         🗂 Describe a Kubernetes deployment.
 
@@ -359,12 +368,7 @@ class Deployment(K8sResourceManager):
         self.log.info(f"✨ Deployment: {deployment.metadata.name} conditions: {deployment.status.conditions}")
         # fmt: on
 
-        return {
-            "name": deployment.metadata.name,
-            "replicas": deployment.spec.replicas,
-            "labels": deployment.metadata.labels,
-            "annotations": deployment.metadata.annotations,
-        }
+        return deployment
 
     def delete(self, name: str) -> None:
         """
@@ -376,7 +380,7 @@ class Deployment(K8sResourceManager):
         self.apps_api_instance.delete_namespaced_deployment(name, self.namespace)
         self.log.info(f"🗑️ Deleted deployment {name}")
 
-    def status(self, name: str) -> dict:  # type: ignore
+    def status(self, name: str) -> V1Deployment:  # type: ignore
         """
         📊 Get the status of a Kubernetes deployment.
 
@@ -397,4 +401,4 @@ class Deployment(K8sResourceManager):
         self.log.info(f"✨ Deployment: {deployment.metadata.name} conditions: {deployment.status.conditions}")
         # fmt: on
 
-        return {"deployment_status": deployment.status}
+        return deployment
