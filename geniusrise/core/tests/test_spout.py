@@ -18,7 +18,12 @@ import pytest
 
 from geniusrise.core import Spout
 from geniusrise.core.data import BatchOutput, StreamingOutput
-from geniusrise.core.state import DynamoDBState, InMemoryState, PostgresState, RedisState
+from geniusrise.core.state import (
+    DynamoDBState,
+    InMemoryState,
+    PostgresState,
+    RedisState,
+)
 
 output_topic = "test_topic"
 kafka_servers = "localhost:9094"
@@ -66,7 +71,11 @@ def state(request):
             task_id="test",
         )
     elif request.param == DynamoDBState:
-        return request.param(table_name=dynamodb_table_name, region_name=dynamodb_region_name, task_id="test")
+        return request.param(
+            table_name=dynamodb_table_name,
+            region_name=dynamodb_region_name,
+            task_id="test",
+        )
 
 
 # Define a fixture for the output

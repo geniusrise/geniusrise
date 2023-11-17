@@ -20,7 +20,7 @@ from argparse import ArgumentParser, Namespace
 from typing import List, Optional
 
 from kubernetes import client
-from kubernetes.client import ApiClient
+from kubernetes.client import ApiClient, V1Service, V1Deployment
 
 from .deployment import Deployment
 
@@ -114,11 +114,10 @@ class Service(Deployment):
         subparsers = parser.add_subparsers(dest="service")
 
         # Parser for create
+        # fmt: off
         create_parser = subparsers.add_parser("create", help="Create a new service.")
         create_parser.add_argument("name", help="Name of the service.", type=str)
-        create_parser.add_argument(
-            "image", help="Docker image for the service.", type=str, default="geniusrise/geniusrise"
-        )
+        create_parser.add_argument("image", help="Docker image for the service.", type=str, default="geniusrise/geniusrise")
         create_parser.add_argument("command", help="Command to run in the container.", type=str)
         create_parser.add_argument("--replicas", help="Number of replicas.", default=1, type=int)
         create_parser.add_argument("--port", help="Service port.", default=80, type=int)
@@ -144,6 +143,7 @@ class Service(Deployment):
         show_parser = subparsers.add_parser("show", help="List all services.")
         show_parser = self._add_connection_args(show_parser)
 
+        # fmt: on
         return parser
 
     def run(self, args: Namespace) -> None:
@@ -201,7 +201,8 @@ class Service(Deployment):
             client.V1ServiceSpec: The Service specification.
         """
         return client.V1ServiceSpec(
-            selector=self.labels, ports=[client.V1ServicePort(port=port, target_port=target_port)]
+            selector=self.labels,
+            ports=[client.V1ServicePort(port=port, target_port=target_port)],
         )
 
     def create(  # type: ignore
@@ -219,7 +220,7 @@ class Service(Deployment):
         storage: Optional[str] = None,
         gpu: Optional[str] = None,
         **kwargs,
-    ) -> None:
+    ) -> V1Service:
         """
         🛠 Create a Kubernetes resource Service.
 
@@ -261,6 +262,7 @@ class Service(Deployment):
         )
         self.api_instance.create_namespaced_service(self.namespace, service)
         self.log.info(f"🌐 Created service {name}")
+        return service
 
     def delete(self, name: str) -> None:
         """
@@ -273,7 +275,7 @@ class Service(Deployment):
         self.api_instance.delete_namespaced_service(f"{name}", self.namespace)
         self.log.info(f"🗑️ Deleted service {name}")
 
-    def status(self, name: str) -> dict:  # type: ignore
+    def status(self, name: str) -> V1Deployment:  # type: ignore
         """
         📊 Get the status of a Kubernetes service.
 
@@ -287,7 +289,7 @@ class Service(Deployment):
 
         return super().status(name=name)
 
-    def show(self) -> list:
+    def show(self) -> List[V1Service]:
         """
         🌐 Show all services in the namespace.
 
@@ -298,11 +300,9 @@ class Service(Deployment):
         self.log.info(f"🧿 Services: {[service.metadata.name for service in service_list.items]}")
         self.log.info(f"🧿 Cluster IPs: {[service.spec.cluster_ip for service in service_list.items]}")
 
-        return [
-            {"name": service.metadata.name, "cluster_ip": service.spec.cluster_ip} for service in service_list.items
-        ]
+        return service_list
 
-    def describe(self, service_name: str) -> dict:
+    def describe(self, service_name: str) -> V1Service:
         """
         🌐 Describe a Kubernetes service.
 
@@ -322,8 +322,4 @@ class Service(Deployment):
         self.log.info(f"🧿 Target port: {service.spec.ports[0].target_port}")
         self.log.info(f"🧿 Port: {service.spec.ports[0].port}")
 
-        return {
-            "name": service.metadata.name,
-            "cluster_ip": service.spec.cluster_ip,
-            "ports": [port.port for port in service.spec.ports],
-        }
+        return service

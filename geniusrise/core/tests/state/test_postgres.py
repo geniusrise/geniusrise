@@ -46,7 +46,13 @@ def postgres_state_manager():
 
     # Yield the PostgresState
     yield PostgresState(
-        task_id=TASK_ID, host=HOST, port=PORT, user=USER, password=PASSWORD, database=DATABASE, table=TABLE
+        task_id=TASK_ID,
+        host=HOST,
+        port=PORT,
+        user=USER,
+        password=PASSWORD,
+        database=DATABASE,
+        table=TABLE,
     )
 
     # Tear down the database and table
