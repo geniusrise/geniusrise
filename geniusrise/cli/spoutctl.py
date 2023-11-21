@@ -164,12 +164,11 @@ class SpoutCtl:
                         "args",
                         "method_name",
                         "deployment_type",
-                        "--id",
                     ]
                 }
                 other = args.args or []
                 other_args, other_kwargs = parse_args_kwargs(other)
-                self.spout = self.create_spout(args.output_type, args.state_type, id=args.id, **kwargs)
+                self.spout = self.create_spout(args.output_type, args.state_type, **kwargs)
 
                 # Pass the method_name from args to execute_spout
                 result = self.execute_spout(self.spout, args.method_name, *other_args, **other_kwargs)

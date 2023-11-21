@@ -181,7 +181,6 @@ class BoltCtl:
                         "args",
                         "method_name",
                         "deployment_type",
-                        "--id",
                     ]
                 }
                 other = args.args or []
@@ -190,7 +189,6 @@ class BoltCtl:
                     args.input_type,
                     args.output_type,
                     args.state_type,
-                    args.id,
                     **kwargs,
                 )
 
