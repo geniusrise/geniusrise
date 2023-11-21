@@ -117,12 +117,12 @@ class Bolt(Task):
 
             # Copy input data to local or connect to kafka and pass on the details
 
-            self.state.set_state("status", {"status": "initialized", "time": time.time()})
+            self.state.set_state("status", {"status": "getting_data", "time": time.time()})
 
             if type(self.input) is BatchInput:
                 self.input.from_s3()
 
-            self.state.set_state("status", {"status": "executing", "time": time.time()})
+            self.state.set_state("status", {"status": "running", "time": time.time()})
 
             # Execute the task's method
             result = self.execute(method_name, *args, **kwargs)

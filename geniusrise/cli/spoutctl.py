@@ -61,7 +61,7 @@ class SpoutCtl:
         create_parser.add_argument("output_type", choices=["batch", "streaming"], help="Choose the type of output data: batch or streaming.", default="batch")
         create_parser.add_argument("state_type", choices=["none", "redis", "postgres", "dynamodb"], help="Select the type of state manager: none, redis, postgres, or dynamodb.", default="none")
         create_parser.add_argument("--buffer_size", help="Specify the size of the buffer.", default=100, type=int)
-        create_parser.add_argument("--id", help="A unique identifier for the task", default=None, type=str)
+        create_parser.add_argument("--id", help="A unique identifier for the task", default=str(uuid.uuid4()), type=str)
         # output
         create_parser.add_argument("--output_folder", help="Specify the directory where output files should be stored temporarily.", default=tempfile.mkdtemp(), type=str)
         create_parser.add_argument("--output_kafka_topic", help="Kafka output topic for streaming spouts.", default="test", type=str)
@@ -235,7 +235,6 @@ class SpoutCtl:
             klass=self.discovered_spout.klass,
             output_type=output_type,
             state_type=state_type,
-            id=id,
             **kwargs,
         )
 

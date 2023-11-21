@@ -25,7 +25,7 @@ def parse_args_kwargs(args_list):
     def convert(value):
         try:
             return ast.literal_eval(value.replace('"', "") if '"' in value else value)
-        except ValueError:
+        except Exception:
             try:
                 return int(value.replace('"', ""))
             except ValueError:
