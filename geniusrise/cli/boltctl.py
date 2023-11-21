@@ -18,7 +18,7 @@ import argparse
 import json
 import logging
 import tempfile
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 import uuid
 
 import emoji  # type: ignore
@@ -61,7 +61,7 @@ class BoltCtl:
         run_parser.add_argument("input_type", choices=["batch", "streaming", "batch_to_stream"], help="Choose the type of input data: batch or streaming.", default="batch")
         run_parser.add_argument("output_type", choices=["batch", "streaming"], help="Choose the type of output data: batch or streaming.", default="batch")
         run_parser.add_argument("state_type", choices=["none", "redis", "postgres", "dynamodb"], help="Select the type of state manager: none, redis, postgres, or dynamodb.", default="none")
-        run_parser.add_argument("--id", help="A unique identifier for the task", default=None, type=str)
+        run_parser.add_argument("--id", help="A unique identifier for the task", default=str(uuid.uuid4()), type=str)
         # input
         run_parser.add_argument("--buffer_size", help="Specify the size of the buffer.", default=100, type=int)
         run_parser.add_argument("--input_folder", help="Specify the directory where output files should be stored temporarily.", default=tempfile.mkdtemp(), type=str)
@@ -239,7 +239,7 @@ class BoltCtl:
                     - input_folder (str): The input folder argument.
                     - input_s3_bucket (str): The input bucket argument.
                     - input_s3_folder (str): The input S3 folder argument.
-                    Batch outupt:
+                    Batch output:
                     - output_folder (str): The output folder argument.
                     - output_s3_bucket (str): The output bucket argument.
                     - output_s3_folder (str): The output S3 folder argument.
@@ -274,7 +274,6 @@ class BoltCtl:
             input_type=input_type,
             output_type=output_type,
             state_type=state_type,
-            id=id,
             **kwargs,
         )
 
@@ -413,7 +412,7 @@ class BoltCtl:
                 raise ValueError(f"Invalid output type: {args.output_type}")
 
             # Create the state manager
-            state: dict[str, Any] = {}
+            state: Dict[str, Any] = {}
             if args.state_type == "none":
                 state = {}
             elif args.state_type == "redis":
