@@ -43,5 +43,8 @@
   },
   "python.analysis.typeCheckingMode": "basic",
   "cSpell.words": ["geniusfile", "jsonpickle", "psycopg", "TIMESTAMPTZ"],
-  "python.formatting.provider": "black"
+  "python.formatting.provider": "black",
+  "python.linting.mypyEnabled": true,
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": false
 }
