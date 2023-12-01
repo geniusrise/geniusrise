@@ -21,8 +21,8 @@ import time
 from argparse import ArgumentParser, Namespace
 from typing import List, Optional
 
-from kubernetes import client, config
-from kubernetes.client import (
+from kubernetes import client, config  # type: ignore
+from kubernetes.client import (  # type: ignore
     ApiClient,
     BatchV1Api,
     Configuration,
@@ -215,7 +215,11 @@ class K8sResourceManager:
             type="kubernetes.io/dockerconfigjson",
             data={"config.json": docker_config_bytes},
         )
-        self.api_instance.create_namespaced_secret(self.namespace, secret)
+        self.api_instance.create_namespaced_secret(
+            self.namespace,
+            secret,
+            _preload_content=False,
+        )
         self.log.info(f"🔑 Created image pull secret {name}")
 
     def _create_pod_spec(
@@ -306,7 +310,7 @@ class K8sResourceManager:
         Returns:
             str: The status of the Pod.
         """
-        pod = self.api_instance.read_namespaced_pod(pod_name, self.namespace)
+        pod = self.api_instance.read_namespaced_pod(pod_name, self.namespace, _preload_content=False)
 
         self.log.info(f"✳️ Status of pod {pod_name}: {pod.status.phase}")
 
@@ -319,7 +323,7 @@ class K8sResourceManager:
         Returns:
             list: List of pods.
         """
-        pod_list = self.api_instance.list_namespaced_pod(self.namespace)
+        pod_list = self.api_instance.list_namespaced_pod(self.namespace, _preload_content=False)
 
         self.log.info(f"✳️ Pods in namespace {self.namespace}:")
         for pod in pod_list.items:
@@ -337,7 +341,7 @@ class K8sResourceManager:
         Returns:
             dict: Description of the pod.
         """
-        pod = self.api_instance.read_namespaced_pod(pod_name, self.namespace)
+        pod = self.api_instance.read_namespaced_pod(pod_name, self.namespace, _preload_content=False)
 
         self.log.info(f"✳️ Describe pod {pod.metadata.name}: {pod.status.phase}")
         self.log.info(f"✳️ Containers: {pod.spec.containers}")
@@ -377,4 +381,6 @@ class K8sResourceManager:
         Returns:
             str: Logs of the pod.
         """
-        return self.api_instance.read_namespaced_pod_log(name, self.namespace, tail_lines=tail, follow=follow)
+        return self.api_instance.read_namespaced_pod_log(
+            name, self.namespace, tail_lines=tail, follow=follow, _preload_content=False
+        )
