@@ -218,7 +218,6 @@ class K8sResourceManager:
         self.api_instance.create_namespaced_secret(
             self.namespace,
             secret,
-            _preload_content=False,
         )
         self.log.info(f"🔑 Created image pull secret {name}")
 
@@ -310,7 +309,7 @@ class K8sResourceManager:
         Returns:
             str: The status of the Pod.
         """
-        pod = self.api_instance.read_namespaced_pod(pod_name, self.namespace, _preload_content=False)
+        pod = self.api_instance.read_namespaced_pod(pod_name, self.namespace)
 
         self.log.info(f"✳️ Status of pod {pod_name}: {pod.status.phase}")
 
@@ -323,7 +322,7 @@ class K8sResourceManager:
         Returns:
             list: List of pods.
         """
-        pod_list = self.api_instance.list_namespaced_pod(self.namespace, _preload_content=False)
+        pod_list = self.api_instance.list_namespaced_pod(self.namespace)
 
         self.log.info(f"✳️ Pods in namespace {self.namespace}:")
         for pod in pod_list.items:
@@ -341,7 +340,7 @@ class K8sResourceManager:
         Returns:
             dict: Description of the pod.
         """
-        pod = self.api_instance.read_namespaced_pod(pod_name, self.namespace, _preload_content=False)
+        pod = self.api_instance.read_namespaced_pod(pod_name, self.namespace)
 
         self.log.info(f"✳️ Describe pod {pod.metadata.name}: {pod.status.phase}")
         self.log.info(f"✳️ Containers: {pod.spec.containers}")
@@ -381,6 +380,4 @@ class K8sResourceManager:
         Returns:
             str: Logs of the pod.
         """
-        return self.api_instance.read_namespaced_pod_log(
-            name, self.namespace, tail_lines=tail, follow=follow, _preload_content=False
-        )
+        return self.api_instance.read_namespaced_pod_log(name, self.namespace, tail_lines=tail, follow=follow)
