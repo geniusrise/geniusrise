@@ -265,7 +265,7 @@ class CronJob(Job):
             metadata=client.V1ObjectMeta(name=name, labels=self.labels, annotations=self.annotations),
             spec=cronjob_spec,
         )
-        self.batch_api_instance.create_namespaced_cron_job(self.namespace, cronjob, _preload_content=False)
+        self.batch_api_instance.create_namespaced_cron_job(self.namespace, cronjob)
         self.log.info(f"🛠️ Created CronJob {name}")
         return cronjob
 
@@ -276,7 +276,7 @@ class CronJob(Job):
         Args:
             name (str): Name of the CronJob to delete.
         """
-        self.batch_api_instance.delete_namespaced_cron_job(name, self.namespace, _preload_content=False)
+        self.batch_api_instance.delete_namespaced_cron_job(name, self.namespace)
         self.log.info(f"🗑️ Deleted CronJob {name}")
 
     def status(self, name: str) -> V1CronJob:  # type: ignore
@@ -289,7 +289,7 @@ class CronJob(Job):
         Returns:
             dict: Status of the CronJob.
         """
-        cronjob = self.batch_api_instance.read_namespaced_cron_job(name, self.namespace, _preload_content=False)
+        cronjob = self.batch_api_instance.read_namespaced_cron_job(name, self.namespace)
 
         self.log.info(f"📊 Status of CronJob {name}: {cronjob.status}")
 

@@ -285,7 +285,6 @@ class Deployment(K8sResourceManager):
         self.apps_api_instance.create_namespaced_deployment(
             self.namespace,
             deployment,
-            _preload_content=False,
         )
         self.log.info(f"🛠️ Created deployment {name}")
         return deployment
@@ -301,14 +300,12 @@ class Deployment(K8sResourceManager):
         deployment = self.apps_api_instance.read_namespaced_deployment(
             name,
             self.namespace,
-            _preload_content=False,
         )
         deployment.spec.replicas = replicas
         self.apps_api_instance.patch_namespaced_deployment(
             name,
             self.namespace,
             deployment,
-            _preload_content=False,
         )
         self.log.info(f"📈 Scaled deployment {name} to {replicas} replicas")
         return deployment
@@ -322,7 +319,6 @@ class Deployment(K8sResourceManager):
         """
         deployment_list = self.apps_api_instance.list_namespaced_deployment(
             self.namespace,
-            _preload_content=False,
         )
 
         self.log.info(f"🗂 Found {len(deployment_list.items)} deployments")
@@ -364,7 +360,6 @@ class Deployment(K8sResourceManager):
         deployment = self.apps_api_instance.read_namespaced_deployment(
             deployment_name,
             self.namespace,
-            _preload_content=False,
         )
 
         # fmt: off
@@ -400,7 +395,6 @@ class Deployment(K8sResourceManager):
         self.apps_api_instance.delete_namespaced_deployment(
             name,
             self.namespace,
-            _preload_content=False,
         )
         self.log.info(f"🗑️ Deleted deployment {name}")
 
@@ -417,7 +411,6 @@ class Deployment(K8sResourceManager):
         deployment = self.apps_api_instance.read_namespaced_deployment(
             name,
             self.namespace,
-            _preload_content=False,
         )
 
         # fmt: off
