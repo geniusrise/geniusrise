@@ -19,8 +19,8 @@ import json
 from argparse import ArgumentParser, Namespace
 from typing import List, Optional
 
-from kubernetes import client
-from kubernetes.client import BatchV1Api, V1JobSpec, V1Job
+from kubernetes import client  # type: ignore
+from kubernetes.client import BatchV1Api, V1JobSpec, V1Job  # type: ignore
 
 from .deployment import Deployment
 
@@ -274,7 +274,7 @@ class Job(Deployment):
             metadata=client.V1ObjectMeta(name=name, labels=self.labels, annotations=self.annotations),
             spec=job_spec,
         )
-        self.batch_api_instance.create_namespaced_job(self.namespace, job)
+        self.batch_api_instance.create_namespaced_job(self.namespace, job, _preload_content=False)
         self.log.info(f"🛠️ Created Job {name}")
         return job
 
@@ -285,7 +285,7 @@ class Job(Deployment):
         Args:
             name (str): Name of the Job to delete.
         """
-        self.batch_api_instance.delete_namespaced_job(name, self.namespace)
+        self.batch_api_instance.delete_namespaced_job(name, self.namespace, _preload_content=False)
         self.log.info(f"🗑️ Deleted Job {name}")
 
     def status(self, name: str) -> V1Job:  # type: ignore
@@ -298,7 +298,7 @@ class Job(Deployment):
         Returns:
             dict: Status of the Job.
         """
-        job = self.batch_api_instance.read_namespaced_job(name, self.namespace)
+        job = self.batch_api_instance.read_namespaced_job(name, self.namespace, _preload_content=False)
         self.log.info(f"📊 Job {name} status: {job.status}")
         self.log.info(f"📊 Job {name} status details: {job.status.details}")
         self.log.info(f"📊 Job {name} status message: {job.status.message}")

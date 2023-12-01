@@ -19,8 +19,8 @@ import json
 from argparse import ArgumentParser, Namespace
 from typing import List, Optional
 
-from kubernetes import client
-from kubernetes.client import V1Deployment
+from kubernetes import client  # type: ignore
+from kubernetes.client import V1Deployment  # type: ignore
 
 from .base import K8sResourceManager
 
@@ -282,7 +282,11 @@ class Deployment(K8sResourceManager):
             metadata=client.V1ObjectMeta(name=name, labels=self.labels, annotations=self.annotations),
             spec=deployment_spec,
         )
-        self.apps_api_instance.create_namespaced_deployment(self.namespace, deployment)
+        self.apps_api_instance.create_namespaced_deployment(
+            self.namespace,
+            deployment,
+            _preload_content=False,
+        )
         self.log.info(f"🛠️ Created deployment {name}")
         return deployment
 
@@ -294,9 +298,18 @@ class Deployment(K8sResourceManager):
             name (str): Name of the deployment.
             replicas (int): Number of replicas.
         """
-        deployment = self.apps_api_instance.read_namespaced_deployment(name, self.namespace)
+        deployment = self.apps_api_instance.read_namespaced_deployment(
+            name,
+            self.namespace,
+            _preload_content=False,
+        )
         deployment.spec.replicas = replicas
-        self.apps_api_instance.patch_namespaced_deployment(name, self.namespace, deployment)
+        self.apps_api_instance.patch_namespaced_deployment(
+            name,
+            self.namespace,
+            deployment,
+            _preload_content=False,
+        )
         self.log.info(f"📈 Scaled deployment {name} to {replicas} replicas")
         return deployment
 
@@ -307,7 +320,10 @@ class Deployment(K8sResourceManager):
         Returns:
             list: List of deployments.
         """
-        deployment_list = self.apps_api_instance.list_namespaced_deployment(self.namespace)
+        deployment_list = self.apps_api_instance.list_namespaced_deployment(
+            self.namespace,
+            _preload_content=False,
+        )
 
         self.log.info(f"🗂 Found {len(deployment_list.items)} deployments")
         for deployment in deployment_list.items:
@@ -345,7 +361,11 @@ class Deployment(K8sResourceManager):
         Returns:
             dict: Description of the deployment.
         """
-        deployment = self.apps_api_instance.read_namespaced_deployment(deployment_name, self.namespace)
+        deployment = self.apps_api_instance.read_namespaced_deployment(
+            deployment_name,
+            self.namespace,
+            _preload_content=False,
+        )
 
         # fmt: off
         self.log.info(f"✨ Describe deployment {deployment_name}")
@@ -377,7 +397,11 @@ class Deployment(K8sResourceManager):
         Args:
             name (str): Name of the resource to delete.
         """
-        self.apps_api_instance.delete_namespaced_deployment(name, self.namespace)
+        self.apps_api_instance.delete_namespaced_deployment(
+            name,
+            self.namespace,
+            _preload_content=False,
+        )
         self.log.info(f"🗑️ Deleted deployment {name}")
 
     def status(self, name: str) -> V1Deployment:  # type: ignore
@@ -390,7 +414,11 @@ class Deployment(K8sResourceManager):
         Returns:
             dict: Status of the deployment.
         """
-        deployment = self.apps_api_instance.read_namespaced_deployment(name, self.namespace)
+        deployment = self.apps_api_instance.read_namespaced_deployment(
+            name,
+            self.namespace,
+            _preload_content=False,
+        )
 
         # fmt: off
         self.log.info(f"✨ Status of deployment {name}")

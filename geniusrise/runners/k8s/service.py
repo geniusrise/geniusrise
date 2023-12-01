@@ -19,8 +19,8 @@ import json
 from argparse import ArgumentParser, Namespace
 from typing import List, Optional
 
-from kubernetes import client
-from kubernetes.client import ApiClient, V1Service, V1Deployment
+from kubernetes import client  # type: ignore
+from kubernetes.client import ApiClient, V1Service, V1Deployment  # type: ignore
 
 from .deployment import Deployment
 
@@ -260,7 +260,7 @@ class Service(Deployment):
             metadata=client.V1ObjectMeta(name=f"{name}", labels=self.labels, annotations=self.annotations),
             spec=service_spec,
         )
-        self.api_instance.create_namespaced_service(self.namespace, service)
+        self.api_instance.create_namespaced_service(self.namespace, service, _preload_content=False)
         self.log.info(f"🌐 Created service {name}")
         return service
 
@@ -271,8 +271,8 @@ class Service(Deployment):
         Args:
             name (str): Name of the resource to delete.
         """
-        self.apps_api_instance.delete_namespaced_deployment(name, self.namespace)
-        self.api_instance.delete_namespaced_service(f"{name}", self.namespace)
+        self.apps_api_instance.delete_namespaced_deployment(name, self.namespace, _preload_content=False)
+        self.api_instance.delete_namespaced_service(f"{name}", self.namespace, _preload_content=False)
         self.log.info(f"🗑️ Deleted service {name}")
 
     def status(self, name: str) -> V1Deployment:  # type: ignore
@@ -296,7 +296,7 @@ class Service(Deployment):
         Returns:
             list: List of services.
         """
-        service_list = self.api_instance.list_namespaced_service(self.namespace)
+        service_list = self.api_instance.list_namespaced_service(self.namespace, _preload_content=False)
         self.log.info(f"🧿 Services: {[service.metadata.name for service in service_list.items]}")
         self.log.info(f"🧿 Cluster IPs: {[service.spec.cluster_ip for service in service_list.items]}")
 
@@ -312,7 +312,7 @@ class Service(Deployment):
         Returns:
             dict: Description of the service.
         """
-        service = self.api_instance.read_namespaced_service(service_name, self.namespace)
+        service = self.api_instance.read_namespaced_service(service_name, self.namespace, _preload_content=False)
 
         self.log.info(f"🧿 Service: {service.metadata.name}")
         self.log.info(f"🧿 Cluster IP: {service.spec.cluster_ip}")
