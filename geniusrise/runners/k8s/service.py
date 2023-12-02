@@ -189,7 +189,7 @@ class Service(Deployment):
         else:
             self.log.exception("Unknown command: %s", args.service)
 
-    def __create_service_spec(self, port: int, target_port: int) -> client.V1ServiceSpec:
+    def __create_service_spec(self, node_port: int, port: int, target_port: int) -> client.V1ServiceSpec:
         """
         📦 Create a Kubernetes Service specification.
 
@@ -202,7 +202,8 @@ class Service(Deployment):
         """
         return client.V1ServiceSpec(
             selector=self.labels,
-            ports=[client.V1ServicePort(port=port, target_port=target_port)],
+            type="LoadBalancer",
+            ports=[client.V1ServicePort(node_port=node_port, port=port, target_port=target_port)],
         )
 
     def create(  # type: ignore
@@ -212,6 +213,7 @@ class Service(Deployment):
         command: List[str],
         registry_creds: Optional[dict] = None,
         replicas: int = 1,
+        node_port: int = 80,
         port: int = 80,
         target_port: int = 8080,
         env_vars: dict = {},
@@ -230,6 +232,7 @@ class Service(Deployment):
             command (str): Command to run in the container.
             registry_creds (dict): Credentials for Docker registry.
             replicas (int): Number of replicas for Deployment.
+            node_port (int): Service port that is exposed.
             port (int): Service port.
             target_port (int): Container target port.
             env_vars (dict): Environment variables for the resource.
@@ -239,7 +242,7 @@ class Service(Deployment):
             gpu (str): GPU requirements.
         """
         # Create the underlying deployment
-        super().create(
+        deployment = super().create(
             name=name,
             image=image,
             command=command,
@@ -251,9 +254,10 @@ class Service(Deployment):
             storage=storage,
             gpu=gpu,
         )
+        self.deployment = deployment
 
         # Create the service
-        service_spec = self.__create_service_spec(port, target_port)
+        service_spec = self.__create_service_spec(node_port=node_port, port=port, target_port=target_port)
         service = client.V1Service(
             api_version="v1",
             kind="Service",
