@@ -195,7 +195,7 @@ class DockerCtl:
             "",
             # Install Python 3.10
             "RUN apt-get update \\",
-            " && apt-get install -y software-properties-common build-essential curl wget vim libpq-dev pkg-config \\",
+            " && apt-get install -y software-properties-common build-essential curl wget vim git libpq-dev pkg-config \\",
             " && add-apt-repository ppa:deadsnakes/ppa \\",
             " && apt-get update \\",
             " && apt-get install -y python3.10 python3.10-dev python3.10-distutils \\",
@@ -209,7 +209,7 @@ class DockerCtl:
         # Add OS package installation commands only if os_packages is not empty
         if self.os_packages:
             dockerfile_content.append(
-                "RUN apt-get update && apt-get install -y \\" + " ".join(self.os_packages) + " && apt-get clean"
+                "RUN apt-get update && apt-get install -y " + " ".join(self.os_packages) + " && apt-get clean"
             )
 
         # Add Python package installation commands

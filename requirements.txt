@@ -1,6 +1,5 @@
 annotated-types==0.5.0
 ansicolors==1.1.8
-apache-beam==2.43.0
 apache-flink==1.17.1
 apache-flink-libraries==1.17.1
 argparse-color-formatter==1.2.2.post2
@@ -23,7 +22,6 @@ colorlog==6.7.0
 coverage==7.3.0
 crcmod==1.7
 cryptography==41.0.3
-dill==0.3.1.1
 direnv==2020.12.3
 docopt==0.6.2
 docutils==0.20.1
