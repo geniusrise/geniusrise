@@ -289,7 +289,6 @@ class Service(Deployment):
         Returns:
             dict: Status of the service.
         """
-        super().status(name=name)
 
         return super().status(name=name)
 
