@@ -324,6 +324,7 @@ class AirflowRunner:
 
         Args:
             dag_id (str): The ID of the DAG to get the status of.
+            airflow_api_base_url (str):  URL of airflow for calling its APIs.
         """
 
         # Endpoint for fetching DAG details
