@@ -34,6 +34,7 @@ from geniusrise.cli.spoutctl import SpoutCtl
 from geniusrise.cli.yamlctl import YamlCtl
 from geniusrise.logging import setup_logger
 from geniusrise.runners.k8s import CronJob, Deployment, Job, K8sResourceManager, Service
+from geniusrise.runners.airflow import AirflowRunner
 
 
 class GeniusCtl:
@@ -147,6 +148,10 @@ class GeniusCtl:
         self.k8s_cron_job = CronJob()
         self.k8s_cron_job.create_parser(cron_job_parser)
 
+        airflow_parser = subparsers.add_parser("airflow", help="Manage Airflow DAGs")
+        self.airflow_runner = AirflowRunner()
+        self.airflow_runner.create_parser(airflow_parser)
+
         # Add a 'help' command to print help for all spouts and bolts
         help_parser = subparsers.add_parser(
             "plugins",
@@ -207,6 +212,8 @@ class GeniusCtl:
             self.k8s_job.run(args)
         elif args.top_level_command == "cron_job":
             self.k8s_cron_job.run(args)
+        if args.top_level_command == "airflow":
+            self.airflow_runner.run(args)
         elif args.top_level_command == "plugins":
             if args.spout_or_bolt in self.spouts:
                 self.spout_ctls[args.spout_or_bolt].run(args)
