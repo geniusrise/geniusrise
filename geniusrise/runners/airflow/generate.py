@@ -73,10 +73,8 @@ class AirflowRunner:
         status: Method to fetch and display the status of a specific DAG using Airflow's REST API.
 
     Note:
-        - Ensure that the Airflow environment is properly configured and the specified
-          DAG directory is correct.
+        - Ensure that the Airflow environment is properly configured and the specified DAG directory is correct.
         - Make sure that the Airflow REST API base URL is accessible if using the status command.
-        - This runner assumes access to Airflow's DAG bag and REST API for various operations.
     """
 
     def __init__(self):
