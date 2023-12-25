@@ -85,8 +85,7 @@ class AirflowRunner:
 
         self.dag_directory = "."
 
-    def create_parser(self) -> ArgumentParser:
-        parser = ArgumentParser(description="Manage Airflow DAGs")
+    def create_parser(self, parser: ArgumentParser) -> ArgumentParser:
         subparsers = parser.add_subparsers(dest="airflow_command", help="Airflow commands")
 
         # Parser for create command
@@ -185,7 +184,10 @@ class AirflowRunner:
             args (Namespace): Namespace containing all the arguments needed for creating the DAG.
         """
         # Load the DAG template
-        with open("dag_template.py", "r") as file:
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        dag_template_path = os.path.join(dir_path, "template.jinja")
+
+        with open(dag_template_path, "r") as file:
             template_str = file.read()
 
         template = Template(template_str)
