@@ -38,15 +38,15 @@ class AirflowRunner:
         genius airflow [sub-command] [options]
 
     Sub-commands:
-        create: Create a new DAG with the given parameters and Docker task.
+        - create: Create a new DAG with the given parameters and Docker task.
                 `genius airflow create [options]`
-        describe: Describe a specific DAG by its ID.
+        - describe: Describe a specific DAG by its ID.
                   `genius airflow describe --dag_id example_dag`
-        show: Show all available DAGs in the Airflow environment.
+        - show: Show all available DAGs in the Airflow environment.
               `genius airflow show`
-        delete: Delete a specific DAG by its ID.
+        - delete: Delete a specific DAG by its ID.
                 `genius airflow delete --dag_id example_dag`
-        status: Get the status of a specific DAG by its ID.
+        - status: Get the status of a specific DAG by its ID.
                 `genius airflow status --dag_id example_dag --airflow_api_base_url http://localhost:8080/api/v1`
 
     Each sub-command supports various options to specify the details of the DAG or the
@@ -66,11 +66,11 @@ class AirflowRunner:
         dag_directory (str): Directory where DAGs are stored. This path should be known to Airflow.
 
     Methods:
-        create: Method to create a new DAG based on the provided parameters and template.
-        describe: Method to describe a specific DAG by its ID, showing details like tasks and schedule.
-        show: Method to list all available DAGs.
-        delete: Method to remove a specific DAG by its ID from the directory.
-        status: Method to fetch and display the status of a specific DAG using Airflow's REST API.
+        - create: Method to create a new DAG based on the provided parameters and template.
+        - describe: Method to describe a specific DAG by its ID, showing details like tasks and schedule.
+        - show: Method to list all available DAGs.
+        - delete: Method to remove a specific DAG by its ID from the directory.
+        - status: Method to fetch and display the status of a specific DAG using Airflow's REST API.
 
     Note:
         - Ensure that the Airflow environment is properly configured and the specified DAG directory is correct.
