@@ -106,4 +106,7 @@ class State(ABC):
 
         This ensures that any buffered state data is not lost when the object is deleted.
         """
-        self.flush()
+        try:
+            self.flush()
+        except Exception:
+            self.log.debug("Could not flush output")

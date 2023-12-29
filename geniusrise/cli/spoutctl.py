@@ -172,6 +172,7 @@ class SpoutCtl:
 
                 # Pass the method_name from args to execute_spout
                 result = self.execute_spout(self.spout, args.method_name, *other_args, **other_kwargs)
+                self.log.info(emoji.emojize(f"Successfully executed the spout method: {args.method_name} :thumbs_up:"))
                 return result
 
             elif args.command == "deploy":
