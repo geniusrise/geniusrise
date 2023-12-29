@@ -232,7 +232,8 @@ class DockerCtl:
 
         # Install requirements
         dockerfile_content.append("")
-        dockerfile_content.append("RUN pip3.10 install -r requirements.txt")
+        # TODO: consider migrating to poetry?
+        dockerfile_content.append("RUN pip3.10 install --use-deprecated=legacy-resolver -r requirements.txt")
 
         for package in self.override_packages:
             dockerfile_content.append(f"RUN pip install {package}")
