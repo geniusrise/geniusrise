@@ -130,6 +130,7 @@ class DockerCtl:
         build_upload_parser.add_argument("--workdir", help="The working directory in the Docker container.", type=str, default="/app")
         build_upload_parser.add_argument("--local_dir", help="The local directory to copy into the Docker container.", type=str, default=".")
         build_upload_parser.add_argument("--packages", help="List of Python packages to install in the Docker container.", nargs="*", default=[])
+        build_upload_parser.add_argument("--override_packages", help="List of Python packages to install in the Docker container to override.", nargs="*", default=[])
         build_upload_parser.add_argument("--os_packages", help="List of OS packages to install in the Docker container.", nargs="*", default=[])
         build_upload_parser.add_argument("--env_vars", help="Environment variables to set in the Docker container.", type=json.loads, default={})
         # fmt: on
@@ -147,6 +148,7 @@ class DockerCtl:
         self.workdir = args.workdir
         self.local_dir = args.local_dir
         self.packages = args.packages
+        self.override_packages = args.override_packages
         self.os_packages = args.os_packages
         self.env_vars = args.env_vars
 
@@ -195,7 +197,7 @@ class DockerCtl:
             "",
             # Install Python 3.10
             "RUN apt-get update \\",
-            " && apt-get install -y software-properties-common build-essential curl wget vim libpq-dev pkg-config \\",
+            " && apt-get install -y software-properties-common build-essential curl wget vim git libpq-dev pkg-config \\",
             " && add-apt-repository ppa:deadsnakes/ppa \\",
             " && apt-get update \\",
             " && apt-get install -y python3.10 python3.10-dev python3.10-distutils \\",
@@ -209,7 +211,7 @@ class DockerCtl:
         # Add OS package installation commands only if os_packages is not empty
         if self.os_packages:
             dockerfile_content.append(
-                "RUN apt-get update && apt-get install -y \\" + " ".join(self.os_packages) + " && apt-get clean"
+                "RUN apt-get update && apt-get install -y " + " ".join(self.os_packages) + " && apt-get clean"
             )
 
         # Add Python package installation commands
@@ -219,6 +221,7 @@ class DockerCtl:
         dockerfile_content.append("RUN pip install --upgrade geniusrise")
 
         # Add environment variables
+        dockerfile_content.append("")
         for key, value in self.env_vars.items():
             dockerfile_content.append(f"ENV {key}={value}")
         dockerfile_content.append("ENV GENIUS=/home/genius/.local/bin/genius")
@@ -229,7 +232,11 @@ class DockerCtl:
 
         # Install requirements
         dockerfile_content.append("")
-        dockerfile_content.append("RUN pip3.10 install -r requirements.txt")
+        # TODO: consider migrating to poetry?
+        dockerfile_content.append("RUN pip3.10 install --use-deprecated=legacy-resolver -r requirements.txt")
+
+        for package in self.override_packages:
+            dockerfile_content.append(f"RUN pip install {package}")
 
         # Dummy entrypoint
         dockerfile_content.append("USER genius")

@@ -89,7 +89,7 @@ class Spout(Task):
         """
         try:
             # Save the current set of class variables to the state manager
-            self.state.set_state("status", {"status": "executing", "time": time.time()})
+            self.state.set_state("status", {"status": "running", "time": time.time()})
 
             # Execute the task's method
             result = self.execute(method_name, *args, **kwargs)

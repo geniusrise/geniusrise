@@ -18,7 +18,7 @@ import argparse
 import json
 import logging
 import tempfile
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 import uuid
 
 import emoji  # type: ignore
@@ -27,6 +27,7 @@ from rich_argparse import RichHelpFormatter
 from geniusrise.cli.discover import DiscoveredBolt
 from geniusrise.core import Bolt
 from geniusrise.runners.k8s import CronJob, Deployment, Job, Service
+from geniusrise.utils.parse_function_args import parse_args_kwargs
 
 
 class BoltCtl:
@@ -60,7 +61,7 @@ class BoltCtl:
         run_parser.add_argument("input_type", choices=["batch", "streaming", "batch_to_stream"], help="Choose the type of input data: batch or streaming.", default="batch")
         run_parser.add_argument("output_type", choices=["batch", "streaming"], help="Choose the type of output data: batch or streaming.", default="batch")
         run_parser.add_argument("state_type", choices=["none", "redis", "postgres", "dynamodb"], help="Select the type of state manager: none, redis, postgres, or dynamodb.", default="none")
-        run_parser.add_argument("--id", help="A unique identifier for the task", default=None, type=str)
+        run_parser.add_argument("--id", help="A unique identifier for the task", default=str(uuid.uuid4()), type=str)
         # input
         run_parser.add_argument("--buffer_size", help="Specify the size of the buffer.", default=100, type=int)
         run_parser.add_argument("--input_folder", help="Specify the directory where output files should be stored temporarily.", default=tempfile.mkdtemp(), type=str)
@@ -180,16 +181,14 @@ class BoltCtl:
                         "args",
                         "method_name",
                         "deployment_type",
-                        "--id",
                     ]
                 }
                 other = args.args or []
-                other_args, other_kwargs = self.parse_args_kwargs(other)
+                other_args, other_kwargs = parse_args_kwargs(other)
                 self.bolt = self.create_bolt(
                     args.input_type,
                     args.output_type,
                     args.state_type,
-                    args.id,
                     **kwargs,
                 )
 
@@ -216,35 +215,6 @@ class BoltCtl:
             self.log.exception(f"An unexpected error occurred: {e}")
             raise
 
-    @staticmethod
-    def parse_args_kwargs(args_list):
-        args = []
-        kwargs = {}
-
-        def convert(value):
-            try:
-                return int(value.replace('"', ""))
-            except ValueError:
-                try:
-                    return float(value.replace('"', ""))
-                except ValueError:
-                    try:
-                        return json.loads(value)
-                    except ValueError:
-                        return value
-
-        for item in args_list:
-            if item[0] == "{":
-                i = json.loads(item)
-                kwargs = {**kwargs, **i}
-            elif "=" in item:
-                key, value = item.split("=", 1)
-                kwargs[key] = convert(value)
-            else:
-                args.append(convert(item))
-
-        return args, kwargs
-
     def create_bolt(
         self,
         input_type: str,
@@ -267,7 +237,7 @@ class BoltCtl:
                     - input_folder (str): The input folder argument.
                     - input_s3_bucket (str): The input bucket argument.
                     - input_s3_folder (str): The input S3 folder argument.
-                    Batch outupt:
+                    Batch output:
                     - output_folder (str): The output folder argument.
                     - output_s3_bucket (str): The output bucket argument.
                     - output_s3_folder (str): The output S3 folder argument.
@@ -302,7 +272,6 @@ class BoltCtl:
             input_type=input_type,
             output_type=output_type,
             state_type=state_type,
-            id=id,
             **kwargs,
         )
 
@@ -441,7 +410,7 @@ class BoltCtl:
                 raise ValueError(f"Invalid output type: {args.output_type}")
 
             # Create the state manager
-            state: dict[str, Any] = {}
+            state: Dict[str, Any] = {}
             if args.state_type == "none":
                 state = {}
             elif args.state_type == "redis":

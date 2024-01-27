@@ -117,17 +117,12 @@ class Bolt(Task):
 
             # Copy input data to local or connect to kafka and pass on the details
 
-            self.state.set_state("status", {"status": "initialized", "time": time.time()})
+            self.state.set_state("status", {"status": "getting_data", "time": time.time()})
 
             if type(self.input) is BatchInput:
                 self.input.from_s3()
-                input_folder = self.input.get()
-                kwargs["input_folder"] = input_folder
-            elif type(self.input) is StreamingInput:
-                kafka_consumer = self.input.get()
-                kwargs["kafka_consumer"] = kafka_consumer
 
-            self.state.set_state("status", {"status": "executing", "time": time.time()})
+            self.state.set_state("status", {"status": "running", "time": time.time()})
 
             # Execute the task's method
             result = self.execute(method_name, *args, **kwargs)
@@ -174,7 +169,7 @@ class Bolt(Task):
                     - input_folder (str): The input folder argument.
                     - input_s3_bucket (str): The input bucket argument.
                     - input_s3_folder (str): The input S3 folder argument.
-                    Batch outupt config:
+                    Batch output config:
                     - output_folder (str): The output folder argument.
                     - output_s3_bucket (str): The output bucket argument.
                     - output_s3_folder (str): The output S3 folder argument.
