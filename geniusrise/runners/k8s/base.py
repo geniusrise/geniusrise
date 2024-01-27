@@ -21,8 +21,8 @@ import time
 from argparse import ArgumentParser, Namespace
 from typing import List, Optional
 
-from kubernetes import client, config
-from kubernetes.client import (
+from kubernetes import client, config  # type: ignore
+from kubernetes.client import (  # type: ignore
     ApiClient,
     BatchV1Api,
     Configuration,
@@ -215,7 +215,10 @@ class K8sResourceManager:
             type="kubernetes.io/dockerconfigjson",
             data={"config.json": docker_config_bytes},
         )
-        self.api_instance.create_namespaced_secret(self.namespace, secret)
+        self.api_instance.create_namespaced_secret(
+            self.namespace,
+            secret,
+        )
         self.log.info(f"🔑 Created image pull secret {name}")
 
     def _create_pod_spec(

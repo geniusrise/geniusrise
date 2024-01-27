@@ -14,4 +14,4 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from geniusrise.runners.airflow.generate import AirflowRunner
+from .parse_function_args import parse_args_kwargs

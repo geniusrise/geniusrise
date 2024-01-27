@@ -19,8 +19,8 @@ import json
 from argparse import ArgumentParser, Namespace
 from typing import List, Optional
 
-from kubernetes import client
-from kubernetes.client import BatchV1Api, V1JobSpec, V1Job
+from kubernetes import client  # type: ignore
+from kubernetes.client import BatchV1Api, V1JobSpec, V1Job  # type: ignore
 
 from .deployment import Deployment
 

@@ -27,6 +27,7 @@ from rich_argparse import RichHelpFormatter
 from geniusrise.cli.discover import DiscoveredSpout
 from geniusrise.core import Spout
 from geniusrise.runners.k8s import CronJob, Deployment, Job, Service
+from geniusrise.utils.parse_function_args import parse_args_kwargs
 
 
 class SpoutCtl:
@@ -60,7 +61,7 @@ class SpoutCtl:
         create_parser.add_argument("output_type", choices=["batch", "streaming"], help="Choose the type of output data: batch or streaming.", default="batch")
         create_parser.add_argument("state_type", choices=["none", "redis", "postgres", "dynamodb"], help="Select the type of state manager: none, redis, postgres, or dynamodb.", default="none")
         create_parser.add_argument("--buffer_size", help="Specify the size of the buffer.", default=100, type=int)
-        create_parser.add_argument("--id", help="A unique identifier for the task", default=None, type=str)
+        create_parser.add_argument("--id", help="A unique identifier for the task", default=str(uuid.uuid4()), type=str)
         # output
         create_parser.add_argument("--output_folder", help="Specify the directory where output files should be stored temporarily.", default=tempfile.mkdtemp(), type=str)
         create_parser.add_argument("--output_kafka_topic", help="Kafka output topic for streaming spouts.", default="test", type=str)
@@ -163,15 +164,15 @@ class SpoutCtl:
                         "args",
                         "method_name",
                         "deployment_type",
-                        "--id",
                     ]
                 }
                 other = args.args or []
-                other_args, other_kwargs = self.parse_args_kwargs(other)
-                self.spout = self.create_spout(args.output_type, args.state_type, id=args.id, **kwargs)
+                other_args, other_kwargs = parse_args_kwargs(other)
+                self.spout = self.create_spout(args.output_type, args.state_type, **kwargs)
 
                 # Pass the method_name from args to execute_spout
                 result = self.execute_spout(self.spout, args.method_name, *other_args, **other_kwargs)
+                self.log.info(emoji.emojize(f"Successfully executed the spout method: {args.method_name} :thumbs_up:"))
                 return result
 
             elif args.command == "deploy":
@@ -188,35 +189,6 @@ class SpoutCtl:
         except Exception as e:
             self.log.exception(f"An unexpected error occurred: {e}")
             raise
-
-    @staticmethod
-    def parse_args_kwargs(args_list):
-        args = []
-        kwargs = {}
-
-        def convert(value):
-            try:
-                return int(value.replace('"', ""))
-            except ValueError:
-                try:
-                    return float(value.replace('"', ""))
-                except ValueError:
-                    try:
-                        return json.loads(value)
-                    except ValueError:
-                        return value
-
-        for item in args_list:
-            if item[0] == "{":
-                i = json.loads(item)
-                kwargs = {**kwargs, **i}
-            elif "=" in item:
-                key, value = item.split("=", 1)
-                kwargs[key] = convert(value)
-            else:
-                args.append(convert(item))
-
-        return args, kwargs
 
     def create_spout(self, output_type: str, state_type: str, id: Optional[str], **kwargs) -> Spout:
         r"""
@@ -263,7 +235,6 @@ class SpoutCtl:
             klass=self.discovered_spout.klass,
             output_type=output_type,
             state_type=state_type,
-            id=id,
             **kwargs,
         )
 
