@@ -58,7 +58,7 @@ class BoltCtl:
         # fmt: off
         # Create subparser for 'run' command
         run_parser = subparsers.add_parser("rise", help="Run a bolt locally.", formatter_class=RichHelpFormatter)
-        run_parser.add_argument("input_type", choices=["batch", "streaming", "batch_to_stream"], help="Choose the type of input data: batch or streaming.", default="batch")
+        run_parser.add_argument("input_type", choices=["batch", "streaming"], help="Choose the type of input data: batch or streaming.", default="batch")
         run_parser.add_argument("output_type", choices=["batch", "streaming"], help="Choose the type of output data: batch or streaming.", default="batch")
         run_parser.add_argument("state_type", choices=["none", "redis", "postgres", "dynamodb"], help="Select the type of state manager: none, redis, postgres, or dynamodb.", default="none")
         run_parser.add_argument("--id", help="A unique identifier for the task", default=str(uuid.uuid4()), type=str)
@@ -68,13 +68,13 @@ class BoltCtl:
         run_parser.add_argument("--input_kafka_topic", help="Kafka output topic for streaming spouts.", default="test", type=str)
         run_parser.add_argument("--input_kafka_cluster_connection_string", help="Kafka connection string for streaming spouts.", default="localhost:9094", type=str)
         run_parser.add_argument("--input_kafka_consumer_group_id", help="Kafka consumer group id to use.", default="geniusrise", type=str)
-        run_parser.add_argument("--input_s3_bucket", help="Provide the name of the S3 bucket for output storage.", default="geniusrise-test", type=str)
+        run_parser.add_argument("--input_s3_bucket", help="Provide the name of the S3 bucket for output storage.", default=None, type=str)
         run_parser.add_argument("--input_s3_folder", help="Indicate the S3 folder for output storage.", default="geniusrise", type=str)
         # output
         run_parser.add_argument("--output_folder", help="Specify the directory where output files should be stored temporarily.", default=tempfile.mkdtemp(), type=str)
         run_parser.add_argument("--output_kafka_topic", help="Kafka output topic for streaming spouts.", default="test", type=str)
         run_parser.add_argument("--output_kafka_cluster_connection_string", help="Kafka connection string for streaming spouts.", default="localhost:9094", type=str)
-        run_parser.add_argument("--output_s3_bucket", help="Provide the name of the S3 bucket for output storage.", default="geniusrise-test", type=str)
+        run_parser.add_argument("--output_s3_bucket", help="Provide the name of the S3 bucket for output storage.", default=None, type=str)
         run_parser.add_argument("--output_s3_folder", help="Indicate the S3 folder for output storage.", default="geniusrise", type=str)
         # state
         run_parser.add_argument("--redis_host", help="Enter the host address for the Redis server.", default="localhost", type=str)
@@ -104,14 +104,14 @@ class BoltCtl:
         deploy_parser.add_argument("--input_kafka_topic", help="Kafka output topic for streaming spouts.", default="test", type=str)
         deploy_parser.add_argument("--input_kafka_cluster_connection_string", help="Kafka connection string for streaming spouts.", default="localhost:9094", type=str)
         deploy_parser.add_argument("--input_kafka_consumer_group_id", help="Kafka consumer group id to use.", default="geniusrise", type=str)
-        deploy_parser.add_argument("--input_s3_bucket", help="Provide the name of the S3 bucket for output storage.", default="geniusrise-test", type=str)
+        deploy_parser.add_argument("--input_s3_bucket", help="Provide the name of the S3 bucket for output storage.", default=None, type=str)
         deploy_parser.add_argument("--input_s3_folder", help="Indicate the S3 folder for output storage.", default="geniusrise", type=str)
         # output
         # deploy_parser.add_argument("--buffer_size", help="Specify the size of the buffer.", default=100, type=int)
         deploy_parser.add_argument("--output_folder", help="Specify the directory where output files should be stored temporarily.", default="/tmp", type=str)
         deploy_parser.add_argument("--output_kafka_topic", help="Kafka output topic for streaming spouts.", default="test", type=str)
         deploy_parser.add_argument("--output_kafka_cluster_connection_string", help="Kafka connection string for streaming spouts.", default="localhost:9094", type=str)
-        deploy_parser.add_argument("--output_s3_bucket", help="Provide the name of the S3 bucket for output storage.", default="geniusrise-test", type=str)
+        deploy_parser.add_argument("--output_s3_bucket", help="Provide the name of the S3 bucket for output storage.", default=None, type=str)
         deploy_parser.add_argument("--output_s3_folder", help="Indicate the S3 folder for output storage.", default="geniusrise", type=str)
         # state
         deploy_parser.add_argument("--redis_host", help="Enter the host address for the Redis server.", default="localhost", type=str)

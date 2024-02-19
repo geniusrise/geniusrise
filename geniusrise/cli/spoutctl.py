@@ -66,7 +66,7 @@ class SpoutCtl:
         create_parser.add_argument("--output_folder", help="Specify the directory where output files should be stored temporarily.", default=tempfile.mkdtemp(), type=str)
         create_parser.add_argument("--output_kafka_topic", help="Kafka output topic for streaming spouts.", default="test", type=str)
         create_parser.add_argument("--output_kafka_cluster_connection_string", help="Kafka connection string for streaming spouts.", default="localhost:9094", type=str)
-        create_parser.add_argument("--output_s3_bucket", help="Provide the name of the S3 bucket for output storage.", default="geniusrise-test", type=str)
+        create_parser.add_argument("--output_s3_bucket", help="Provide the name of the S3 bucket for output storage.", default=None, type=str)
         create_parser.add_argument("--output_s3_folder", help="Indicate the S3 folder for output storage.", default="geniusrise", type=str)
         # state
         create_parser.add_argument("--redis_host", help="Enter the host address for the Redis server.", default="localhost", type=str)
@@ -94,7 +94,7 @@ class SpoutCtl:
         deploy_parser.add_argument("--output_folder", help="Specify the directory where output files should be stored temporarily.", default="/tmp", type=str)
         deploy_parser.add_argument("--output_kafka_topic", help="Kafka output topic for streaming spouts.", default="test", type=str)
         deploy_parser.add_argument("--output_kafka_cluster_connection_string", help="Kafka connection string for streaming spouts.", default="localhost:9094", type=str)
-        deploy_parser.add_argument("--output_s3_bucket", help="Provide the name of the S3 bucket for output storage.", default="geniusrise-test", type=str)
+        deploy_parser.add_argument("--output_s3_bucket", help="Provide the name of the S3 bucket for output storage.", default=None, type=str)
         deploy_parser.add_argument("--output_s3_folder", help="Indicate the S3 folder for output storage.", default="geniusrise", type=str)
         # state
         deploy_parser.add_argument("--redis_host", help="Enter the host address for the Redis server.", default="localhost", type=str)
