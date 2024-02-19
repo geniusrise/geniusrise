@@ -160,6 +160,11 @@ class BatchInput(Input):
             Exception: If the input folder is not specified.
         """
         self.bucket = bucket if bucket else self.bucket
+
+        if not self.bucket:
+            self.log.warn("S3 Bucket is None, not fetching.")
+            return
+
         self.s3_folder = s3_folder if s3_folder else self.s3_folder
 
         start_time = time.time()

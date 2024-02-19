@@ -1,7 +1,7 @@
 {
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
-    "source.organizeImports.python": true
+    "source.organizeImports.python": "explicit"
   },
   "files.insertFinalNewline": true,
   "files.trimTrailingWhitespace": true,

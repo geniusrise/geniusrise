@@ -249,20 +249,23 @@ class BatchOutput(Output):
         """
         ☁️ Recursively copy all files and directories from the output folder to a given S3 bucket and folder.
         """
-        start_time = time.time()
-        s3 = boto3.client("s3")
-        try:
-            for root, _, files in os.walk(self.output_folder):
-                for filename in files:
-                    local_path = os.path.join(root, filename)
-                    relative_path = os.path.relpath(local_path, self.output_folder)
-                    s3_key = os.path.join(self.s3_folder, relative_path)
-                    s3.upload_file(local_path, self.bucket, s3_key)
-            end_time = time.time()
-            self._metrics["to_s3_time"] = end_time - start_time  # Record time taken to copy to remote
-        except Exception as e:
-            self.log.exception(f"🚫 Failed to copy files to S3: {e}")
-            raise
+        if self.bucket:
+            start_time = time.time()
+            s3 = boto3.client("s3")
+            try:
+                for root, _, files in os.walk(self.output_folder):
+                    for filename in files:
+                        local_path = os.path.join(root, filename)
+                        relative_path = os.path.relpath(local_path, self.output_folder)
+                        s3_key = os.path.join(self.s3_folder, relative_path)
+                        s3.upload_file(local_path, self.bucket, s3_key)
+                end_time = time.time()
+                self._metrics["to_s3_time"] = end_time - start_time  # Record time taken to copy to remote
+            except Exception as e:
+                self.log.exception(f"🚫 Failed to copy files to S3: {e}")
+                raise
+        else:
+            self.log.warn("S3 Bucket is None, not storing.")
 
     def flush(self) -> None:
         """

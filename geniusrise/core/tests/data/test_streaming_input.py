@@ -17,12 +17,7 @@
 
 import pytest
 from kafka import KafkaConsumer
-from pyflink.table import StreamTableEnvironment, EnvironmentSettings
-from pyflink.datastream import DataStream
-from pyflink.common import Row
-from pyflink.datastream import StreamExecutionEnvironment
 from pyspark.sql import SparkSession
-from pyflink.table.udf import udf
 from streamz import Stream
 import pandas as pd
 import threading
@@ -191,24 +186,3 @@ def test_from_spark_batch(streaming_input):
     # Collect the results and check
     results = rdd.collect()
     assert results == [3, 7, 11]
-
-
-def test_from_flink(streaming_input):
-    # Initialize Flink environment
-    env = StreamExecutionEnvironment.get_execution_environment()
-    env.set_parallelism(1)
-    t_env = StreamTableEnvironment.create(
-        env,
-        environment_settings=EnvironmentSettings.new_instance().in_streaming_mode().build(),
-    )
-
-    # Create a Flink Table from Pandas DataFrame
-    table = t_env.from_pandas(pd.DataFrame([(1, 2), (3, 4), (5, 6)], columns=["a", "b"]))
-
-    add = udf(lambda row: Row(row.a + 1, row.a * row.b), result_type="ROW<a BIGINT, b BIGINT>")
-
-    # Initialize your class and call the method
-    data_stream: DataStream = streaming_input.from_flink(flink_table=table, map_func=add).to_pandas().values.tolist()
-
-    # # Validate the results
-    assert data_stream == [[2, 2], [4, 12], [6, 30]]

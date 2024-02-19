@@ -22,8 +22,6 @@ from kafka import KafkaConsumer, TopicPartition
 from pyspark.sql import DataFrame, Row
 from pyspark.sql.streaming import StreamingQuery
 from pyspark.rdd import RDD
-from pyflink.table import Table
-from pyflink.datastream import DataStream
 from streamz.dataframe import DataFrame as ZDataFrame
 
 from .input import Input
@@ -83,14 +81,6 @@ class StreamingInput(Input):
         spark_df = ...  # Assume this is a Spark DataFrame
         map_func = lambda row: {"key": row.key, "value": row.value}
         query_or_rdd = input.from_spark(spark_df, map_func)
-        ```
-
-        ### Using `from_flink` method to process Flink Table
-        ```python
-        input = StreamingInput("my_topic", "localhost:9094")
-        flink_table = ...  # Assume this is a Flink Table
-        map_func = lambda row: {"key": row[0], "value": row[1]}
-        data_stream = input.from_flink(flink_table, map_func)
         ```
 
         ### Using `compose` method to merge multiple StreamingInput instances
@@ -236,28 +226,6 @@ class StreamingInput(Input):
                 return spark_df.rdd.map(map_func)
         except Exception as e:
             self.log.exception(f"❌ Failed to process Spark DataFrame: {e}")
-            raise
-
-    def from_flink(self, flink_table: Table, map_func: Callable[[Row], Any]) -> DataStream:
-        """
-        Process a Flink Table as a stream, similar to Kafka processing.
-
-        Args:
-            flink_table (Table): The Flink Table to process.
-            map_func (Callable[[Row], Any]): Function to map each row of the Table.
-
-        Returns:
-            DataStream: Returns a Flink DataStream after applying the map function.
-
-        Raises:
-            Exception: If an error occurs during processing.
-        """
-        try:
-            # Apply the map function to the DataStream
-            mapped_stream = flink_table.map(map_func)
-            return mapped_stream
-        except Exception as e:
-            self.log.exception(f"❌ Failed to process Flink Table: {e}")
             raise
 
     def compose(self, *inputs: "StreamingInput") -> Union[bool, str]:  # type: ignore
