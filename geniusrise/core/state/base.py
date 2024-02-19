@@ -17,6 +17,35 @@
 import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional
+import threading
+from prometheus_client import start_http_server, REGISTRY
+from prometheus_client import process_collector, platform_collector
+
+
+class PrometheusMetricsServer(threading.Thread):
+    def __init__(self, port: int = 8282):
+        super().__init__()
+        self.port = port
+        self.daemon = True
+        self.log = logging.getLogger(self.__class__.__name__)
+
+    def run(self):
+        self.log.info(f"Starting prometheus server at port {self.port}")
+        # Check if ProcessCollector and PlatformCollector have already been registered
+        if not any(
+            isinstance(collector, process_collector.ProcessCollector)
+            for collector in REGISTRY._collector_to_names.keys()
+        ):
+            process_collector.ProcessCollector()
+
+        if not any(
+            isinstance(collector, platform_collector.PlatformCollector)
+            for collector in REGISTRY._collector_to_names.keys()
+        ):
+            platform_collector.PlatformCollector()
+
+        # Start HTTP server for Prometheus metrics
+        start_http_server(self.port)
 
 
 class State(ABC):
@@ -49,7 +78,6 @@ class State(ABC):
         Returns:
             Optional[Dict[str, Any]]: The state associated with the task and key, if it exists.
         """
-        pass
 
     @abstractmethod
     def set(self, task_id: str, key: str, value: Dict[str, Any]) -> None:
@@ -61,7 +89,6 @@ class State(ABC):
             key (str): The key to set the state for.
             value (Dict[str, Any]): The state to set.
         """
-        pass
 
     def get_state(self, key: str) -> Optional[Dict[str, Any]]:
         """

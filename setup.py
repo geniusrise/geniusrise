@@ -15,7 +15,7 @@ entry_points = {
 
 setup(
     name="geniusrise",
-    version="0.1.1",
+    version="0.1.4",
     packages=find_packages(exclude=["tests", "tests.*"]),
     install_requires=requirements,
     entry_points=entry_points,
@@ -30,7 +30,7 @@ setup(
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
         "Topic :: Software Development :: Build Tools",
-        "License :: OSI Approved :: Apache Software License v2.0",
+        "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
