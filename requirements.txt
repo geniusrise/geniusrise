@@ -60,9 +60,6 @@ apache-airflow-providers-sqlite==3.6.0
     # via
     #   apache-airflow
     #   geniusrise (setup.py)
-apache-beam==2.54.0
-    # via
-    #   geniusrise (setup.py)
 apispec[yaml]==6.3.0
     # via
     #   flask-appbuilder
@@ -160,10 +157,6 @@ clickclick==20.10.2
     # via
     #   connexion
     #   geniusrise (setup.py)
-cloudpickle==2.2.1
-    # via
-    #   apache-beam
-    #   geniusrise (setup.py)
 colorama==0.4.6
     # via
     #   flask-appbuilder
@@ -182,10 +175,6 @@ connexion[flask]==2.14.2
     #   geniusrise (setup.py)
 coverage==7.3.4
     # via geniusrise (setup.py)
-crcmod==1.7
-    # via
-    #   apache-beam
-    #   geniusrise (setup.py)
 cron-descriptor==1.4.0
     # via
     #   apache-airflow
@@ -207,11 +196,6 @@ deprecated==1.2.14
     #   opentelemetry-api
     #   opentelemetry-exporter-otlp-proto-grpc
     #   opentelemetry-exporter-otlp-proto-http
-dill==0.3.1.1
-    # via
-    #   apache-airflow
-    #   apache-beam
-    #   geniusrise (setup.py)
 direnv==2020.12.3
     # via geniusrise (setup.py)
 dnspython==2.6.1
@@ -246,14 +230,6 @@ exceptiongroup==1.2.0
     #   anyio
     #   geniusrise (setup.py)
     #   pytest
-fastavro==1.9.4
-    # via
-    #   apache-beam
-    #   geniusrise (setup.py)
-fasteners==0.19
-    # via
-    #   apache-beam
-    #   geniusrise (setup.py)
 find-libpython==0.3.0
     # via
     #   geniusrise (setup.py)
@@ -317,7 +293,7 @@ frozenlist==1.4.1
     #   aiohttp
     #   aiosignal
     #   geniusrise (setup.py)
-fsspec==2023.12.2
+fsspec>=2021.05.0
     # via
     #   apache-airflow
     #   geniusrise (setup.py)
@@ -347,7 +323,6 @@ greenlet==3.0.2
     #   sqlalchemy
 grpcio==1.60.0
     # via
-    #   apache-beam
     #   geniusrise (setup.py)
     #   opentelemetry-exporter-otlp-proto-grpc
 gunicorn==21.2.0
@@ -358,18 +333,10 @@ h11==0.14.0
     # via
     #   geniusrise (setup.py)
     #   httpcore
-hdfs==2.7.3
-    # via
-    #   apache-beam
-    #   geniusrise (setup.py)
 httpcore==0.16.3
     # via
     #   geniusrise (setup.py)
     #   httpx
-httplib2==0.22.0
-    # via
-    #   apache-beam
-    #   geniusrise (setup.py)
 httpx==0.23.3
     # via
     #   apache-airflow
@@ -531,7 +498,6 @@ mypy-extensions==1.0.0
     #   mypy
 numpy==1.24.4
     # via
-    #   apache-beam
     #   geniusrise (setup.py)
     #   pandas
     #   pyarrow
@@ -540,10 +506,6 @@ oauthlib==3.2.2
     #   geniusrise (setup.py)
     #   kubernetes
     #   requests-oauthlib
-objsize==0.6.1
-    # via
-    #   apache-beam
-    #   geniusrise (setup.py)
 opentelemetry-api==1.22.0
     # via
     #   apache-airflow
@@ -586,10 +548,6 @@ opentelemetry-semantic-conventions==0.43b0
 ordered-set==4.1.0
     # via
     #   flask-limiter
-    #   geniusrise (setup.py)
-orjson==3.9.7
-    # via
-    #   apache-beam
     #   geniusrise (setup.py)
 packaging==23.2
     # via
@@ -644,13 +602,8 @@ prison==0.2.1
     #   geniusrise (setup.py)
 prometheus-client==0.19.0
     # via geniusrise (setup.py)
-proto-plus==1.23.0
-    # via
-    #   apache-beam
-    #   geniusrise (setup.py)
 protobuf==4.25.3
     # via
-    #   apache-beam
     #   geniusrise (setup.py)
     #   googleapis-common-protos
     #   opentelemetry-proto
@@ -666,10 +619,6 @@ py4j==0.10.9.7
     #   geniusrise (setup.py)
     #   pyspark
 pyarrow==14.0.2
-pyarrow-hotfix==0.6
-    # via
-    #   apache-beam
-    #   geniusrise (setup.py)
 pyasn1==0.5.0
     # via
     #   geniusrise (setup.py)
@@ -695,10 +644,6 @@ pydantic-core==2.14.5
     # via
     #   geniusrise (setup.py)
     #   pydantic
-pydot==1.4.2
-    # via
-    #   apache-beam
-    #   geniusrise (setup.py)
 pyflakes==3.1.0
     # via
     #   flake8
@@ -714,10 +659,6 @@ pyjwt==2.8.0
     #   apache-airflow
     #   flask-appbuilder
     #   flask-jwt-extended
-    #   geniusrise (setup.py)
-pymongo==3.13.0
-    # via
-    #   apache-beam
     #   geniusrise (setup.py)
 pyparsing==3.1.1
     # via
@@ -743,7 +684,6 @@ python-daemon==3.0.1
 python-dateutil==2.8.2
     # via
     #   apache-airflow
-    #   apache-beam
     #   botocore
     #   croniter
     #   flask-appbuilder
@@ -766,7 +706,6 @@ python-slugify==8.0.1
     #   python-nvd3
 pytz==2024.1
     # via
-    #   apache-beam
     #   croniter
     #   flask-babel
     #   geniusrise (setup.py)
@@ -793,14 +732,9 @@ referencing==0.33.0
     #   geniusrise (setup.py)
     #   jsonschema
     #   jsonschema-specifications
-regex==2023.8.8
-    # via
-    #   apache-beam
-    #   geniusrise (setup.py)
 requests==2.31.0
     # via
     #   apache-airflow-providers-http
-    #   apache-beam
     #   connexion
     #   docker
     #   geniusrise (setup.py)
@@ -946,7 +880,6 @@ typing-extensions==4.9.0
     # via
     #   alembic
     #   apache-airflow
-    #   apache-beam
     #   asgiref
     #   black
     #   flask-limiter
@@ -1016,7 +949,3 @@ zipp==3.17.0
     # via
     #   geniusrise (setup.py)
     #   importlib-metadata
-zstandard==0.22.0
-    # via
-    #   apache-beam
-    #   geniusrise (setup.py)
