@@ -612,7 +612,7 @@ psutil==5.9.6
     # via
     #   apache-airflow
     #   geniusrise (setup.py)
-psycopg2==2.9.9
+psycopg2-binary==2.9.9
     # via geniusrise (setup.py)
 py4j==0.10.9.7
     # via
