@@ -540,7 +540,7 @@ mypy-extensions==1.0.0
     #   black
     #   geniusrise (setup.py)
     #   mypy
-numpy==1.21.6
+numpy==1.26.4
     # via
     #   apache-beam
     #   apache-flink
@@ -1047,7 +1047,3 @@ zstandard==0.21.0
     # via
     #   apache-beam
     #   geniusrise (setup.py)
-
-# The following packages are considered to be unsafe in a requirements file:
-# pip
-# setuptools
