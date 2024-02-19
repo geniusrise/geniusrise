@@ -60,15 +60,8 @@ apache-airflow-providers-sqlite==3.6.0
     # via
     #   apache-airflow
     #   geniusrise (setup.py)
-apache-beam==2.43.0
+apache-beam==2.54.0
     # via
-    #   apache-flink
-    #   geniusrise (setup.py)
-apache-flink==1.18.1
-    # via geniusrise (setup.py)
-apache-flink-libraries==1.18.1
-    # via
-    #   apache-flink
     #   geniusrise (setup.py)
 apispec[yaml]==6.3.0
     # via
@@ -101,7 +94,6 @@ attrs==23.2.0
     #   referencing
 avro-python3==1.9.2.1
     # via
-    #   apache-flink
     #   geniusrise (setup.py)
 babel==2.14.0
     # via
@@ -171,7 +163,6 @@ clickclick==20.10.2
 cloudpickle==2.2.1
     # via
     #   apache-beam
-    #   apache-flink
     #   geniusrise (setup.py)
 colorama==0.4.6
     # via
@@ -258,7 +249,6 @@ exceptiongroup==1.2.0
 fastavro==1.9.4
     # via
     #   apache-beam
-    #   apache-flink
     #   geniusrise (setup.py)
 fasteners==0.19
     # via
@@ -376,10 +366,9 @@ httpcore==0.16.3
     # via
     #   geniusrise (setup.py)
     #   httpx
-httplib2==0.20.0
+httplib2==0.22.0
     # via
     #   apache-beam
-    #   apache-flink
     #   geniusrise (setup.py)
 httpx==0.23.3
     # via
@@ -533,15 +522,16 @@ multidict==6.0.4
     #   aiohttp
     #   geniusrise (setup.py)
     #   yarl
+mypy==1.8.0
+    # via geniusrise (setup.py)
 mypy-extensions==1.0.0
     # via
     #   black
     #   geniusrise (setup.py)
     #   mypy
-numpy<=1.26.1
+numpy==1.24.4
     # via
     #   apache-beam
-    #   apache-flink
     #   geniusrise (setup.py)
     #   pandas
     #   pyarrow
@@ -550,7 +540,7 @@ oauthlib==3.2.2
     #   geniusrise (setup.py)
     #   kubernetes
     #   requests-oauthlib
-objsize==0.5.2
+objsize==0.6.1
     # via
     #   apache-beam
     #   geniusrise (setup.py)
@@ -616,7 +606,6 @@ packaging==23.2
     #   pytest
 pandas==1.3.5
     # via
-    #   apache-flink
     #   geniusrise (setup.py)
 pathspec==0.12.1
     # via
@@ -625,7 +614,6 @@ pathspec==0.12.1
     #   geniusrise (setup.py)
 pemja==0.3.0
     # via
-    #   apache-flink
     #   geniusrise (setup.py)
 pendulum==2.1.2
     # via
@@ -660,10 +648,9 @@ proto-plus==1.23.0
     # via
     #   apache-beam
     #   geniusrise (setup.py)
-protobuf==3.20.3
+protobuf==4.25.3
     # via
     #   apache-beam
-    #   apache-flink
     #   geniusrise (setup.py)
     #   googleapis-common-protos
     #   opentelemetry-proto
@@ -676,13 +663,12 @@ psycopg2==2.9.9
     # via geniusrise (setup.py)
 py4j==0.10.9.7
     # via
-    #   apache-flink
     #   geniusrise (setup.py)
     #   pyspark
-pyarrow==9.0.0
+pyarrow==14.0.2
+pyarrow-hotfix==0.6
     # via
     #   apache-beam
-    #   apache-flink
     #   geniusrise (setup.py)
 pyasn1==0.5.0
     # via
@@ -733,7 +719,7 @@ pymongo==3.13.0
     # via
     #   apache-beam
     #   geniusrise (setup.py)
-pyparsing<=3.1.1
+pyparsing==3.1.1
     # via
     #   geniusrise (setup.py)
     #   httplib2
@@ -758,7 +744,6 @@ python-dateutil==2.8.2
     # via
     #   apache-airflow
     #   apache-beam
-    #   apache-flink
     #   botocore
     #   croniter
     #   flask-appbuilder
@@ -782,7 +767,6 @@ python-slugify==8.0.1
 pytz==2024.1
     # via
     #   apache-beam
-    #   apache-flink
     #   croniter
     #   flask-babel
     #   geniusrise (setup.py)
@@ -817,7 +801,6 @@ requests==2.31.0
     # via
     #   apache-airflow-providers-http
     #   apache-beam
-    #   apache-flink
     #   connexion
     #   docker
     #   geniusrise (setup.py)
@@ -987,14 +970,6 @@ universal-pathlib==0.1.4
     # via
     #   apache-airflow
     #   geniusrise (setup.py)
-urllib3<=2.2.1
-    # via
-    #   botocore
-    #   docker
-    #   geniusrise (setup.py)
-    #   kubernetes
-    #   requests
-    #   twine
 values==2020.12.3
     # via
     #   env-file
@@ -1041,7 +1016,7 @@ zipp==3.17.0
     # via
     #   geniusrise (setup.py)
     #   importlib-metadata
-zstandard<=0.22.0
+zstandard==0.22.0
     # via
     #   apache-beam
     #   geniusrise (setup.py)
