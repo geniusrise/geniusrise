@@ -60,13 +60,13 @@ apache-airflow-providers-sqlite==3.6.0
     # via
     #   apache-airflow
     #   geniusrise (setup.py)
-apache-beam==2.48.0
+apache-beam==2.43.0
     # via
     #   apache-flink
     #   geniusrise (setup.py)
-apache-flink==1.18.0
+apache-flink==1.18.1
     # via geniusrise (setup.py)
-apache-flink-libraries==1.18.0
+apache-flink-libraries==1.18.1
     # via
     #   apache-flink
     #   geniusrise (setup.py)
@@ -92,7 +92,7 @@ async-timeout==4.0.3
     #   aiohttp
     #   geniusrise (setup.py)
     #   redis
-attrs==23.1.0
+attrs==23.2.0
     # via
     #   aiohttp
     #   apache-airflow
@@ -141,7 +141,7 @@ cachetools==5.3.1
     # via
     #   geniusrise (setup.py)
     #   google-auth
-certifi==2023.11.17
+certifi==2024.2.2
     # via
     #   geniusrise (setup.py)
     #   httpcore
@@ -223,7 +223,7 @@ dill==0.3.1.1
     #   geniusrise (setup.py)
 direnv==2020.12.3
     # via geniusrise (setup.py)
-dnspython==2.4.2
+dnspython==2.6.1
     # via
     #   email-validator
     #   geniusrise (setup.py)
@@ -255,7 +255,7 @@ exceptiongroup==1.2.0
     #   anyio
     #   geniusrise (setup.py)
     #   pytest
-fastavro==1.4.7
+fastavro==1.9.4
     # via
     #   apache-beam
     #   apache-flink
@@ -368,7 +368,7 @@ h11==0.14.0
     # via
     #   geniusrise (setup.py)
     #   httpcore
-hdfs==2.7.2
+hdfs==2.7.3
     # via
     #   apache-beam
     #   geniusrise (setup.py)
@@ -376,7 +376,7 @@ httpcore==0.16.3
     # via
     #   geniusrise (setup.py)
     #   httpx
-httplib2==0.20.4
+httplib2==0.20.0
     # via
     #   apache-beam
     #   apache-flink
@@ -439,15 +439,15 @@ jmespath==0.10.0
     #   boto3
     #   botocore
     #   geniusrise (setup.py)
-jsonpickle==3.0.1
+jsonpickle==3.0.2
     # via geniusrise (setup.py)
-jsonschema==4.20.0
+jsonschema==4.21.1
     # via
     #   apache-airflow
     #   connexion
     #   flask-appbuilder
     #   geniusrise (setup.py)
-jsonschema-specifications==2023.11.2
+jsonschema-specifications==2023.12.1
     # via
     #   geniusrise (setup.py)
     #   jsonschema
@@ -533,14 +533,12 @@ multidict==6.0.4
     #   aiohttp
     #   geniusrise (setup.py)
     #   yarl
-mypy==1.8.0
-    # via geniusrise (setup.py)
 mypy-extensions==1.0.0
     # via
     #   black
     #   geniusrise (setup.py)
     #   mypy
-numpy==1.26.4
+numpy<=1.26.1
     # via
     #   apache-beam
     #   apache-flink
@@ -552,7 +550,7 @@ oauthlib==3.2.2
     #   geniusrise (setup.py)
     #   kubernetes
     #   requests-oauthlib
-objsize==0.6.1
+objsize==0.5.2
     # via
     #   apache-beam
     #   geniusrise (setup.py)
@@ -658,11 +656,11 @@ prison==0.2.1
     #   geniusrise (setup.py)
 prometheus-client==0.19.0
     # via geniusrise (setup.py)
-proto-plus==1.22.3
+proto-plus==1.23.0
     # via
     #   apache-beam
     #   geniusrise (setup.py)
-protobuf==4.23.4
+protobuf==3.20.3
     # via
     #   apache-beam
     #   apache-flink
@@ -681,7 +679,7 @@ py4j==0.10.9.7
     #   apache-flink
     #   geniusrise (setup.py)
     #   pyspark
-pyarrow==8.0.0
+pyarrow==9.0.0
     # via
     #   apache-beam
     #   apache-flink
@@ -735,7 +733,7 @@ pymongo==3.13.0
     # via
     #   apache-beam
     #   geniusrise (setup.py)
-pyparsing==3.1.1
+pyparsing<=3.1.1
     # via
     #   geniusrise (setup.py)
     #   httplib2
@@ -781,7 +779,7 @@ python-slugify==8.0.1
     #   apache-airflow
     #   geniusrise (setup.py)
     #   python-nvd3
-pytz==2023.3.post1
+pytz==2024.1
     # via
     #   apache-beam
     #   apache-flink
@@ -806,7 +804,7 @@ readme-renderer==40.0
     #   twine
 redis==5.0.1
     # via geniusrise (setup.py)
-referencing==0.32.0
+referencing==0.33.0
     # via
     #   geniusrise (setup.py)
     #   jsonschema
@@ -989,7 +987,7 @@ universal-pathlib==0.1.4
     # via
     #   apache-airflow
     #   geniusrise (setup.py)
-urllib3==1.26.18
+urllib3<=2.2.1
     # via
     #   botocore
     #   docker
@@ -1043,7 +1041,7 @@ zipp==3.17.0
     # via
     #   geniusrise (setup.py)
     #   importlib-metadata
-zstandard==0.21.0
+zstandard<=0.22.0
     # via
     #   apache-beam
     #   geniusrise (setup.py)
