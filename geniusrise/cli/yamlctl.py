@@ -17,7 +17,8 @@
 import argparse
 import logging
 import typing
-from concurrent.futures import ThreadPoolExecutor, wait
+from concurrent.futures import ProcessPoolExecutor, wait
+from multiprocessing import get_context
 from typing import Dict, List
 
 import emoji  # type: ignore
@@ -211,6 +212,7 @@ class YamlCtl:
         Args:
             args (argparse.Namespace): Parsed command-line arguments.
         """
+        context = get_context("spawn")
         with open(args.file, "r") as file:
             self.geniusfile = Geniusfile.model_validate(yaml.safe_load(file), strict=True)
 
@@ -227,11 +229,11 @@ class YamlCtl:
                 self.deploy_spouts()
                 self.deploy_bolts()
         elif args.spout == "all":
-            with ThreadPoolExecutor(max_workers=len(self.geniusfile.spouts)) as executor:
+            with ProcessPoolExecutor(mp_context=context) as executor:
                 futures = self.run_spouts(executor)
             wait(futures)
         elif args.bolt == "all":
-            with ThreadPoolExecutor(max_workers=len(self.geniusfile.bolts)) as executor:
+            with ProcessPoolExecutor(mp_context=context) as executor:
                 futures = self.run_bolts(executor)
             wait(futures)
         elif args.spout:
@@ -239,7 +241,7 @@ class YamlCtl:
         elif args.bolt:
             self.run_bolt(args.bolt)
         else:
-            with ThreadPoolExecutor(max_workers=len(self.geniusfile.spouts) + len(self.geniusfile.bolts)) as executor:
+            with ProcessPoolExecutor(mp_context=context) as executor:
                 futures = self.run_spouts(executor)
                 futures2 = self.run_bolts(executor)
                 wait(futures + futures2)
