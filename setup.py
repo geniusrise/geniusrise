@@ -15,7 +15,7 @@ entry_points = {
 
 setup(
     name="geniusrise",
-    version="0.1.5",
+    version="0.1.6",
     packages=find_packages(exclude=["tests", "tests.*"]),
     install_requires=requirements,
     entry_points=entry_points,
