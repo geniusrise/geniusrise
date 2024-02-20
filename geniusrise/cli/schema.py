@@ -119,7 +119,7 @@ class Output(BaseModel):
     def validate_args(cls, v, values, **kwargs):
         if "type" in values:
             if values["type"] == "batch":
-                if not v or "bucket" not in v or "folder" not in v:
+                if not v or ("output_folder" not in v and ("bucket" not in v and "folder" not in v)):
                     raise ValueError("Missing required fields for batch output type")
             elif values["type"] == "streaming":
                 if not v or "output_topic" not in v or "kafka_servers" not in v:
@@ -172,7 +172,7 @@ class Input(BaseModel):
     def validate_args(cls, v, values, **kwargs):
         if "type" in values:
             if values["type"] == "batch":
-                if not v or "bucket" not in v or "folder" not in v:
+                if not v or ("input_folder" not in v and ("bucket" not in v and "folder" not in v)):
                     raise ValueError("Missing required fields for batch input type")
             elif values["type"] == "streaming":
                 if not v or "input_topic" not in v or "kafka_servers" not in v:

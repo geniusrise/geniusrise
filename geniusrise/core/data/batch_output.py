@@ -249,7 +249,7 @@ class BatchOutput(Output):
         """
         ☁️ Recursively copy all files and directories from the output folder to a given S3 bucket and folder.
         """
-        if self.bucket:
+        if self.bucket and self.bucket != "None":
             start_time = time.time()
             s3 = boto3.client("s3")
             try:

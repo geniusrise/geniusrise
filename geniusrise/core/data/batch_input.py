@@ -161,7 +161,7 @@ class BatchInput(Input):
         """
         self.bucket = bucket if bucket else self.bucket
 
-        if not self.bucket:
+        if not self.bucket or self.bucket == "None":
             self.log.warn("S3 Bucket is None, not fetching.")
             return
 
