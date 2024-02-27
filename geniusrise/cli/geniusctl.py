@@ -35,6 +35,7 @@ from geniusrise.cli.yamlctl import YamlCtl
 from geniusrise.logging import setup_logger
 from geniusrise.runners.k8s import CronJob, Deployment, Job, K8sResourceManager, Service
 from geniusrise.runners.airflow import AirflowRunner
+from geniusrise.core.state.base import PrometheusMetricsServer
 
 
 class GeniusCtl:
@@ -70,6 +71,9 @@ class GeniusCtl:
 
         # Print the text in red with a box around it and a dark background
         richprint(Text(text, style=Style(color="red")))
+
+        metrics_server = PrometheusMetricsServer(port=os.environ.get("PROMETHEUS_PORT", 8282))
+        metrics_server.start()
 
         # Print the link without a panel
         link_text = Text("🧠 https://geniusrise.ai", style=Style(color="deep_pink4"))
@@ -255,31 +259,35 @@ class GeniusCtl:
         for spout_name in self.spouts.keys():
             s = self.spouts[spout_name].klass
             table.add_row(
-                [
-                    colored(spout_name, "yellow"),
-                    colored("Spout", "cyan"),
-                    "\n".join([colored(x, "cyan") for x in dir(s) if not x.startswith("_")]),
-                ]
-                if verbose
-                else [
-                    colored(spout_name, "yellow"),
-                    colored("Spout", "cyan"),
-                ],
+                (
+                    [
+                        colored(spout_name, "yellow"),
+                        colored("Spout", "cyan"),
+                        "\n".join([colored(x, "cyan") for x in dir(s) if not x.startswith("_")]),
+                    ]
+                    if verbose
+                    else [
+                        colored(spout_name, "yellow"),
+                        colored("Spout", "cyan"),
+                    ]
+                ),
                 divider=verbose,
             )
         for bolt_name in self.bolts.keys():
             b = self.bolts[bolt_name].klass
             table.add_row(
-                [
-                    colored(bolt_name, "yellow"),
-                    colored("Bolt", "magenta"),
-                    "\n".join([colored(x, "magenta") for x in dir(b) if not x.startswith("_")]),
-                ]
-                if verbose
-                else [
-                    colored(bolt_name, "yellow"),
-                    colored("Bolt", "magenta"),
-                ],
+                (
+                    [
+                        colored(bolt_name, "yellow"),
+                        colored("Bolt", "magenta"),
+                        "\n".join([colored(x, "magenta") for x in dir(b) if not x.startswith("_")]),
+                    ]
+                    if verbose
+                    else [
+                        colored(bolt_name, "yellow"),
+                        colored("Bolt", "magenta"),
+                    ]
+                ),
                 divider=verbose,
             )
         sys.stdout.write(table.__repr__())

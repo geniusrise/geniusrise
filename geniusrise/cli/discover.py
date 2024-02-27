@@ -83,6 +83,7 @@ class Discover:
 
         # Get patterns from .geniusignore
         geniusignore_patterns = self.get_geniusignore_patterns(directory)  # type: ignore
+        geniusignore_patterns += ["venv", "build"]
 
         # Discover user-defined spouts/bolts
         self.log.warning(emoji.emojize(f"🔍 Starting discovery in `{directory}`"))
