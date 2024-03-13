@@ -15,9 +15,9 @@ RUN apt-get update \
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py \
  && python3.10 get-pip.py
 
-RUN pip install --ignore-installed --no-cache-dir --upgrade packaging
-RUN pip install --ignore-installed --no-cache-dir --upgrade torch
-RUN CMAKE_ARGS="-DLLAMA_CUBLAS=on" pip install --ignore-installed --no-cache-dir --upgrade geniusrise
+RUN pip install --ignore-installed --no-cache-dir --upgrade --user packaging
+RUN pip install --ignore-installed --no-cache-dir --upgrade --user torch
+RUN CMAKE_ARGS="-DLLAMA_CUBLAS=on" pip install --ignore-installed --no-cache-dir --upgrade --user geniusrise
 ENV GENIUS=/home/genius/.local/bin/genius
 
 # Runtime stage: Use the runtime image to create a smaller, more secure final image
@@ -40,10 +40,11 @@ WORKDIR /app
 RUN useradd --create-home genius
 
 # Copy the installed Python packages and any other necessary files from the builder image
-COPY --from=builder /usr/local/lib/python3.10 /usr/local/lib/python3.10
-COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder /root/.local /home/genius/.local
 
 ENV TZ UTC
+ENV PATH=/home/genius/.local/bin:$PATH
+RUN chmod +x /home/genius/.local/bin/*
 
 USER genius
 
