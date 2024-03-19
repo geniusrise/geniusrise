@@ -42,6 +42,8 @@ class StreamingOutput(Output):
     - Ensure the Kafka cluster is running and accessible.
     """
 
+    __connectors__ = ["kafka", "spark"]
+
     def __init__(self, output_topic: str, kafka_servers: str) -> None:
         """
         Initialize a new streaming output data.
@@ -96,6 +98,10 @@ class StreamingOutput(Output):
         else:
             self.log.exception("🚫 No Kafka producer available.")
             raise
+
+    # TODO: def to_spark
+
+    # TODO: def to_kafka
 
     def close(self) -> None:
         """

@@ -22,7 +22,6 @@ from kafka import KafkaConsumer, TopicPartition
 from pyspark.sql import DataFrame, Row
 from pyspark.sql.streaming import StreamingQuery
 from pyspark.rdd import RDD
-from streamz.dataframe import DataFrame as ZDataFrame
 
 from .input import Input
 
@@ -116,6 +115,8 @@ class StreamingInput(Input):
         ```
     """
 
+    __connectors__ = ["kafka", "spark"]
+
     def __init__(
         self,
         input_topic: Union[str, List[str]],
@@ -172,38 +173,7 @@ class StreamingInput(Input):
         else:
             raise KafkaConnectionError("No Kafka consumer available.")
 
-    def from_streamz(
-        self, streamz_df: ZDataFrame, sentinel: Any = None, timeout: int = 5
-    ) -> Generator[Any, None, None]:
-        """
-        Process a streamz DataFrame as a stream, similar to Kafka processing.
-
-        Args:
-            streamz_df (ZDataFrame): The streamz DataFrame to process.
-            sentinel (Any): The value that, when received, will stop the generator.
-            timeout (int): The time to wait for an item from the queue before raising an exception.
-
-        Yields:
-            Any: Yields each row as a dictionary.
-        """
-        q: Any = Queue()
-
-        def enqueue(x):
-            q.put(x)
-
-        stream = streamz_df.stream
-        stream.sink(enqueue)
-
-        while True:
-            try:
-                item = q.get(timeout=timeout)
-            except Empty:
-                self.log.warn("Queue is empty.")
-                continue
-
-            if sentinel is not None and item.equals(sentinel.reset_index(drop=True)):
-                break
-            yield item
+    # TODO: def from_kafka
 
     def from_spark(self, spark_df: DataFrame, map_func: Callable[[Row], Any]) -> Union[StreamingQuery, RDD[Any]]:
         """

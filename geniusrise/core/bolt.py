@@ -43,7 +43,7 @@ class Bolt(Task):
     """
     Base class for all bolts.
 
-    A bolt is a component that consumes streams of data, processes them, and possibly emits new data streams.
+    A bolt is a component that consumes data, processes them, and possibly emits new data.
     """
 
     def __init__(
