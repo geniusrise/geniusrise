@@ -16,7 +16,7 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py \
  && python3.10 get-pip.py
 
 RUN pip install --ignore-installed --no-cache-dir --upgrade --user packaging
-RUN pip install --ignore-installed --no-cache-dir --upgrade --user torch
+RUN pip install --ignore-installed --no-cache-dir --upgrade --user torch==2.1.2
 RUN CMAKE_ARGS="-DLLAMA_CUBLAS=on" pip install --ignore-installed --no-cache-dir --upgrade --user geniusrise
 ENV GENIUS=/home/genius/.local/bin/genius
 
