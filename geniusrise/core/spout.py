@@ -34,6 +34,8 @@ from geniusrise.logging import setup_logger
 class Spout(Task):
     """
     Base class for all spouts.
+
+    A spout is a component that emits new data.
     """
 
     def __init__(self, output: Output, state: State, id: Optional[str] = None, **kwargs) -> None:

@@ -88,6 +88,8 @@ class BatchInput(Input):
         ```
     """
 
+    __connectors__ = ["kafka", "spark", "s3"]
+
     def __init__(
         self,
         input_folder: str,

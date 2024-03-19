@@ -85,6 +85,8 @@ class BatchOutput(Output):
         ```
     """
 
+    __connectors__ = ["kafka", "spark", "s3"]
+
     def __init__(
         self,
         output_folder: str,
