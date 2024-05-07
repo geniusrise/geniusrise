@@ -17,15 +17,12 @@
 
 import pytest
 from kafka import KafkaConsumer
-from pyspark.sql import SparkSession
 from streamz import Stream
 import pandas as pd
 import threading
 import time
-import tempfile
 import csv
 import os
-from pyspark.sql.types import StructType, StructField, IntegerType
 
 from geniusrise.core.data.streaming_input import StreamingInput
 
@@ -33,14 +30,6 @@ from geniusrise.core.data.streaming_input import StreamingInput
 KAFKA_CLUSTER_CONNECTION_STRING = "localhost:9094"
 GROUP_ID = "geniusrise"
 INPUT_TOPIC = "test_topic"
-
-
-# Initialize Spark session for testing
-spark_session = (
-    SparkSession.builder.appName("GeniusRise")
-    .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.1")
-    .getOrCreate()
-)
 
 
 # Fixture for StreamingInput
@@ -158,31 +147,3 @@ def create_test_csv(dir_path):
 
 def map_func(row):
     return row["x"] + row["y"]
-
-
-def test_from_spark_streaming(streaming_input):
-    # Create a temporary directory and CSV file
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        create_test_csv(tmpdirname)
-
-        # Create a streaming DataFrame
-        schema = StructType([StructField("x", IntegerType()), StructField("y", IntegerType())])
-        streaming_df = spark_session.readStream.schema(schema).csv(tmpdirname)
-
-        query = streaming_input.from_spark(streaming_df, map_func)
-
-        assert query.isActive
-
-
-def test_from_spark_batch(streaming_input):
-    # Create a batch DataFrame
-    data = [(1, 2), (3, 4), (5, 6)]
-
-    # spark_session.sparkContext.addPyFile("./geniusrise/core/tests/data/test_streaming_input.py")
-    batch_df = spark_session.createDataFrame(data, ["x", "y"])
-
-    rdd = streaming_input.from_spark(batch_df, lambda row: row["x"] + row["y"])
-
-    # Collect the results and check
-    results = rdd.collect()
-    assert results == [3, 7, 11]

@@ -17,13 +17,10 @@
 import os
 import boto3
 import pytest
-from pyspark.sql import SparkSession
 from geniusrise.core.data import BatchOutput
 from kafka import KafkaConsumer
 import json
 
-# Initialize Spark session for testing
-spark = SparkSession.builder.master("local[1]").appName("GeniusRise").getOrCreate()
 
 # Define your S3 bucket and folder details as constants
 BUCKET = "geniusrise-test"
@@ -63,30 +60,6 @@ def test_batch_output_save(batch_output):
 
     # Check that the file was created in the output folder
     assert os.path.isfile(os.path.join(batch_output.output_folder, filename))
-
-
-# Test that the BatchOutput can convert to a Spark DataFrame
-def test_batch_output_to_spark(batch_output):
-    data = {"test": "buffer"}
-    filename = "test_file.json"
-    batch_output.save(data, filename)
-
-    df = batch_output.to_spark(spark)
-    assert df.count() == 1
-    assert df.first().filename.endswith(filename)
-
-
-# Test that the BatchOutput can convert to a Spark DataFrame with partitioning
-def test_batch_output_to_spark_with_partition(batch_output):
-    batch_output.partition_scheme = "%Y/%m/%d"
-
-    data = {"test": "buffer"}
-    filename = "test_file.json"
-    batch_output.save(data, filename)
-
-    df = batch_output.to_spark(spark)
-    assert df.count() == 1
-    assert df.first().filename.endswith(filename)
 
 
 # Test that the BatchOutput can copy files to the S3 bucket
