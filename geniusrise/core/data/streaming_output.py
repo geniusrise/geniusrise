@@ -99,10 +99,6 @@ class StreamingOutput(Output):
             self.log.exception("🚫 No Kafka producer available.")
             raise
 
-    # TODO: def to_spark
-
-    # TODO: def to_kafka
-
     def close(self) -> None:
         """
         🚪 Close the Kafka producer.

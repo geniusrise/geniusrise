@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import glob
 import json
 import logging
 import os
@@ -23,11 +22,8 @@ import time
 from typing import Any, Dict, Optional, Union
 
 import boto3
-import pyspark
-from pyspark.sql import SparkSession, Row
 from retrying import retry
 import shortuuid
-from kafka import KafkaProducer
 
 from .output import Output
 
@@ -71,9 +67,6 @@ class BatchOutput(Output):
         # Compose multiple BatchOutput instances
         result = config1.compose(config2, config3)
 
-        # Convert output to a Spark DataFrame
-        spark_df = config.to_spark(spark_session)
-
         # Copy files to a remote S3 bucket
         config.to_s3()
 
@@ -84,8 +77,6 @@ class BatchOutput(Output):
         metrics = config.collect_metrics()
         ```
     """
-
-    __connectors__ = ["kafka", "spark", "s3"]
 
     def __init__(
         self,
@@ -148,6 +139,7 @@ class BatchOutput(Output):
         Returns:
             Union[bool, str]: True if successful, error message otherwise.
         """
+        # TODO: try shutil.copytree
         try:
             for output_instance in outputs:
                 if not isinstance(output_instance, BatchOutput):
@@ -166,85 +158,6 @@ class BatchOutput(Output):
         except Exception as e:
             self.log.exception(f"❌ Error during composition: {e}")
             return str(e)
-
-    def to_spark(self, spark: SparkSession) -> pyspark.sql.DataFrame:
-        """
-        Get a Spark DataFrame from the output folder.
-
-        Returns:
-            pyspark.sql.DataFrame: A Spark DataFrame where each row corresponds to a file in the output folder.
-
-        Raises:
-            FileNotExistError: If the output folder does not exist.
-        """
-        if not os.path.exists(self.output_folder):
-            raise FileNotExistError(f"❌ Output folder {self.output_folder} does not exist.")
-
-        def file_generator():
-            try:
-                if self.partition_scheme:
-                    partitioned_folder = self._get_partitioned_key(self.s3_folder)
-                    target_folder = os.path.join(self.output_folder, partitioned_folder)
-                else:
-                    target_folder = self.output_folder
-
-                files = glob.glob(f"{target_folder}/*")
-                for file in files:
-                    with open(file, "r") as f:
-                        content = f.read()
-                    yield Row(filename=file, content=content)
-            except Exception as e:
-                self.log.exception(f"Failed to ingest the file {file} in spark: {e}")
-
-        start_time = time.time()
-        rdd = spark.sparkContext.parallelize(file_generator())
-        df = spark.createDataFrame(rdd)
-
-        end_time = time.time()
-        self._metrics["from_s3_time"] = end_time - start_time
-
-        return df
-
-    def to_kafka(
-        self,
-        output_topic: str,
-        kafka_cluster_connection_string: str,
-    ) -> None:
-        """
-        Produce messages to a Kafka topic from the files in the output folder.
-
-        Args:
-            output_topic (str): Kafka topic to produce data to.
-            kafka_cluster_connection_string (str): Connection string for the Kafka cluster.
-            key_serializer (Optional[str]): Serializer for message keys. Defaults to None.
-
-        Raises:
-            KafkaConnectionError: If unable to connect to Kafka.
-            Exception: If any other error occurs during processing.
-        """
-        start_time = time.time()
-        try:
-            producer = KafkaProducer(
-                bootstrap_servers=kafka_cluster_connection_string,
-                value_serializer=lambda v: json.dumps(v).encode("utf-8"),
-            )
-        except Exception as e:
-            self.log.exception(f"🚫 Failed to create Kafka producer: {e}")
-            raise KafkaConnectionError("Failed to connect to Kafka.")
-
-        try:
-            for root, _, files in os.walk(self.output_folder):
-                for filename in files:
-                    file_path = os.path.join(root, filename)
-                    with open(file_path, "r") as f:
-                        message = json.load(f)
-                    producer.send(output_topic, value=message)
-            producer.flush()
-            end_time = time.time()
-            self._metrics["to_kafka_time"] = end_time - start_time
-        except Exception as e:
-            self.log.exception(f"An error occurred: {e}")
-            raise
 
     @retry(stop_max_attempt_number=3, wait_fixed=2000)
     def to_s3(self) -> None:

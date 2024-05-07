@@ -20,10 +20,6 @@ import time
 from typing import Dict, Optional, Union
 
 import boto3
-from pyspark.sql import Row, DataFrame
-import shortuuid
-import json
-from kafka import KafkaConsumer
 
 from .input import Input
 
@@ -67,11 +63,6 @@ class BatchInput(Input):
         folder = input.get()
         ```
 
-        ### Save a Spark DataFrame to the input folder
-        ```python
-        input.from_spark(my_dataframe)
-        ```
-
         ### Compose multiple BatchInput instances
         ```python
         composed = input.compose(input1, input2)
@@ -87,8 +78,6 @@ class BatchInput(Input):
         metrics = input.collect_metrics()
         ```
     """
-
-    __connectors__ = ["kafka", "spark", "s3"]
 
     def __init__(
         self,
@@ -113,42 +102,6 @@ class BatchInput(Input):
             str: The path to the input folder.
         """
         return self.input_folder
-
-    def from_spark(self, df: DataFrame) -> None:
-        """
-        Save the contents of a Spark DataFrame to the input folder with optional partitioning.
-
-        Args:
-            df (DataFrame): The Spark DataFrame to save.
-
-        Raises:
-            FileNotExistError: If the input folder does not exist.
-        """
-        if not os.path.exists(self.input_folder):
-            raise FileNotExistError(f"❌ Input folder {self.input_folder} does not exist.")
-
-        start_time = time.time()
-
-        def save_row(row: Row) -> None:
-            filename = row.filename if hasattr(row, "filename") else str(shortuuid.uuid())
-            content = row.content if hasattr(row, "content") else json.dumps(row.asDict())
-
-            if self.partition_scheme:
-                partitioned_folder = self._get_partitioned_key(self.s3_folder)
-                target_folder = os.path.join(self.input_folder, partitioned_folder)
-                if not os.path.exists(target_folder):
-                    os.makedirs(target_folder)
-            else:
-                target_folder = self.input_folder
-
-            file_path = os.path.join(target_folder, filename)
-            with open(file_path, "w") as f:
-                f.write(content)
-
-        df.foreach(save_row)
-
-        end_time = time.time()
-        self._metrics["from_spark_time"] = end_time - start_time
 
     def from_s3(
         self,
@@ -183,68 +136,6 @@ class BatchInput(Input):
         else:
             raise Exception("❌ Input folder not specified.")
 
-    def from_kafka(
-        self,
-        input_topic: str,
-        kafka_cluster_connection_string: str,
-        nr_messages: int = 1000,
-        group_id: str = "geniusrise",
-        partition_scheme: Optional[str] = None,
-    ) -> str:
-        """
-        Consume messages from a Kafka topic and save them as JSON files in the input folder.
-        Stops consuming after reaching the latest message or the specified number of messages.
-
-        Args:
-            input_topic (str): Kafka topic to consume data from.
-            kafka_cluster_connection_string (str): Connection string for the Kafka cluster.
-            nr_messages (int, optional): Number of messages to consume. Defaults to 1000.
-            group_id (str, optional): Kafka consumer group ID. Defaults to "geniusrise".
-            partition_scheme (Optional[str]): Optional partitioning scheme for Kafka, e.g., "year/month/day".
-
-        Returns:
-            str: The path to the folder where the consumed messages are saved as JSON files.
-
-        Raises:
-            KafkaConnectionError: If unable to connect to Kafka.
-            Exception: If any other error occurs during processing.
-        """
-        self.input_topic = input_topic
-        self.kafka_cluster_connection_string = kafka_cluster_connection_string
-        self.group_id = group_id
-        self.partition_scheme = partition_scheme
-
-        start_time = time.time()
-        try:
-            self.consumer = KafkaConsumer(
-                self.input_topic,
-                bootstrap_servers=self.kafka_cluster_connection_string,
-                group_id=self.group_id,
-                max_poll_interval_ms=600000,  # 10 minutes
-                session_timeout_ms=10000,  # 10 seconds
-            )
-        except Exception as e:
-            self.log.exception(f"🚫 Failed to create Kafka consumer: {e}")
-            raise KafkaConnectionError("Failed to connect to Kafka.")
-
-        try:
-            buffered_messages = []
-            for i, message in enumerate(self.consumer):
-                if i >= nr_messages:
-                    break
-                buffered_messages.append(json.loads(message.value.decode("utf-8")))  # type: ignore
-
-            for i, message in enumerate(buffered_messages):
-                with open(os.path.join(self.input_folder, f"message_{i}.json"), "w") as f:
-                    json.dump(message, f)
-
-            end_time = time.time()
-            self._metrics["from_kafka_time"] = end_time - start_time
-            return self.input_folder
-        except Exception as e:
-            self.log.exception(f"An error occurred: {e}")
-            raise
-
     def compose(self, *inputs: "Input") -> Union[bool, str]:
         """
         Compose multiple BatchInput instances by merging their input folders.
@@ -255,6 +146,7 @@ class BatchInput(Input):
         Returns:
             Union[bool, str]: True if successful, error message otherwise.
         """
+        # TODO: try shutil.copytree
         try:
             for input_instance in inputs:
                 if not isinstance(input_instance, BatchInput):

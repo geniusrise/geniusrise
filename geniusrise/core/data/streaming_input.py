@@ -15,13 +15,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-from typing import Dict, List, Union, Generator, Any, Callable
-from queue import Queue, Empty
+from typing import Dict, List, Union
 
 from kafka import KafkaConsumer, TopicPartition
-from pyspark.sql import DataFrame, Row
-from pyspark.sql.streaming import StreamingQuery
-from pyspark.rdd import RDD
 
 from .input import Input
 
@@ -72,14 +68,6 @@ class StreamingInput(Input):
         streamz_df = ...  # Assume this is a streamz DataFrame
         for row in input.from_streamz(streamz_df):
             print(row)
-        ```
-
-        ### Using `from_spark` method to process Spark DataFrame
-        ```python
-        input = StreamingInput("my_topic", "localhost:9094")
-        spark_df = ...  # Assume this is a Spark DataFrame
-        map_func = lambda row: {"key": row.key, "value": row.value}
-        query_or_rdd = input.from_spark(spark_df, map_func)
         ```
 
         ### Using `compose` method to merge multiple StreamingInput instances
@@ -172,31 +160,6 @@ class StreamingInput(Input):
                 raise
         else:
             raise KafkaConnectionError("No Kafka consumer available.")
-
-    # TODO: def from_kafka
-
-    def from_spark(self, spark_df: DataFrame, map_func: Callable[[Row], Any]) -> Union[StreamingQuery, RDD[Any]]:
-        """
-        Process a Spark DataFrame as a stream, similar to Kafka processing.
-
-        Args:
-            spark_df (DataFrame): The Spark DataFrame to process.
-            map_func (Callable[[Row], Any]): Function to map each row of the DataFrame.
-
-        Returns:
-            Union[StreamingQuery, RDD[Any]]: Returns a StreamingQuery for streaming DataFrames, and an RDD for batch DataFrames.
-
-        Raises:
-            Exception: If an error occurs during processing.
-        """
-        try:
-            if spark_df.isStreaming:
-                return spark_df.writeStream.foreach(map_func).start()
-            else:
-                return spark_df.rdd.map(map_func)
-        except Exception as e:
-            self.log.exception(f"❌ Failed to process Spark DataFrame: {e}")
-            raise
 
     def compose(self, *inputs: "StreamingInput") -> Union[bool, str]:  # type: ignore
         """
