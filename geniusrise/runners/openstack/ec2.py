@@ -108,6 +108,7 @@ class OpenStackNovaRunner:
         create_parser.add_argument("image", help="Image ID or name.", type=str)
         create_parser.add_argument("flavor", help="Flavor ID or name.", type=str)
         create_parser.add_argument("--key-name", help="Key pair name.", type=str)
+        create_parser.add_argument("--allocate-ip", help="Allocate an IP address. Requies network to be public.", type=bool)
         create_parser.add_argument("--network", help="Network ID or name.", type=str)
         create_parser.add_argument("--block-storage-size", help="Size of the block storage in GB.", type=int)
         create_parser.add_argument("--open-ports", help="Comma-separated list of ports to open.", type=str)
@@ -146,6 +147,7 @@ class OpenStackNovaRunner:
                 image=args.image,
                 flavor=args.flavor,
                 key_name=args.key_name,
+                allocate_ip=args.allocate_ip,
                 network=args.network,
                 block_storage_size=args.block_storage_size,
                 open_ports=args.open_ports,
@@ -180,6 +182,7 @@ class OpenStackNovaRunner:
         image: str,
         flavor: str,
         key_name: Optional[str] = None,
+        allocate_ip: bool = False,
         network: Optional[str] = None,
         block_storage_size: Optional[int] = None,
         open_ports: Optional[str] = None,
@@ -192,6 +195,7 @@ class OpenStackNovaRunner:
             image (str): Image ID or name.
             flavor (str): Flavor ID or name.
             key_name (Optional[str]): Key pair name.
+            allocate_ip (bool): Whether a floating ip should be allocated. Also requires the network param.
             network (Optional[str]): Network ID or name.
             block_storage_size (Optional[int]): Size of the block storage in GB.
             open_ports (Optional[str]): Comma-separated list of ports to open.
@@ -243,6 +247,12 @@ class OpenStackNovaRunner:
                 volumeId=volume.id,
             )
             print(f"🗃️ Attached block storage of size {block_storage_size}GB to instance {name}")
+
+        # Allocate a floating IP address
+        if allocate_ip and network:
+            floating_ip = self.conn.network.create_ip(floating_network_id=network.id)  # type: ignore
+            self.conn.compute.add_floating_ip_to_server(instance, floating_ip.floating_ip_address)
+            print(f"🌐 Allocated floating IP address {floating_ip.floating_ip_address} to instance {name}")
 
         print(f"🛠️ Created instance {name} with ID {instance.id}")
         return instance
