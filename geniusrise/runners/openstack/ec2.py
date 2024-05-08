@@ -30,6 +30,7 @@ class OpenStackNovaRunner:
 
         ```bash
         genius openstack create --name example-instance --image ubuntu --flavor m1.small --key-name mykey --network my-network \
+            --block-storage-size 10 --open-ports 80,443 \
             --auth-url https://openstack.example.com:5000/v3 --username myuser --password mypassword --project-name myproject
         ```
 
@@ -53,6 +54,10 @@ class OpenStackNovaRunner:
         flavor: "m1.small"
         key_name: "mykey"
         network: "my-network"
+        block_storage_size: 10
+        open_ports:
+            - 80
+            - 443
         auth_url: "https://openstack.example.com:5000/v3"
         username: "myuser"
         password: "mypassword"
@@ -65,6 +70,24 @@ class OpenStackNovaRunner:
         🚀 Initialize the OpenStackNovaRunner class for managing OpenStack EC2 instances.
         """
         self.conn: connection.Connection = None  # type: ignore
+
+    def _add_connection_args(self, parser: ArgumentParser) -> ArgumentParser:
+        """
+        🛠 Add common connection arguments to a parser.
+
+        Args:
+            parser (ArgumentParser): The parser to which arguments will be added.
+
+        Returns:
+            ArgumentParser: The parser with added arguments.
+        """
+        # fmt: off
+        parser.add_argument("--auth-url", help="Authentication URL.", type=str, required=True)
+        parser.add_argument("--username", help="OpenStack username.", type=str, required=True)
+        parser.add_argument("--password", help="OpenStack password.", type=str, required=True)
+        parser.add_argument("--project-name", help="OpenStack project name.", type=str, required=True)
+        # fmt: on
+        return parser
 
     def create_parser(self, parser: ArgumentParser) -> ArgumentParser:
         """
@@ -86,26 +109,19 @@ class OpenStackNovaRunner:
         create_parser.add_argument("flavor", help="Flavor ID or name.", type=str)
         create_parser.add_argument("--key-name", help="Key pair name.", type=str)
         create_parser.add_argument("--network", help="Network ID or name.", type=str)
-        create_parser.add_argument("--auth-url", help="Authentication URL.", type=str, required=True)
-        create_parser.add_argument("--username", help="OpenStack username.", type=str, required=True)
-        create_parser.add_argument("--password", help="OpenStack password.", type=str, required=True)
-        create_parser.add_argument("--project-name", help="OpenStack project name.", type=str, required=True)
+        create_parser.add_argument("--block-storage-size", help="Size of the block storage in GB.", type=int)
+        create_parser.add_argument("--open-ports", help="Comma-separated list of ports to open.", type=str)
+        create_parser = self._add_connection_args(create_parser)
 
         # Parser for delete
         delete_parser = subparsers.add_parser("delete", help="Delete an instance.")
         delete_parser.add_argument("name", help="Name of the instance.", type=str)
-        delete_parser.add_argument("--auth-url", help="Authentication URL.", type=str, required=True)
-        delete_parser.add_argument("--username", help="OpenStack username.", type=str, required=True)
-        delete_parser.add_argument("--password", help="OpenStack password.", type=str, required=True)
-        delete_parser.add_argument("--project-name", help="OpenStack project name.", type=str, required=True)
+        delete_parser = self._add_connection_args(delete_parser)
 
         # Parser for show
         show_parser = subparsers.add_parser("show", help="Show details of an instance.")
         show_parser.add_argument("name", help="Name of the instance.", type=str)
-        show_parser.add_argument("--auth-url", help="Authentication URL.", type=str, required=True)
-        show_parser.add_argument("--username", help="OpenStack username.", type=str, required=True)
-        show_parser.add_argument("--password", help="OpenStack password.", type=str, required=True)
-        show_parser.add_argument("--project-name", help="OpenStack project name.", type=str, required=True)
+        show_parser = self._add_connection_args(show_parser)
 
         # fmt: on
         return parser
@@ -131,6 +147,8 @@ class OpenStackNovaRunner:
                 flavor=args.flavor,
                 key_name=args.key_name,
                 network=args.network,
+                block_storage_size=args.block_storage_size,
+                open_ports=args.open_ports,
             )
         elif args.openstack == "delete":
             self.delete(name=args.name)
@@ -157,7 +175,14 @@ class OpenStackNovaRunner:
         )
 
     def create(
-        self, name: str, image: str, flavor: str, key_name: Optional[str] = None, network: Optional[str] = None
+        self,
+        name: str,
+        image: str,
+        flavor: str,
+        key_name: Optional[str] = None,
+        network: Optional[str] = None,
+        block_storage_size: Optional[int] = None,
+        open_ports: Optional[str] = None,
     ) -> Any:
         """
         🛠 Create an OpenStack EC2 instance.
@@ -168,6 +193,8 @@ class OpenStackNovaRunner:
             flavor (str): Flavor ID or name.
             key_name (Optional[str]): Key pair name.
             network (Optional[str]): Network ID or name.
+            block_storage_size (Optional[int]): Size of the block storage in GB.
+            open_ports (Optional[str]): Comma-separated list of ports to open.
         """
         image = self.conn.compute.find_image(image)
         flavor = self.conn.compute.find_flavor(flavor)
@@ -178,13 +205,45 @@ class OpenStackNovaRunner:
         else:
             nics = None
 
+        # Create security group and open specified ports
+        if open_ports:
+            security_group = self.conn.network.create_security_group(
+                name=f"{name}-security-group",
+                description=f"Security group for {name} instance",
+            )
+            for port in open_ports.split(","):
+                self.conn.network.create_security_group_rule(
+                    security_group_id=security_group.id,
+                    direction="ingress",
+                    ethertype="IPv4",
+                    port_range_min=int(port),
+                    port_range_max=int(port),
+                    protocol="tcp",
+                )
+        else:
+            security_group = None
+
         instance = self.conn.compute.create_server(
             name=name,
             image_id=image.id,  # type: ignore
             flavor_id=flavor.id,  # type: ignore
             key_name=key_name,
             nics=nics,
+            security_groups=[security_group.name] if security_group else None,  # type: ignore
         )
+
+        # Attach block storage if specified
+        if block_storage_size:
+            volume = self.conn.block_storage.create_volume(
+                name=f"{name}-volume",
+                size=block_storage_size,
+            )
+            self.conn.compute.create_volume_attachment(
+                server=instance,
+                volumeId=volume.id,
+            )
+            print(f"🗃️ Attached block storage of size {block_storage_size}GB to instance {name}")
+
         print(f"🛠️ Created instance {name} with ID {instance.id}")
         return instance
 
