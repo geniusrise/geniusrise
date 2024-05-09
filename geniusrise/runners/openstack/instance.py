@@ -20,9 +20,9 @@ from typing import Optional, Any
 from openstack import connection  # type: ignore
 
 
-class OpenStackNovaRunner:
+class OpenStackInstanceRunner:
     r"""
-    🚀 Initialize the OpenStackNovaRunner class for managing OpenStack EC2 instances.
+    🚀 Initialize the OpenStackInstanceRunner class for managing OpenStack EC2 instances.
 
     CLI Usage:
         genius openstack [sub-command] [options]
@@ -67,7 +67,7 @@ class OpenStackNovaRunner:
 
     def __init__(self):
         """
-        🚀 Initialize the OpenStackNovaRunner class for managing OpenStack EC2 instances.
+        🚀 Initialize the OpenStackInstanceRunner class for managing OpenStack EC2 instances.
         """
         self.conn: connection.Connection = None  # type: ignore
 
