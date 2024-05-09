@@ -30,7 +30,7 @@ class OpenStackInstanceRunner:
 
         ```bash
         genius openstack create --name example-instance --image ubuntu --flavor m1.small --key-name mykey --network my-network \
-            --block-storage-size 10 --open-ports 80,443 \
+            --block-storage-size 10 --open-ports 80,443 --user-data "#!/bin/bash\napt-get update\napt-get install -y apache2" \
             --auth-url https://openstack.example.com:5000/v3 --username myuser --password mypassword --project-name myproject
         ```
 
@@ -58,6 +58,10 @@ class OpenStackInstanceRunner:
         open_ports:
             - 80
             - 443
+        user_data: |
+            #!/bin/bash
+            apt-get update
+            apt-get install -y apache2
         auth_url: "https://openstack.example.com:5000/v3"
         username: "myuser"
         password: "mypassword"
@@ -108,10 +112,11 @@ class OpenStackInstanceRunner:
         create_parser.add_argument("image", help="Image ID or name.", type=str)
         create_parser.add_argument("flavor", help="Flavor ID or name.", type=str)
         create_parser.add_argument("--key-name", help="Key pair name.", type=str)
-        create_parser.add_argument("--allocate-ip", help="Allocate an IP address. Requies network to be public.", type=bool)
+        create_parser.add_argument("--allocate-ip", help="Allocate an IP address. Requires network to be public.", type=bool, default=False)
         create_parser.add_argument("--network", help="Network ID or name.", type=str)
         create_parser.add_argument("--block-storage-size", help="Size of the block storage in GB.", type=int)
         create_parser.add_argument("--open-ports", help="Comma-separated list of ports to open.", type=str)
+        create_parser.add_argument("--user-data", help="User data script for instances.", type=str, default="#!/bin/bash")
         create_parser = self._add_connection_args(create_parser)
 
         # Parser for delete
@@ -151,6 +156,7 @@ class OpenStackInstanceRunner:
                 network=args.network,
                 block_storage_size=args.block_storage_size,
                 open_ports=args.open_ports,
+                user_data=args.user_data,
             )
         elif args.openstack == "delete":
             self.delete(name=args.name)
@@ -186,6 +192,7 @@ class OpenStackInstanceRunner:
         network: Optional[str] = None,
         block_storage_size: Optional[int] = None,
         open_ports: Optional[str] = None,
+        user_data: str = "#!/bin/bash",
     ) -> Any:
         """
         🛠 Create an OpenStack EC2 instance.
@@ -195,10 +202,11 @@ class OpenStackInstanceRunner:
             image (str): Image ID or name.
             flavor (str): Flavor ID or name.
             key_name (Optional[str]): Key pair name.
-            allocate_ip (bool): Whether a floating ip should be allocated. Also requires the network param.
+            allocate_ip (bool): Whether a floating IP should be allocated. Also requires the network param.
             network (Optional[str]): Network ID or name.
             block_storage_size (Optional[int]): Size of the block storage in GB.
             open_ports (Optional[str]): Comma-separated list of ports to open.
+            user_data (str): User data script for instances.
         """
         image = self.conn.compute.find_image(image)
         flavor = self.conn.compute.find_flavor(flavor)
@@ -234,6 +242,7 @@ class OpenStackInstanceRunner:
             key_name=key_name,
             nics=nics,
             security_groups=[security_group.name] if security_group else None,  # type: ignore
+            user_data=user_data,
         )
 
         # Attach block storage if specified
