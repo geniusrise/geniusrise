@@ -186,13 +186,11 @@ class Input(BaseModel):
         return v
 
 
-class DeployArgs(BaseModel):
+class KubernetesDeployArgs(BaseModel):
     """
-    This class defines the arguments for the deployment. Depending on the type of deployment (k8s, ecs, openstack-instance, openstack-autoscale),
-    different arguments are required.
+    This class defines the arguments for Kubernetes deployment.
     """
 
-    # k8s
     kind: Optional[str] = "deployment"
     name: Optional[str] = None
     replicas: Optional[int] = 1
@@ -212,35 +210,44 @@ class DeployArgs(BaseModel):
     target_port: Optional[int] = None
     schedule: Optional[str] = None
 
-    # ecs
-    account_id: Optional[str] = None
-    cluster: Optional[str] = None
-    subnet_ids: Optional[List[str]] = None
-    security_group_ids: Optional[List[str]] = None
-    log_group: Optional[str] = None
+    class Config:
+        extra = Extra.allow
 
-    # openstack-instance
-    openstack_name: Optional[str] = None
-    openstack_image: Optional[str] = None
-    openstack_flavor: Optional[str] = None
-    openstack_key_name: Optional[str] = None
-    openstack_network: Optional[str] = None
-    openstack_block_storage_size: Optional[int] = None
-    openstack_open_ports: Optional[str] = None
-    openstack_allocate_ip: Optional[bool] = False
-    openstack_user_data: Optional[str] = None
 
-    # openstack-autoscale
-    openstack_min_instances: Optional[int] = 1
-    openstack_max_instances: Optional[int] = 5
-    openstack_desired_instances: Optional[int] = 2
-    openstack_protocol: Optional[str] = "HTTP"
-    openstack_scale_up_threshold: Optional[int] = 80
-    openstack_scale_up_adjustment: Optional[int] = 1
-    openstack_scale_down_threshold: Optional[int] = 20
-    openstack_scale_down_adjustment: Optional[int] = -1
-    openstack_alarm_period: Optional[int] = 60
-    openstack_alarm_evaluation_periods: Optional[int] = 1
+class OpenStackDeployArgs(BaseModel):
+    """
+    This class defines the arguments for OpenStack deployment.
+    """
+
+    name: Optional[str] = None
+    image: Optional[str] = None
+    flavor: Optional[str] = None
+    key_name: Optional[str] = None
+    network: Optional[str] = None
+    block_storage_size: Optional[int] = None
+    open_ports: Optional[str] = None
+    allocate_ip: Optional[bool] = False
+    user_data: Optional[str] = None
+    min_instances: Optional[int] = 1
+    max_instances: Optional[int] = 5
+    desired_instances: Optional[int] = 2
+    protocol: Optional[str] = "HTTP"
+    scale_up_threshold: Optional[int] = 80
+    scale_up_adjustment: Optional[int] = 1
+    scale_down_threshold: Optional[int] = 20
+    scale_down_adjustment: Optional[int] = -1
+    alarm_period: Optional[int] = 60
+    alarm_evaluation_periods: Optional[int] = 1
+
+    class Config:
+        extra = Extra.allow
+
+
+class DeployArgs(BaseModel):
+    """
+    This class defines the arguments for the deployment. Depending on the type of deployment (k8s, openstack),
+    different arguments are required.
+    """
 
     # common
     image: Optional[str] = "geniusrise/geniusrise:latest"
@@ -248,13 +255,19 @@ class DeployArgs(BaseModel):
     memory: Optional[str] = None
     env_vars: Optional[Dict[str, str]] = None
 
+    # k8s
+    k8s: Optional[KubernetesDeployArgs] = None
+
+    # openstack
+    openstack: Optional[OpenStackDeployArgs] = None
+
     class Config:
         extra = Extra.allow
 
 
 class Deploy(BaseModel):
     """
-    This class defines the deployment of the spout or bolt. The deployment can be of type k8s, ecs, openstack-instance, or openstack-autoscale.
+    This class defines the deployment of the spout or bolt. The deployment can be of type k8s or openstack.
     """
 
     type: str
@@ -262,30 +275,13 @@ class Deploy(BaseModel):
 
     @validator("type")
     def validate_type(cls, v, values, **kwargs):
-        if v not in ["k8s", "ecs", "openstack-instance", "openstack-autoscale"]:
+        if v not in ["k8s", "openstack"]:
             raise ValueError("Invalid deploy type")
         return v
 
     @validator("args", pre=True, always=True)
     def validate_args(cls, v, values, **kwargs):
         if "type" in values:
-            if values["type"] == "ecs":
-                required_fields = [
-                    "name",
-                    "namespace",
-                    "image",
-                    "replicas",
-                    "account_id",
-                    "cluster",
-                    "subnet_ids",
-                    "security_group_ids",
-                    "log_group",
-                    "cpu",
-                    "memory",
-                ]
-                for field in required_fields:
-                    if not v or field not in v or not v[field]:
-                        raise ValueError(f"Missing required field '{field}' for ecs deploy type")
             if values["type"] == "k8s":
                 required_fields = [
                     "kind",
@@ -297,26 +293,16 @@ class Deploy(BaseModel):
                 for field in required_fields:
                     if not v or field not in v or not v[field]:
                         raise ValueError(f"Missing required field '{field}' for k8s deploy type")
-            if values["type"] == "openstack-instance":
+            if values["type"] == "openstack":
                 required_fields = [
-                    "openstack_name",
-                    "openstack_image",
-                    "openstack_flavor",
-                    "openstack_network",
+                    "name",
+                    "image",
+                    "flavor",
+                    "network",
                 ]
                 for field in required_fields:
                     if not v or field not in v or not v[field]:
-                        raise ValueError(f"Missing required field '{field}' for openstack-instance deploy type")
-            if values["type"] == "openstack-autoscale":
-                required_fields = [
-                    "openstack_name",
-                    "openstack_image",
-                    "openstack_flavor",
-                    "openstack_network",
-                ]
-                for field in required_fields:
-                    if not v or field not in v or not v[field]:
-                        raise ValueError(f"Missing required field '{field}' for openstack-autoscale deploy type")
+                        raise ValueError(f"Missing required field '{field}' for openstack deploy type")
             else:
                 raise ValueError(f"Unknown type of deployment {values['type']}")
         else:
