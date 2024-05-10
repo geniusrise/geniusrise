@@ -125,6 +125,7 @@ class SpoutCtl:
         deploy_parser.add_argument("--dynamodb_table_name", help="Provide the name of the DynamoDB table.", default="mytable", type=str)
         deploy_parser.add_argument("--dynamodb_region_name", help="Specify the AWS region for DynamoDB.", default="us-west-2", type=str)
         # deployment
+        # kubernetes
         deploy_parser.add_argument("--k8s_kind", choices=["deployment", "service", "job", "cron_job"], help="Choose the type of kubernetes resource.", default="job")
         deploy_parser.add_argument("--k8s_name", help="Name of the Kubernetes resource.", type=str)
         deploy_parser.add_argument("--k8s_image", help="Docker image for the Kubernetes resource.", type=str)
