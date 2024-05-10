@@ -1,18 +1,17 @@
 # 🧠 Geniusrise
 # Copyright (C) 2023  geniusrise.ai
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
+#  http://www.apache.org/licenses/LICENSE-2.0
 #
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import tempfile
 from typing import Any, Optional
@@ -43,7 +42,7 @@ class Bolt(Task):
     """
     Base class for all bolts.
 
-    A bolt is a component that consumes streams of data, processes them, and possibly emits new data streams.
+    A bolt is a component that consumes data, processes them, and possibly emits new data.
     """
 
     def __init__(
@@ -230,9 +229,11 @@ class Bolt(Task):
         elif input_type == "streaming":
             input = StreamingInput(
                 input_topic=kwargs["input_kafka_topic"] if "input_kafka_topic" in kwargs else None,  # type: ignore
-                kafka_cluster_connection_string=kwargs["input_kafka_cluster_connection_string"]
-                if "input_kafka_cluster_connection_string" in kwargs
-                else None,
+                kafka_cluster_connection_string=(
+                    kwargs["input_kafka_cluster_connection_string"]
+                    if "input_kafka_cluster_connection_string" in kwargs
+                    else None
+                ),
                 group_id=kwargs["input_kafka_consumer_group_id"] if "input_kafka_consumer_group_id" in kwargs else None,
             )
         else:
@@ -249,9 +250,11 @@ class Bolt(Task):
         elif output_type == "streaming":
             output = StreamingOutput(
                 kwargs["output_kafka_topic"] if "output_kafka_topic" in kwargs else None,
-                kwargs["output_kafka_cluster_connection_string"]
-                if "output_kafka_cluster_connection_string" in kwargs
-                else None,
+                (
+                    kwargs["output_kafka_cluster_connection_string"]
+                    if "output_kafka_cluster_connection_string" in kwargs
+                    else None
+                ),
             )
         else:
             raise ValueError(f"Invalid output type: {output_type}")

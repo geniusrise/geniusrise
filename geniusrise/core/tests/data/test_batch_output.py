@@ -1,29 +1,25 @@
 # 🧠 Geniusrise
 # Copyright (C) 2023  geniusrise.ai
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
+#  http://www.apache.org/licenses/LICENSE-2.0
 #
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import os
 import boto3
 import pytest
-from pyspark.sql import SparkSession
 from geniusrise.core.data import BatchOutput
 from kafka import KafkaConsumer
 import json
 
-# Initialize Spark session for testing
-spark = SparkSession.builder.master("local[1]").appName("GeniusRise").getOrCreate()
 
 # Define your S3 bucket and folder details as constants
 BUCKET = "geniusrise-test"
@@ -63,30 +59,6 @@ def test_batch_output_save(batch_output):
 
     # Check that the file was created in the output folder
     assert os.path.isfile(os.path.join(batch_output.output_folder, filename))
-
-
-# Test that the BatchOutput can convert to a Spark DataFrame
-def test_batch_output_to_spark(batch_output):
-    data = {"test": "buffer"}
-    filename = "test_file.json"
-    batch_output.save(data, filename)
-
-    df = batch_output.to_spark(spark)
-    assert df.count() == 1
-    assert df.first().filename.endswith(filename)
-
-
-# Test that the BatchOutput can convert to a Spark DataFrame with partitioning
-def test_batch_output_to_spark_with_partition(batch_output):
-    batch_output.partition_scheme = "%Y/%m/%d"
-
-    data = {"test": "buffer"}
-    filename = "test_file.json"
-    batch_output.save(data, filename)
-
-    df = batch_output.to_spark(spark)
-    assert df.count() == 1
-    assert df.first().filename.endswith(filename)
 
 
 # Test that the BatchOutput can copy files to the S3 bucket

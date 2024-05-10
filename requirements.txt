@@ -614,10 +614,6 @@ psutil==5.9.6
     #   geniusrise (setup.py)
 psycopg2-binary==2.9.9
     # via geniusrise (setup.py)
-py4j==0.10.9.7
-    # via
-    #   geniusrise (setup.py)
-    #   pyspark
 pyarrow==14.0.2
 pyasn1==0.5.0
     # via
@@ -666,10 +662,6 @@ pyparsing==3.1.1
     #   httplib2
     #   pydot
 pyproject-hooks==1.0.0
-    # via
-    #   build
-    #   geniusrise (setup.py)
-pyspark==3.5.0
     # via geniusrise (setup.py)
 pytest==7.4.3
     # via
@@ -839,8 +831,6 @@ sqlparse==0.4.4
     # via
     #   apache-airflow-providers-common-sql
     #   geniusrise (setup.py)
-streamz==0.6.4
-    # via geniusrise (setup.py)
 tabulate==0.9.0
     # via
     #   apache-airflow
@@ -949,3 +939,6 @@ zipp==3.17.0
     # via
     #   geniusrise (setup.py)
     #   importlib-metadata
+openstacksdk==3.1.0
+    # via
+    #   geniusrise (setup.py)

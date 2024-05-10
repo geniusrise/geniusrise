@@ -1,28 +1,22 @@
 # 🧠 Geniusrise
 # Copyright (C) 2023  geniusrise.ai
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
+#  http://www.apache.org/licenses/LICENSE-2.0
 #
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import logging
-from typing import Dict, List, Union, Generator, Any, Callable
-from queue import Queue, Empty
+from typing import Dict, List, Union
 
 from kafka import KafkaConsumer, TopicPartition
-from pyspark.sql import DataFrame, Row
-from pyspark.sql.streaming import StreamingQuery
-from pyspark.rdd import RDD
-from streamz.dataframe import DataFrame as ZDataFrame
 
 from .input import Input
 
@@ -75,14 +69,6 @@ class StreamingInput(Input):
             print(row)
         ```
 
-        ### Using `from_spark` method to process Spark DataFrame
-        ```python
-        input = StreamingInput("my_topic", "localhost:9094")
-        spark_df = ...  # Assume this is a Spark DataFrame
-        map_func = lambda row: {"key": row.key, "value": row.value}
-        query_or_rdd = input.from_spark(spark_df, map_func)
-        ```
-
         ### Using `compose` method to merge multiple StreamingInput instances
         ```python
         input1 = StreamingInput("topic1", "localhost:9094")
@@ -115,6 +101,8 @@ class StreamingInput(Input):
         print(metrics)
         ```
     """
+
+    __connectors__ = ["kafka", "spark"]
 
     def __init__(
         self,
@@ -171,62 +159,6 @@ class StreamingInput(Input):
                 raise
         else:
             raise KafkaConnectionError("No Kafka consumer available.")
-
-    def from_streamz(
-        self, streamz_df: ZDataFrame, sentinel: Any = None, timeout: int = 5
-    ) -> Generator[Any, None, None]:
-        """
-        Process a streamz DataFrame as a stream, similar to Kafka processing.
-
-        Args:
-            streamz_df (ZDataFrame): The streamz DataFrame to process.
-            sentinel (Any): The value that, when received, will stop the generator.
-            timeout (int): The time to wait for an item from the queue before raising an exception.
-
-        Yields:
-            Any: Yields each row as a dictionary.
-        """
-        q: Any = Queue()
-
-        def enqueue(x):
-            q.put(x)
-
-        stream = streamz_df.stream
-        stream.sink(enqueue)
-
-        while True:
-            try:
-                item = q.get(timeout=timeout)
-            except Empty:
-                self.log.warn("Queue is empty.")
-                continue
-
-            if sentinel is not None and item.equals(sentinel.reset_index(drop=True)):
-                break
-            yield item
-
-    def from_spark(self, spark_df: DataFrame, map_func: Callable[[Row], Any]) -> Union[StreamingQuery, RDD[Any]]:
-        """
-        Process a Spark DataFrame as a stream, similar to Kafka processing.
-
-        Args:
-            spark_df (DataFrame): The Spark DataFrame to process.
-            map_func (Callable[[Row], Any]): Function to map each row of the DataFrame.
-
-        Returns:
-            Union[StreamingQuery, RDD[Any]]: Returns a StreamingQuery for streaming DataFrames, and an RDD for batch DataFrames.
-
-        Raises:
-            Exception: If an error occurs during processing.
-        """
-        try:
-            if spark_df.isStreaming:
-                return spark_df.writeStream.foreach(map_func).start()
-            else:
-                return spark_df.rdd.map(map_func)
-        except Exception as e:
-            self.log.exception(f"❌ Failed to process Spark DataFrame: {e}")
-            raise
 
     def compose(self, *inputs: "StreamingInput") -> Union[bool, str]:  # type: ignore
         """

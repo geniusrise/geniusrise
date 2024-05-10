@@ -1,18 +1,17 @@
 # 🧠 Geniusrise
 # Copyright (C) 2023  geniusrise.ai
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
+#  http://www.apache.org/licenses/LICENSE-2.0
 #
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 from typing import Dict, List, Optional, Union
 
@@ -40,11 +39,11 @@ class StateArgs(BaseModel):
     postgres_host: Optional[str] = "127.0.0.1"
     postgres_port: Optional[int] = 5432
     postgres_user: Optional[str] = "postgres"
-    postgres_password: Optional[str] = "postgres"
+    postgres_password: Optional[str] = "password"
     postgres_database: Optional[str] = "geniusrise"
-    postgres_table: Optional[str] = None
+    postgres_table: Optional[str] = "geniusrise"
     dynamodb_table_name: Optional[str] = "geniusrise"
-    dynamodb_region_name: Optional[str] = "ap-south-1"  # hah
+    dynamodb_region_name: Optional[str] = "us-east-1"
 
     class Config:
         extra = Extra.allow
@@ -187,44 +186,81 @@ class Input(BaseModel):
         return v
 
 
-class DeployArgs(BaseModel):
+class KubernetesDeployArgs(BaseModel):
     """
-    This class defines the arguments for the deployment. Depending on the type of deployment (k8s, ecs),
-    different arguments are required.
+    This class defines the arguments for Kubernetes deployment.
     """
 
-    # k8s
     kind: Optional[str] = "deployment"
     name: Optional[str] = None
-    replicas: Optional[str] = None
+    replicas: Optional[int] = 1
     storage: Optional[str] = None
     gpu: Optional[str] = None
     kube_config_path: Optional[str] = "~/.kube/config"
     api_key: Optional[str] = None
     api_host: Optional[str] = None
-    verify_ssl: Optional[str] = None
+    verify_ssl: Optional[bool] = False
     ssl_ca_cert: Optional[str] = None
     cluster_name: Optional[str] = None
     context_name: Optional[str] = None
     namespace: Optional[str] = None
-    labels: Optional[str] = '{"created_by": "geniusrise"}'
-    annotations: Optional[str] = '{"created_by": "geniusrise"}'
-    port: Optional[str] = None
-    target_port: Optional[str] = None
+    labels: Optional[Dict[str, str]] = {"created_by": "geniusrise"}
+    annotations: Optional[Dict[str, str]] = {"created_by": "geniusrise"}
+    port: Optional[int] = None
+    target_port: Optional[int] = None
     schedule: Optional[str] = None
 
-    # ecs
-    account_id: Optional[str] = None
-    cluster: Optional[str] = None
-    subnet_ids: Optional[List[str]] = None
-    security_group_ids: Optional[List[str]] = None
-    log_group: Optional[str] = None
+    class Config:
+        extra = Extra.allow
+
+
+class OpenStackDeployArgs(BaseModel):
+    """
+    This class defines the arguments for OpenStack deployment.
+    """
+
+    kind: Optional[str] = "instance"
+    name: Optional[str] = None
+    image: Optional[str] = None
+    flavor: Optional[str] = None
+    key_name: Optional[str] = None
+    network: Optional[str] = None
+    block_storage_size: Optional[int] = None
+    open_ports: Optional[str] = None
+    allocate_ip: Optional[bool] = False
+    user_data: Optional[str] = None
+    min_instances: Optional[int] = 1
+    max_instances: Optional[int] = 5
+    desired_instances: Optional[int] = 2
+    protocol: Optional[str] = "HTTP"
+    scale_up_threshold: Optional[int] = 80
+    scale_up_adjustment: Optional[int] = 1
+    scale_down_threshold: Optional[int] = 20
+    scale_down_adjustment: Optional[int] = -1
+    alarm_period: Optional[int] = 60
+    alarm_evaluation_periods: Optional[int] = 1
+
+    class Config:
+        extra = Extra.allow
+
+
+class DeployArgs(BaseModel):
+    """
+    This class defines the arguments for the deployment. Depending on the type of deployment (k8s, openstack),
+    different arguments are required.
+    """
 
     # common
     image: Optional[str] = "geniusrise/geniusrise:latest"
-    cpu: Optional[int] = None
-    memory: Optional[int] = None
-    env_vars: Optional[str] = None
+    cpu: Optional[str] = None
+    memory: Optional[str] = None
+    env_vars: Optional[Dict[str, str]] = None
+
+    # k8s
+    k8s: Optional[KubernetesDeployArgs] = None
+
+    # openstack
+    openstack: Optional[OpenStackDeployArgs] = None
 
     class Config:
         extra = Extra.allow
@@ -232,7 +268,7 @@ class DeployArgs(BaseModel):
 
 class Deploy(BaseModel):
     """
-    This class defines the deployment of the spout or bolt. The deployment can be of type k8s or ecs.
+    This class defines the deployment of the spout or bolt. The deployment can be of type k8s or openstack.
     """
 
     type: str
@@ -240,30 +276,13 @@ class Deploy(BaseModel):
 
     @validator("type")
     def validate_type(cls, v, values, **kwargs):
-        if v not in ["k8s", "ecs"]:
+        if v not in ["k8s", "openstack"]:
             raise ValueError("Invalid deploy type")
         return v
 
     @validator("args", pre=True, always=True)
     def validate_args(cls, v, values, **kwargs):
         if "type" in values:
-            if values["type"] == "ecs":
-                required_fields = [
-                    "name",
-                    "namespace",
-                    "image",
-                    "replicas",
-                    "account_id",
-                    "cluster",
-                    "subnet_ids",
-                    "security_group_ids",
-                    "log_group",
-                    "cpu",
-                    "memory",
-                ]
-                for field in required_fields:
-                    if not v or field not in v or not v[field]:
-                        raise ValueError(f"Missing required field '{field}' for ecs deploy type")
             if values["type"] == "k8s":
                 required_fields = [
                     "kind",
@@ -275,6 +294,17 @@ class Deploy(BaseModel):
                 for field in required_fields:
                     if not v or field not in v or not v[field]:
                         raise ValueError(f"Missing required field '{field}' for k8s deploy type")
+            if values["type"] == "openstack":
+                required_fields = [
+                    "kind",
+                    "name",
+                    "image",
+                    "flavor",
+                    "network",
+                ]
+                for field in required_fields:
+                    if not v or field not in v or not v[field]:
+                        raise ValueError(f"Missing required field '{field}' for openstack deploy type")
             else:
                 raise ValueError(f"Unknown type of deployment {values['type']}")
         else:
