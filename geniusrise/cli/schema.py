@@ -219,6 +219,7 @@ class OpenStackDeployArgs(BaseModel):
     This class defines the arguments for OpenStack deployment.
     """
 
+    kind: Optional[str] = "instance"
     name: Optional[str] = None
     image: Optional[str] = None
     flavor: Optional[str] = None
@@ -295,6 +296,7 @@ class Deploy(BaseModel):
                         raise ValueError(f"Missing required field '{field}' for k8s deploy type")
             if values["type"] == "openstack":
                 required_fields = [
+                    "kind",
                     "name",
                     "image",
                     "flavor",

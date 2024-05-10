@@ -151,6 +151,7 @@ class BoltCtl:
         deploy_parser.add_argument("--k8s_target_port", help="Port to expose the spout on as a service.", type=int)
         deploy_parser.add_argument("--k8s_schedule", help="Schedule to run the spout on as a cron job.", type=str)
         # openstack
+        deploy_parser.add_argument("--openstack_kind", choices=["instance", "autoscale"], help="Choose the type of openstack resource.", default="job")
         deploy_parser.add_argument("--openstack_name", help="Name of the OpenStack instance.", type=str)
         deploy_parser.add_argument("--openstack_image", help="Image ID or name for the OpenStack instance.", type=str)
         deploy_parser.add_argument("--openstack_flavor", help="Flavor ID or name for the OpenStack instance.", type=str)
@@ -378,7 +379,8 @@ class BoltCtl:
                     - k8s_port (int): Port to run the spout on as a service.
                     - k8s_target_port (int): Port to expose the spout on as a service.
                     - k8s_schedule (str): Schedule to run the spout on as a cron job.
-                    Openstack instance
+                    Openstack
+                    - openstack_kind (str): Type of openstack resource: instance or autoscale.
                     - openstack_name (str): Name of the OpenStack instance.
                     - openstack_image (str): Image ID or name for the OpenStack instance.
                     - openstack_flavor (str): Flavor ID or name for the OpenStack instance.
@@ -515,7 +517,7 @@ class BoltCtl:
             resource.create(command=command, **k8s_kwargs)
             return resource
 
-        elif args.deployment_type == "openstack-instance":
+        elif args.deployment_type == "openstack" and args.openstack_kind == "instance":
             openstack_instance_kwargs = {
                 "name": args.openstack_name,
                 "image": args.openstack_image,
@@ -539,7 +541,7 @@ class BoltCtl:
             instance = openstack_instance_runner.create(**openstack_instance_kwargs)
             return instance
 
-        elif args.deployment_type == "openstack-autoscale":
+        elif args.deployment_type == "openstack" and args.openstack_kind == "autoscale":
             openstack_autoscale_kwargs = {
                 "name": args.openstack_name,
                 "image": args.openstack_image,

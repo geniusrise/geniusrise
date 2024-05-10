@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
+import json
 import logging
 import typing
 from concurrent.futures import ProcessPoolExecutor, wait
@@ -571,55 +572,107 @@ class YamlCtl:
         deploy_args = []
 
         if entity.deploy and entity.deploy.type == "k8s":
-            if entity.deploy and entity.deploy.args and entity.deploy.args.kind:
-                deploy_args.append(f"--k8s_kind={entity.deploy.args.kind}")
-            if entity.deploy and entity.deploy.args and entity.deploy.args.name:
-                deploy_args.append(f"--k8s_name={entity.deploy.args.name}")
-            if entity.deploy and entity.deploy.args and entity.deploy.args.image:
-                deploy_args.append(f"--k8s_image={entity.deploy.args.image}")
-            if entity.deploy and entity.deploy.args and entity.deploy.args.replicas:
-                deploy_args.append(f"--k8s_replicas={entity.deploy.args.replicas}")
-            if entity.deploy and entity.deploy.args and entity.deploy.args.env_vars:
-                deploy_args.append(f"--k8s_env_vars={entity.deploy.args.env_vars}")
-            if entity.deploy and entity.deploy.args and entity.deploy.args.cpu:
-                deploy_args.append(f"--k8s_cpu={entity.deploy.args.cpu}")
-            if entity.deploy and entity.deploy.args and entity.deploy.args.memory:
-                deploy_args.append(f"--k8s_memory={entity.deploy.args.memory}")
-            if entity.deploy and entity.deploy.args and entity.deploy.args.storage:
-                deploy_args.append(f"--k8s_storage={entity.deploy.args.storage}")
-            if entity.deploy and entity.deploy.args and entity.deploy.args.gpu:
-                deploy_args.append(f"--k8s_gpu={entity.deploy.args.gpu}")
-            if entity.deploy and entity.deploy.args and entity.deploy.args.kube_config_path:
-                deploy_args.append(f"--k8s_kube_config_path={entity.deploy.args.kube_config_path}")
+            if entity.deploy and entity.deploy.args and entity.deploy.args.k8s:
+                k8s_args = entity.deploy.args.k8s
+                if k8s_args.kind:
+                    deploy_args.append(f"--k8s_kind={k8s_args.kind}")
+                if k8s_args.name:
+                    deploy_args.append(f"--k8s_name={k8s_args.name}")
+                if k8s_args.replicas:
+                    deploy_args.append(f"--k8s_replicas={k8s_args.replicas}")
+                if entity.deploy.args.env_vars:
+                    deploy_args.append(f"--k8s_env_vars={json.dumps(entity.deploy.args.env_vars)}")
+                if entity.deploy.args.cpu:
+                    deploy_args.append(f"--k8s_cpu={entity.deploy.args.cpu}")
+                if entity.deploy.args.memory:
+                    deploy_args.append(f"--k8s_memory={entity.deploy.args.memory}")
+                if k8s_args.storage:
+                    deploy_args.append(f"--k8s_storage={k8s_args.storage}")
+                if k8s_args.gpu:
+                    deploy_args.append(f"--k8s_gpu={k8s_args.gpu}")
+                if k8s_args.kube_config_path:
+                    deploy_args.append(f"--k8s_kube_config_path={k8s_args.kube_config_path}")
+                else:
+                    deploy_args.append("--k8s_kube_config_path=~/.kube/config")
+                if k8s_args.api_key:
+                    deploy_args.append(f"--k8s_api_key={k8s_args.api_key}")
+                if k8s_args.api_host:
+                    deploy_args.append(f"--k8s_api_host={k8s_args.api_host}")
+                if k8s_args.verify_ssl:
+                    deploy_args.append(f"--k8s_verify_ssl={k8s_args.verify_ssl}")
+                if k8s_args.ssl_ca_cert:
+                    deploy_args.append(f"--k8s_ssl_ca_cert={k8s_args.ssl_ca_cert}")
+                if k8s_args.cluster_name:
+                    deploy_args.append(f"--k8s_cluster_name={k8s_args.cluster_name}")
+                if k8s_args.context_name:
+                    deploy_args.append(f"--k8s_context_name={k8s_args.context_name}")
+                if k8s_args.namespace:
+                    deploy_args.append(f"--k8s_namespace={k8s_args.namespace}")
+                if k8s_args.labels:
+                    deploy_args.append(f"--k8s_labels={json.dumps(k8s_args.labels)}")
+                else:
+                    deploy_args.append('--k8s_labels={"created_by": "geniusrise"}')
+                if k8s_args.annotations:
+                    deploy_args.append(f"--k8s_annotations={json.dumps(k8s_args.annotations)}")
+                else:
+                    deploy_args.append('--k8s_annotations={"created_by": "geniusrise"}')
+                if k8s_args.port:
+                    deploy_args.append(f"--k8s_port={k8s_args.port}")
+                if k8s_args.target_port:
+                    deploy_args.append(f"--k8s_target_port={k8s_args.target_port}")
+                if k8s_args.schedule:
+                    deploy_args.append(f"--k8s_schedule={k8s_args.schedule}")
+
+        elif entity.deploy and entity.deploy.type == "openstack":
+            if entity.deploy and entity.deploy.args and entity.deploy.args.openstack:
+                openstack_args = entity.deploy.args.openstack
+                if openstack_args.kind:
+                    deploy_args.append(f"--openstack_kind={openstack_args.kind}")
+                if openstack_args.name:
+                    deploy_args.append(f"--openstack_name={openstack_args.name}")
+                if openstack_args.image:
+                    deploy_args.append(f"--openstack_image={openstack_args.image}")
+                if openstack_args.flavor:
+                    deploy_args.append(f"--openstack_flavor={openstack_args.flavor}")
+                if openstack_args.key_name:
+                    deploy_args.append(f"--openstack_key_name={openstack_args.key_name}")
+                if openstack_args.network:
+                    deploy_args.append(f"--openstack_network={openstack_args.network}")
+                if openstack_args.block_storage_size:
+                    deploy_args.append(f"--openstack_block_storage_size={openstack_args.block_storage_size}")
+                if openstack_args.open_ports:
+                    deploy_args.append(f"--openstack_open_ports={openstack_args.open_ports}")
+                if openstack_args.allocate_ip:
+                    deploy_args.append(f"--openstack_allocate_ip={openstack_args.allocate_ip}")
+                if openstack_args.user_data:
+                    deploy_args.append(f"--openstack_user_data={openstack_args.user_data}")
+                if openstack_args.min_instances:
+                    deploy_args.append(f"--openstack_min_instances={openstack_args.min_instances}")
+                if openstack_args.max_instances:
+                    deploy_args.append(f"--openstack_max_instances={openstack_args.max_instances}")
+                if openstack_args.desired_instances:
+                    deploy_args.append(f"--openstack_desired_instances={openstack_args.desired_instances}")
+                if openstack_args.protocol:
+                    deploy_args.append(f"--openstack_protocol={openstack_args.protocol}")
+                if openstack_args.scale_up_threshold:
+                    deploy_args.append(f"--openstack_scale_up_threshold={openstack_args.scale_up_threshold}")
+                if openstack_args.scale_up_adjustment:
+                    deploy_args.append(f"--openstack_scale_up_adjustment={openstack_args.scale_up_adjustment}")
+                if openstack_args.scale_down_threshold:
+                    deploy_args.append(f"--openstack_scale_down_threshold={openstack_args.scale_down_threshold}")
+                if openstack_args.scale_down_adjustment:
+                    deploy_args.append(f"--openstack_scale_down_adjustment={openstack_args.scale_down_adjustment}")
+                if openstack_args.alarm_period:
+                    deploy_args.append(f"--openstack_alarm_period={openstack_args.alarm_period}")
+                if openstack_args.alarm_evaluation_periods:
+                    deploy_args.append(
+                        f"--openstack_alarm_evaluation_periods={openstack_args.alarm_evaluation_periods}"
+                    )
+
+        else:
+            if entity.deploy:
+                raise ValueError(f"Unknown deployment type: {entity.deploy.type}")
             else:
-                deploy_args.append("--k8s_kube_config_path=~/.kube/config")
-            if entity.deploy and entity.deploy.args and entity.deploy.args.api_key:
-                deploy_args.append(f"--k8s_api_key={entity.deploy.args.api_key}")
-            if entity.deploy and entity.deploy.args and entity.deploy.args.api_host:
-                deploy_args.append(f"--k8s_api_host={entity.deploy.args.api_host}")
-            if entity.deploy and entity.deploy.args and entity.deploy.args.verify_ssl:
-                deploy_args.append(f"--k8s_verify_ssl={entity.deploy.args.verify_ssl}")
-            if entity.deploy and entity.deploy.args and entity.deploy.args.ssl_ca_cert:
-                deploy_args.append(f"--k8s_ssl_ca_cert={entity.deploy.args.ssl_ca_cert}")
-            if entity.deploy and entity.deploy.args and entity.deploy.args.cluster_name:
-                deploy_args.append(f"--k8s_cluster_name={entity.deploy.args.cluster_name}")
-            if entity.deploy and entity.deploy.args and entity.deploy.args.context_name:
-                deploy_args.append(f"--k8s_context_name={entity.deploy.args.context_name}")
-            if entity.deploy and entity.deploy.args and entity.deploy.args.namespace:
-                deploy_args.append(f"--k8s_namespace={entity.deploy.args.namespace}")
-            if entity.deploy and entity.deploy.args and entity.deploy.args.labels:
-                deploy_args.append(f"--k8s_labels={entity.deploy.args.labels}")
-            else:
-                deploy_args.append("--k8s_labels=" + '{"created_by": "geniusrise"}')
-            if entity.deploy and entity.deploy.args and entity.deploy.args.annotations:
-                deploy_args.append(f"--k8s_annotations={entity.deploy.args.annotations}")
-            else:
-                deploy_args.append("--k8s_annotations=" + '{"created_by": "geniusrise"}')
-            if entity.deploy and entity.deploy.args and entity.deploy.args.port:
-                deploy_args.append(f"--k8s_port={entity.deploy.args.port}")
-            if entity.deploy and entity.deploy.args and entity.deploy.args.target_port:
-                deploy_args.append(f"--k8s_target_port={entity.deploy.args.target_port}")
-            if entity.deploy and entity.deploy.args and entity.deploy.args.schedule:
-                deploy_args.append(f"--k8s_schedule={entity.deploy.args.schedule}")
+                raise Exception(f"Entity does not have a deployment type: {entity.deploy}")
 
         return deploy_args
