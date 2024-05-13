@@ -28,6 +28,7 @@ from geniusrise.core import Spout
 from geniusrise.runners.k8s import CronJob, Deployment, Job, Service
 from geniusrise.utils.parse_function_args import parse_args_kwargs
 from geniusrise.runners.openstack import OpenStackInstanceRunner, OpenStackAutoscaleRunner
+from geniusrise.runners.acecloud import AceCloudAutoscaleRunner, AceCloudInstanceRunner
 
 
 class SpoutCtl:
@@ -87,7 +88,7 @@ class SpoutCtl:
         deploy_parser = subparsers.add_parser("deploy", help="Run a spout remotely.", formatter_class=RichHelpFormatter)
         deploy_parser.add_argument("output_type", choices=["batch", "streaming"], help="Choose the type of output data: batch or streaming.", default="batch")
         deploy_parser.add_argument("state_type", choices=["none", "redis", "postgres", "dynamodb"], help="Select the type of state manager: none, redis, postgres, or dynamodb.", default="none")
-        deploy_parser.add_argument("deployment_type", choices=["k8s", "openstack-instance", "openstack-autoscale"], help="Choose the type of deployment.", default="k8s")
+        deploy_parser.add_argument("deployment_type", choices=["k8s", "openstack", "acecloud"], help="Choose the type of deployment.", default="k8s")
         deploy_parser.add_argument("--id", help="A unique identifier for the task", default=None, type=str)
         # output
         deploy_parser.add_argument("--buffer_size", help="Specify the size of the buffer.", default=100, type=int)
@@ -133,6 +134,7 @@ class SpoutCtl:
         deploy_parser.add_argument("--k8s_target_port", help="Port to expose the spout on as a service.", type=int)
         deploy_parser.add_argument("--k8s_schedule", help="Schedule to run the spout on as a cron job.", type=str)
         # openstack
+        deploy_parser.add_argument("--openstack_kind", choices=["instance", "autoscale"], help="Choose the type of openstack resource.", default="job")
         deploy_parser.add_argument("--openstack_name", help="Name of the OpenStack instance.", type=str)
         deploy_parser.add_argument("--openstack_image", help="Image ID or name for the OpenStack instance.", type=str)
         deploy_parser.add_argument("--openstack_flavor", help="Flavor ID or name for the OpenStack instance.", type=str)
@@ -155,6 +157,31 @@ class SpoutCtl:
         deploy_parser.add_argument("--openstack_scale_down_adjustment", help="Number of instances to remove during scale-down in OpenStack autoscaling.", type=int, default=-1)
         deploy_parser.add_argument("--openstack_alarm_period", help="Period for alarms (in seconds) in OpenStack autoscaling.", type=int, default=60)
         deploy_parser.add_argument("--openstack_alarm_evaluation_periods", help="Number of periods to evaluate alarms in OpenStack autoscaling.", type=int, default=1)
+        # acecloud
+        deploy_parser.add_argument("--acecloud_kind", choices=["instance", "autoscale"], help="Choose the type of acecloud resource.", default="job")
+        deploy_parser.add_argument("--acecloud_name", help="Name of the AceCloud instance.", type=str)
+        deploy_parser.add_argument("--acecloud_image", help="Image ID or name for the AceCloud instance.", type=str)
+        deploy_parser.add_argument("--acecloud_flavor", help="Flavor ID or name for the AceCloud instance.", type=str)
+        deploy_parser.add_argument("--acecloud_key_name", help="Key pair name for the AceCloud instance.", type=str)
+        deploy_parser.add_argument("--acecloud_network", help="Network ID or name for the AceCloud instance.", type=str)
+        deploy_parser.add_argument("--acecloud_block_storage_size", help="Size of the block storage in GB for the AceCloud instance.", type=int)
+        deploy_parser.add_argument("--acecloud_open_ports", help="Comma-separated list of ports to open for the AceCloud instance.", type=str)
+        deploy_parser.add_argument("--acecloud_allocate_ip", help="Whether to allocate a floating IP for the AceCloud instance.", action="store_true")
+        deploy_parser.add_argument("--acecloud_auth_url", help="Authentication URL for AceCloud.", type=str, required=True)
+        deploy_parser.add_argument("--acecloud_username", help="AceCloud username.", type=str, required=True)
+        deploy_parser.add_argument("--acecloud_password", help="AceCloud password.", type=str, required=True)
+        deploy_parser.add_argument("--acecloud_project_name", help="AceCloud project name.", type=str, required=True)
+        deploy_parser.add_argument("--acecloud_min_instances", help="Minimum number of instances for AceCloud autoscaling.", type=int, default=1)
+        deploy_parser.add_argument("--acecloud_max_instances", help="Maximum number of instances for AceCloud autoscaling.", type=int, default=5)
+        deploy_parser.add_argument("--acecloud_desired_instances", help="Desired number of instances for AceCloud autoscaling.", type=int, default=2)
+        deploy_parser.add_argument("--acecloud_protocol", help="Load balancer protocol (HTTP or HTTPS) for AceCloud autoscaling.", type=str, default="HTTP")
+        deploy_parser.add_argument("--acecloud_scale_up_threshold", help="Threshold for triggering scale-up action in AceCloud autoscaling.", type=int, default=80)
+        deploy_parser.add_argument("--acecloud_scale_up_adjustment", help="Number of instances to add during scale-up in AceCloud autoscaling.", type=int, default=1)
+        deploy_parser.add_argument("--acecloud_scale_down_threshold", help="Threshold for triggering scale-down action in AceCloud autoscaling.", type=int, default=20)
+        deploy_parser.add_argument("--acecloud_scale_down_adjustment", help="Number of instances to remove during scale-down in AceCloud autoscaling.", type=int, default=-1)
+        deploy_parser.add_argument("--acecloud_alarm_period", help="Period for alarms (in seconds) in AceCloud autoscaling.", type=int, default=60)
+        deploy_parser.add_argument("--acecloud_alarm_evaluation_periods", help="Number of periods to evaluate alarms in AceCloud autoscaling.", type=int, default=1)
+
         # function
         deploy_parser.add_argument("method_name", help="The name of the method to execute on the spout.", type=str)
         deploy_parser.add_argument("--args", nargs=argparse.REMAINDER, help="Additional keyword arguments to pass to the spout.")
@@ -182,6 +209,7 @@ class SpoutCtl:
                     if v is not None
                     and "k8s_" not in k
                     and "openstack_" not in k
+                    and "acecloud_" not in k
                     and k
                     not in [
                         "output_type",
@@ -337,6 +365,7 @@ class SpoutCtl:
                     - k8s_target_port (int): Port to expose the spout on as a service.
                     - k8s_schedule (str): Schedule to run the spout on as a cron job.
                     Openstack instance
+                    - openstack_kind (str): Type of openstack resource: instance or autoscale.
                     - openstack_name (str): Name of the OpenStack instance.
                     - openstack_image (str): Image ID or name for the OpenStack instance.
                     - openstack_flavor (str): Flavor ID or name for the OpenStack instance.
@@ -350,6 +379,7 @@ class SpoutCtl:
                     - openstack_password (str): OpenStack password.
                     - openstack_project_name (str): OpenStack project name.
                     Openstack autoscale (heat + orchestration)
+                    - openstack_kind (str): Type of openstack resource: instance or autoscale.
                     - openstack_name (str): Name of the OpenStack autoscaled deployment.
                     - openstack_image (str): Image ID or name for the OpenStack instances.
                     - openstack_flavor (str): Flavor ID or name for the OpenStack instances.
@@ -369,6 +399,41 @@ class SpoutCtl:
                     - openstack_username (str): OpenStack username.
                     - openstack_password (str): OpenStack password.
                     - openstack_project_name (str): OpenStack project name.
+                    AceCloud instance
+                    - acecloud_kind (str): Type of acecloud resource: instance or autoscale.
+                    - acecloud_name (str): Name of the AceCloud instance.
+                    - acecloud_image (str): Image ID or name for the AceCloud instance.
+                    - acecloud_flavor (str): Flavor ID or name for the AceCloud instance.
+                    - acecloud_key_name (str): Key pair name for the AceCloud instance.
+                    - acecloud_network (str): Network ID or name for the AceCloud instance.
+                    - acecloud_block_storage_size (int): Size of the block storage in GB for the AceCloud instance.
+                    - acecloud_open_ports (str): Comma-separated list of ports to open for the AceCloud instance.
+                    - acecloud_allocate_ip (bool): Whether to allocate a floating IP for the AceCloud instance.
+                    - acecloud_auth_url (str): Authentication URL for AceCloud.
+                    - acecloud_username (str): AceCloud username.
+                    - acecloud_password (str): AceCloud password.
+                    - acecloud_project_name (str): AceCloud project name.
+                    AceCloud autoscale (heat + orchestration)
+                    - acecloud_kind (str): Type of acecloud resource: instance or autoscale.
+                    - acecloud_name (str): Name of the AceCloud autoscaled deployment.
+                    - acecloud_image (str): Image ID or name for the AceCloud instances.
+                    - acecloud_flavor (str): Flavor ID or name for the AceCloud instances.
+                    - acecloud_key_name (str): Key pair name for the AceCloud instances.
+                    - acecloud_network (str): Network ID or name for the AceCloud instances.
+                    - acecloud_min_instances (int): Minimum number of instances for AceCloud autoscaling.
+                    - acecloud_max_instances (int): Maximum number of instances for AceCloud autoscaling.
+                    - acecloud_desired_instances (int): Desired number of instances for AceCloud autoscaling.
+                    - acecloud_protocol (str): Load balancer protocol (HTTP or HTTPS) for AceCloud autoscaling.
+                    - acecloud_scale_up_threshold (int): Threshold for triggering scale-up action in AceCloud autoscaling.
+                    - acecloud_scale_up_adjustment (int): Number of instances to add during scale-up in AceCloud autoscaling.
+                    - acecloud_scale_down_threshold (int): Threshold for triggering scale-down action in AceCloud autoscaling.
+                    - acecloud_scale_down_adjustment (int): Number of instances to remove during scale-down in AceCloud autoscaling.
+                    - acecloud_alarm_period (int): Period for alarms (in seconds) in AceCloud autoscaling.
+                    - acecloud_alarm_evaluation_periods (int): Number of periods to evaluate alarms in AceCloud autoscaling.
+                    - acecloud_auth_url (str): Authentication URL for AceCloud.
+                    - acecloud_username (str): AceCloud username.
+                    - acecloud_password (str): AceCloud password.
+                    - acecloud_project_name (str): AceCloud project name.
                 ```
         """
         # Construct the command to run geniusrise on remote machine / container
@@ -459,7 +524,7 @@ class SpoutCtl:
             resource.create(command=command, **k8s_kwargs)
             return resource
 
-        elif args.deployment_type == "openstack-instance":
+        elif args.deployment_type == "openstack" and args.openstack_kind == "instance":
             openstack_instance_kwargs = {
                 "name": args.openstack_name,
                 "image": args.openstack_image,
@@ -483,7 +548,7 @@ class SpoutCtl:
             instance = openstack_instance_runner.create(**openstack_instance_kwargs)
             return instance
 
-        elif args.deployment_type == "openstack-autoscale":
+        elif args.deployment_type == "openstack" and args.openstack_kind == "autoscale":
             openstack_autoscale_kwargs = {
                 "name": args.openstack_name,
                 "image": args.openstack_image,
@@ -513,3 +578,58 @@ class SpoutCtl:
 
             openstack_autoscale_runner.create(**openstack_autoscale_kwargs)
             return openstack_autoscale_runner
+
+        elif args.deployment_type == "acecloud" and args.acecloud_kind == "instance":
+            acecloud_instance_kwargs = {
+                "name": args.acecloud_name,
+                "image": args.acecloud_image,
+                "flavor": args.acecloud_flavor,
+                "key_name": args.acecloud_key_name,
+                "network": args.acecloud_network,
+                "block_storage_size": args.acecloud_block_storage_size,
+                "open_ports": args.acecloud_open_ports,
+                "allocate_ip": args.acecloud_allocate_ip,
+                "user_data": command,
+            }
+
+            acecloud_instance_runner = AceCloudInstanceRunner()
+            acecloud_instance_runner.connect(
+                auth_url=args.acecloud_auth_url,
+                username=args.acecloud_username,
+                password=args.acecloud_password,
+                project_name=args.acecloud_project_name,
+            )
+
+            instance = acecloud_instance_runner.create(**acecloud_instance_kwargs)
+            return instance
+
+        elif args.deployment_type == "acecloud" and args.acecloud_kind == "autoscale":
+            acecloud_autoscale_kwargs = {
+                "name": args.acecloud_name,
+                "image": args.acecloud_image,
+                "flavor": args.acecloud_flavor,
+                "key_name": args.acecloud_key_name,
+                "network": args.acecloud_network,
+                "min_instances": args.acecloud_min_instances,
+                "max_instances": args.acecloud_max_instances,
+                "desired_instances": args.acecloud_desired_instances,
+                "protocol": args.acecloud_protocol,
+                "scale_up_threshold": args.acecloud_scale_up_threshold,
+                "scale_up_adjustment": args.acecloud_scale_up_adjustment,
+                "scale_down_threshold": args.acecloud_scale_down_threshold,
+                "scale_down_adjustment": args.acecloud_scale_down_adjustment,
+                "alarm_period": args.acecloud_alarm_period,
+                "alarm_evaluation_periods": args.acecloud_alarm_evaluation_periods,
+                "user_data": command,
+            }
+
+            acecloud_autoscale_runner = AceCloudAutoscaleRunner()
+            acecloud_autoscale_runner.connect(
+                auth_url=args.acecloud_auth_url,
+                username=args.acecloud_username,
+                password=args.acecloud_password,
+                project_name=args.acecloud_project_name,
+            )
+
+            acecloud_autoscale_runner.create(**acecloud_autoscale_kwargs)
+            return acecloud_autoscale_runner

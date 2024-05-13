@@ -216,7 +216,7 @@ class YamlCtl:
         with open(args.file, "r") as file:
             self.geniusfile = Geniusfile.model_validate(yaml.safe_load(file), strict=True)
 
-        if hasattr(args, "deploy") and args.deploy == "up":
+        if hasattr(args, "deploy") and args.deploy == "up":  # genius rise up
             if args.spout == "all":
                 self.deploy_spouts()
             elif args.bolt == "all":
@@ -667,6 +667,50 @@ class YamlCtl:
                     deploy_args.append(
                         f"--openstack_alarm_evaluation_periods={openstack_args.alarm_evaluation_periods}"
                     )
+
+        elif entity.deploy and entity.deploy.type == "acecloud":
+            if entity.deploy and entity.deploy.args and entity.deploy.args.acecloud:
+                acecloud_args = entity.deploy.args.acecloud
+                if acecloud_args.kind:
+                    deploy_args.append(f"--acecloud_kind={acecloud_args.kind}")
+                if acecloud_args.name:
+                    deploy_args.append(f"--acecloud_name={acecloud_args.name}")
+                if acecloud_args.image:
+                    deploy_args.append(f"--acecloud_image={acecloud_args.image}")
+                if acecloud_args.flavor:
+                    deploy_args.append(f"--acecloud_flavor={acecloud_args.flavor}")
+                if acecloud_args.key_name:
+                    deploy_args.append(f"--acecloud_key_name={acecloud_args.key_name}")
+                if acecloud_args.network:
+                    deploy_args.append(f"--acecloud_network={acecloud_args.network}")
+                if acecloud_args.block_storage_size:
+                    deploy_args.append(f"--acecloud_block_storage_size={acecloud_args.block_storage_size}")
+                if acecloud_args.open_ports:
+                    deploy_args.append(f"--acecloud_open_ports={acecloud_args.open_ports}")
+                if acecloud_args.allocate_ip:
+                    deploy_args.append(f"--acecloud_allocate_ip={acecloud_args.allocate_ip}")
+                if acecloud_args.user_data:
+                    deploy_args.append(f"--acecloud_user_data={acecloud_args.user_data}")
+                if acecloud_args.min_instances:
+                    deploy_args.append(f"--acecloud_min_instances={acecloud_args.min_instances}")
+                if acecloud_args.max_instances:
+                    deploy_args.append(f"--acecloud_max_instances={acecloud_args.max_instances}")
+                if acecloud_args.desired_instances:
+                    deploy_args.append(f"--acecloud_desired_instances={acecloud_args.desired_instances}")
+                if acecloud_args.protocol:
+                    deploy_args.append(f"--acecloud_protocol={acecloud_args.protocol}")
+                if acecloud_args.scale_up_threshold:
+                    deploy_args.append(f"--acecloud_scale_up_threshold={acecloud_args.scale_up_threshold}")
+                if acecloud_args.scale_up_adjustment:
+                    deploy_args.append(f"--acecloud_scale_up_adjustment={acecloud_args.scale_up_adjustment}")
+                if acecloud_args.scale_down_threshold:
+                    deploy_args.append(f"--acecloud_scale_down_threshold={acecloud_args.scale_down_threshold}")
+                if acecloud_args.scale_down_adjustment:
+                    deploy_args.append(f"--acecloud_scale_down_adjustment={acecloud_args.scale_down_adjustment}")
+                if acecloud_args.alarm_period:
+                    deploy_args.append(f"--acecloud_alarm_period={acecloud_args.alarm_period}")
+                if acecloud_args.alarm_evaluation_periods:
+                    deploy_args.append(f"--acecloud_alarm_evaluation_periods={acecloud_args.alarm_evaluation_periods}")
 
         else:
             if entity.deploy:

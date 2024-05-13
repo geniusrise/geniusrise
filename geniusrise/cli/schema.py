@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Optional, Union
+from typing import Dict, Optional, Union
 
 from pydantic import BaseModel, Extra, validator
 
@@ -244,6 +244,36 @@ class OpenStackDeployArgs(BaseModel):
         extra = Extra.allow
 
 
+class AceCloudDeployArgs(BaseModel):
+    """
+    This class defines the arguments for OpenStack deployment.
+    """
+
+    kind: Optional[str] = "instance"
+    name: Optional[str] = None
+    image: Optional[str] = None
+    flavor: Optional[str] = None
+    key_name: Optional[str] = None
+    network: Optional[str] = None
+    block_storage_size: Optional[int] = None
+    open_ports: Optional[str] = None
+    allocate_ip: Optional[bool] = False
+    user_data: Optional[str] = None
+    min_instances: Optional[int] = 1
+    max_instances: Optional[int] = 5
+    desired_instances: Optional[int] = 2
+    protocol: Optional[str] = "HTTP"
+    scale_up_threshold: Optional[int] = 80
+    scale_up_adjustment: Optional[int] = 1
+    scale_down_threshold: Optional[int] = 20
+    scale_down_adjustment: Optional[int] = -1
+    alarm_period: Optional[int] = 60
+    alarm_evaluation_periods: Optional[int] = 1
+
+    class Config:
+        extra = Extra.allow
+
+
 class DeployArgs(BaseModel):
     """
     This class defines the arguments for the deployment. Depending on the type of deployment (k8s, openstack),
@@ -262,13 +292,16 @@ class DeployArgs(BaseModel):
     # openstack
     openstack: Optional[OpenStackDeployArgs] = None
 
+    # acecloud (uses openstack)
+    acecloud: Optional[AceCloudDeployArgs] = None
+
     class Config:
         extra = Extra.allow
 
 
 class Deploy(BaseModel):
     """
-    This class defines the deployment of the spout or bolt. The deployment can be of type k8s or openstack.
+    This class defines the deployment of the spout or bolt. The deployment can be of type k8s, openstack or acecloud.
     """
 
     type: str
@@ -276,7 +309,7 @@ class Deploy(BaseModel):
 
     @validator("type")
     def validate_type(cls, v, values, **kwargs):
-        if v not in ["k8s", "openstack"]:
+        if v not in ["k8s", "openstack", "acecloud"]:
             raise ValueError("Invalid deploy type")
         return v
 
@@ -305,6 +338,19 @@ class Deploy(BaseModel):
                 for field in required_fields:
                     if not v or field not in v or not v[field]:
                         raise ValueError(f"Missing required field '{field}' for openstack deploy type")
+            else:
+                raise ValueError(f"Unknown type of deployment {values['type']}")
+            if values["type"] == "acecloud":
+                required_fields = [
+                    "kind",
+                    "name",
+                    "image",
+                    "flavor",
+                    "network",
+                ]
+                for field in required_fields:
+                    if not v or field not in v or not v[field]:
+                        raise ValueError(f"Missing required field '{field}' for acecloud deploy type")
             else:
                 raise ValueError(f"Unknown type of deployment {values['type']}")
         else:
