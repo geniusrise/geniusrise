@@ -21,7 +21,57 @@ from rich import print_json
 
 
 class E2EInstanceRunner:
+    r"""
+    🚀 Initialize the E2EInstanceRunner class for managing E2E instances.
+
+    CLI Usage:
+        genius e2e [sub-command] [options]
+        Examples:
+
+        ```bash
+        genius e2e create --name example-instance --image Ubuntu-20.04 --plan C1.1GB --ssh-keys "ssh-key1,ssh-key2" \
+            --open-ports "80,443" --tags "tag1,tag2" --region ncr --backup \
+            --api-key <api-key> --project-id <project-id> --location Delhi
+        ```
+
+        ```bash
+        genius e2e get --node-id <node-id> \
+            --api-key <api-key> --project-id <project-id> --location Delhi
+        ```
+
+        ```bash
+        genius e2e list \
+            --api-key <api-key> --project-id <project-id> --location Delhi
+        ```
+
+        ```bash
+        genius e2e delete --node-id <node-id> \
+            --api-key <api-key> --project-id <project-id> --location Delhi
+        ```
+
+    YAML Configuration:
+
+    ```yaml
+    version: "1.0"
+    instances:
+        - name: "example-instance"
+        image: "Ubuntu-20.04"
+        plan: "C1.1GB"
+        ssh_keys: "ssh-key1,ssh-key2"
+        open_ports: "80,443"
+        tags: "tag1,tag2"
+        region: "ncr"
+        backup: true
+        api_key: "<api-key>"
+        project_id: "<project-id>"
+        location: "Delhi"
+    ```
+    """
+
     def __init__(self):
+        """
+        🚀 Initialize the E2EInstanceRunner class for managing E2E instances.
+        """
         self.api_key: str = ""
         self.project_id: str = ""
         self.location: str = ""
@@ -30,12 +80,30 @@ class E2EInstanceRunner:
         self.log = logging.getLogger(self.__class__.__name__)
 
     def _add_connection_args(self, parser: ArgumentParser) -> ArgumentParser:
+        """
+        🛠 Add common connection arguments to a parser.
+
+        Args:
+            parser (ArgumentParser): The parser to which arguments will be added.
+
+        Returns:
+            ArgumentParser: The parser with added arguments.
+        """
         parser.add_argument("--api-key", help="API key for E2E Networks.", type=str, required=True)
         parser.add_argument("--project-id", help="Project ID for E2E Networks.", type=str, required=True)
         parser.add_argument("--location", help="Location for E2E Networks.", type=str, required=True)
         return parser
 
     def create_parser(self, parser: ArgumentParser) -> ArgumentParser:
+        """
+        🎛 Create a parser for CLI commands related to E2E instance functionalities.
+
+        Args:
+            parser (ArgumentParser): The main parser.
+
+        Returns:
+            ArgumentParser: The parser with subparsers for each command.
+        """
         subparsers = parser.add_subparsers(dest="e2e")
 
         # fmt: off
@@ -65,6 +133,12 @@ class E2EInstanceRunner:
         return parser
 
     def run(self, args: Namespace) -> None:
+        """
+        🚀 Run the E2E instance manager.
+
+        Args:
+            args (Namespace): The parsed command line arguments.
+        """
         self.api_key = args.api_key
         self.project_id = args.project_id
         self.location = args.location
@@ -73,21 +147,31 @@ class E2EInstanceRunner:
             "Content-Type": "application/json",
         }
 
-        if args.e2e_instance == "create":
+        if args.e2e == "create":
             ssh_keys = args.ssh_keys.split(",") if args.ssh_keys else []
             open_ports = args.open_ports.split(",") if args.open_ports else []
             tags = args.tags.split(",") if args.tags else []
             self.create_node(args.name, args.image, args.plan, ssh_keys, open_ports, tags, args.region, args.backup)
-        elif args.e2e_instance == "get":
+        elif args.e2e == "get":
             self.get_node(args.node_id)
-        elif args.e2e_instance == "list":
+        elif args.e2e == "list":
             self.list_nodes()
-        elif args.e2e_instance == "delete":
+        elif args.e2e == "delete":
             self.delete_node(args.node_id)
         else:
-            raise ValueError(f"Unknown command: {args.e2e_instance}")
+            raise ValueError(f"Unknown command: {args.e2e}")
 
     def create_security_group(self, name: str, open_ports: list) -> int:
+        """
+        🔒 Create a security group with the specified open ports.
+
+        Args:
+            name (str): The name of the security group.
+            open_ports (list): The list of ports to open.
+
+        Returns:
+            int: The ID of the created security group.
+        """
         url = f"{self.base_url}/security_group/?apikey={self.api_key}&contact_person_id=null&location={self.location}&project_id={self.project_id}"
         payload = {
             "name": name,
@@ -121,6 +205,20 @@ class E2EInstanceRunner:
         backup: bool = False,
         **kwargs,
     ):
+        """
+        🛠 Create an E2E instance.
+
+        Args:
+            name (str): The name of the instance.
+            image (str): The image ID or name.
+            plan (str): The plan ID.
+            ssh_keys (Optional[list]): The list of SSH keys for the instance.
+            open_ports (Optional[list]): The list of ports to open for the instance.
+            tags (Optional[list]): The list of tags for the instance.
+            region (str): The region for the instance. Defaults to "ncr".
+            backup (bool): Enable backups for the instance. Defaults to False.
+            **kwargs: Additional keyword arguments for instance creation.
+        """
         security_group_id = self.create_security_group(f"{name}-sg", open_ports or [])
         url = f"{self.base_url}/nodes/?apikey={self.api_key}&project_id={self.project_id}"
         payload = {
@@ -140,6 +238,12 @@ class E2EInstanceRunner:
         print_json(response.json())
 
     def get_node(self, node_id: str):
+        """
+        📝 Get details of an E2E instance.
+
+        Args:
+            node_id (str): The ID of the instance.
+        """
         url = f"{self.base_url}/nodes/{node_id}/?apikey={self.api_key}&project_id={self.project_id}"
         response = requests.get(url, headers=self.headers)
         response.raise_for_status()
@@ -147,6 +251,9 @@ class E2EInstanceRunner:
         print_json(response.json())
 
     def list_nodes(self):
+        """
+        📋 List E2E instances.
+        """
         url = f"{self.base_url}/nodes/?apikey={self.api_key}&page_no=1&per_page=2&project_id={self.project_id}"
         response = requests.get(url, headers=self.headers)
         response.raise_for_status()
@@ -154,6 +261,12 @@ class E2EInstanceRunner:
         print_json(response.json())
 
     def delete_node(self, node_id: str):
+        """
+        🗑️ Delete an E2E instance.
+
+        Args:
+            node_id (str): The ID of the instance to delete.
+        """
         url = f"{self.base_url}/nodes/{node_id}/?reserve_ip_required=&reserve_ip_pool_required=&apikey={self.api_key}&project_id={self.project_id}&location={self.location}"
         response = requests.delete(url, headers=self.headers)
         response.raise_for_status()
