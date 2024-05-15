@@ -35,6 +35,7 @@ from geniusrise.logging import setup_logger
 from geniusrise.runners.k8s import CronJob, Deployment, Job, K8sResourceManager, Service
 from geniusrise.runners.openstack import OpenStackAutoscaleRunner, OpenStackInstanceRunner
 from geniusrise.runners.acecloud import AceCloudAutoscaleRunner, AceCloudInstanceRunner
+from geniusrise.runners.e2e import E2EAutoscaleRunner, E2EInstanceRunner
 from geniusrise.core.state.base import PrometheusMetricsServer
 
 
@@ -174,6 +175,17 @@ class GeniusCtl:
         self.acecloud_autoscale = AceCloudAutoscaleRunner()
         self.acecloud_autoscale.create_parser(acecloud_autoscale_parser)
 
+        # Connect to E2E runner
+        e2e_parser = subparsers.add_parser("e2e", help="Manage spouts and bolts as E2E instance")
+        self.e2e = E2EInstanceRunner()
+        self.e2e.create_parser(e2e_parser)
+
+        e2e_autoscale_parser = subparsers.add_parser(
+            "e2e-autoscale", help="Manage spouts and bolts as E2E autoscaled instances"
+        )
+        self.e2e_autoscale = E2EAutoscaleRunner()
+        self.e2e_autoscale.create_parser(e2e_autoscale_parser)
+
         # Add a 'help' command to print help for all spouts and bolts
         help_parser = subparsers.add_parser(
             "plugins",
@@ -242,6 +254,10 @@ class GeniusCtl:
             self.acecloud.run(args)
         elif args.top_level_command == "acecloud-autoscale":
             self.acecloud_autoscale.run(args)
+        elif args.top_level_command == "e2e":
+            self.e2e.run(args)
+        elif args.top_level_command == "e2e-autoscale":
+            self.e2e_autoscale.run(args)
         elif args.top_level_command == "plugins":
             if args.spout_or_bolt in self.spouts:
                 self.spout_ctls[args.spout_or_bolt].run(args)

@@ -29,6 +29,7 @@ from geniusrise.runners.k8s import CronJob, Deployment, Job, Service
 from geniusrise.utils.parse_function_args import parse_args_kwargs
 from geniusrise.runners.openstack import OpenStackInstanceRunner, OpenStackAutoscaleRunner
 from geniusrise.runners.acecloud import AceCloudAutoscaleRunner, AceCloudInstanceRunner
+from geniusrise.runners.e2e import E2EInstanceRunner, E2EAutoscaleRunner
 
 
 class SpoutCtl:
@@ -181,6 +182,31 @@ class SpoutCtl:
         deploy_parser.add_argument("--acecloud_scale_down_adjustment", help="Number of instances to remove during scale-down in AceCloud autoscaling.", type=int, default=-1)
         deploy_parser.add_argument("--acecloud_alarm_period", help="Period for alarms (in seconds) in AceCloud autoscaling.", type=int, default=60)
         deploy_parser.add_argument("--acecloud_alarm_evaluation_periods", help="Number of periods to evaluate alarms in AceCloud autoscaling.", type=int, default=1)
+        # e2e
+        deploy_parser.add_argument("--e2e_kind", choices=["instance", "autoscale"], help="Choose the type of E2E resource.", default="instance")
+        deploy_parser.add_argument("--e2e_name", help="Name of the E2E instance.", type=str)
+        deploy_parser.add_argument("--e2e_image", help="Image ID or name for the E2E instance.", type=str)
+        deploy_parser.add_argument("--e2e_plan", help="Plan ID for the E2E instance.", type=str)
+        deploy_parser.add_argument("--e2e_ssh_keys", help="SSH keys for the E2E instance (comma-separated).", type=str)
+        deploy_parser.add_argument("--e2e_open_ports", help="Ports to be opened for the E2E instance (comma-separated).", type=str)
+        deploy_parser.add_argument("--e2e_tags", help="Tags for the E2E instance (comma-separated).", type=str)
+        deploy_parser.add_argument("--e2e_region", help="Region for the E2E instance.", type=str, default="ncr")
+        deploy_parser.add_argument("--e2e_backup", help="Enable backups for the E2E instance.", action="store_true")
+        deploy_parser.add_argument("--e2e_min_instances", help="Minimum number of instances for E2E autoscaling.", type=int, default=1)
+        deploy_parser.add_argument("--e2e_max_instances", help="Maximum number of instances for E2E autoscaling.", type=int, default=5)
+        deploy_parser.add_argument("--e2e_desired_instances", help="Desired number of instances for E2E autoscaling.", type=int, default=2)
+        deploy_parser.add_argument("--e2e_protocol", help="Load balancer protocol (HTTP or HTTPS) for E2E autoscaling.", type=str, default="HTTP")
+        deploy_parser.add_argument("--e2e_port", help="Load balancer port for E2E autoscaling.", type=int, default=80)
+        deploy_parser.add_argument("--e2e_target_port", help="Backend target port for E2E autoscaling.", type=int, default=80)
+        deploy_parser.add_argument("--e2e_scale_up_threshold", help="Threshold for triggering scale-up action in E2E autoscaling.", type=int, default=80)
+        deploy_parser.add_argument("--e2e_scale_up_adjustment", help="Number of instances to add during scale-up in E2E autoscaling.", type=int, default=1)
+        deploy_parser.add_argument("--e2e_scale_down_threshold", help="Threshold for triggering scale-down action in E2E autoscaling.", type=int, default=20)
+        deploy_parser.add_argument("--e2e_scale_down_adjustment", help="Number of instances to remove during scale-down in E2E autoscaling.", type=int, default=-1)
+        deploy_parser.add_argument("--e2e_alarm_period", help="Period for alarms (in seconds) in E2E autoscaling.", type=int, default=60)
+        deploy_parser.add_argument("--e2e_alarm_evaluation_periods", help="Number of periods to evaluate alarms in E2E autoscaling.", type=int, default=1)
+        deploy_parser.add_argument("--e2e_api_key", help="API key for E2E Networks.", type=str, required=True)
+        deploy_parser.add_argument("--e2e_project_id", help="Project ID for E2E Networks.", type=str, required=True)
+        deploy_parser.add_argument("--e2e_location", help="Location for E2E Networks.", type=str, required=True)
 
         # function
         deploy_parser.add_argument("method_name", help="The name of the method to execute on the spout.", type=str)
@@ -633,3 +659,56 @@ class SpoutCtl:
 
             acecloud_autoscale_runner.create(**acecloud_autoscale_kwargs)
             return acecloud_autoscale_runner
+
+        elif args.deployment_type == "e2e" and args.e2e_kind == "instance":
+            e2e_instance_kwargs = {
+                "name": args.e2e_name,
+                "image": args.e2e_image,
+                "plan": args.e2e_plan,
+                "ssh_keys": args.e2e_ssh_keys.split(",") if args.e2e_ssh_keys else [],
+                "open_ports": args.e2e_open_ports.split(",") if args.e2e_open_ports else [],
+                "tags": args.e2e_tags.split(",") if args.e2e_tags else [],
+                "region": args.e2e_region,
+                "backup": args.e2e_backup,
+            }
+
+            e2e_instance_runner = E2EInstanceRunner()
+            e2e_instance_runner.connect(
+                api_key=args.e2e_api_key,
+                project_id=args.e2e_project_id,
+                location=args.e2e_location,
+            )
+
+            instance = e2e_instance_runner.create_node(command=command, **e2e_instance_kwargs)
+            return instance
+
+        elif args.deployment_type == "e2e" and args.e2e_kind == "autoscale":
+            e2e_autoscale_kwargs = {
+                "name": args.e2e_name,
+                "image": args.e2e_image,
+                "flavor": args.e2e_plan,
+                "key_name": args.e2e_ssh_keys,
+                "min_instances": args.e2e_min_instances,
+                "max_instances": args.e2e_max_instances,
+                "desired_instances": args.e2e_desired_instances,
+                "protocol": args.e2e_protocol,
+                "port": args.e2e_port,
+                "target_port": args.e2e_target_port,
+                "scale_up_threshold": args.e2e_scale_up_threshold,
+                "scale_up_adjustment": args.e2e_scale_up_adjustment,
+                "scale_down_threshold": args.e2e_scale_down_threshold,
+                "scale_down_adjustment": args.e2e_scale_down_adjustment,
+                "alarm_period": args.e2e_alarm_period,
+                "alarm_evaluation_periods": args.e2e_alarm_evaluation_periods,
+                "user_data": command,
+            }
+
+            e2e_autoscale_runner = E2EAutoscaleRunner()
+            e2e_autoscale_runner.connect(
+                api_key=args.e2e_api_key,
+                project_id=args.e2e_project_id,
+                location=args.e2e_location,
+            )
+
+            e2e_autoscale_runner.create_autoscale(**e2e_autoscale_kwargs)
+            return e2e_autoscale_runner

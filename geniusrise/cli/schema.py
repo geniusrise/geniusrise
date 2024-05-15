@@ -274,6 +274,37 @@ class AceCloudDeployArgs(BaseModel):
         extra = Extra.allow
 
 
+class E2EDeployArgs(BaseModel):
+    """
+    This class defines the arguments for E2E deployment.
+    """
+
+    kind: Optional[str] = "instance"
+    name: Optional[str] = None
+    image: Optional[str] = None
+    plan: Optional[str] = None
+    ssh_keys: Optional[str] = None
+    open_ports: Optional[str] = None
+    tags: Optional[str] = None
+    region: Optional[str] = "ncr"
+    backup: Optional[bool] = False
+    min_instances: Optional[int] = 1
+    max_instances: Optional[int] = 5
+    desired_instances: Optional[int] = 2
+    protocol: Optional[str] = "HTTP"
+    port: Optional[int] = 80
+    target_port: Optional[int] = 80
+    scale_up_threshold: Optional[int] = 80
+    scale_up_adjustment: Optional[int] = 1
+    scale_down_threshold: Optional[int] = 20
+    scale_down_adjustment: Optional[int] = -1
+    alarm_period: Optional[int] = 60
+    alarm_evaluation_periods: Optional[int] = 1
+
+    class Config:
+        extra = Extra.allow
+
+
 class DeployArgs(BaseModel):
     """
     This class defines the arguments for the deployment. Depending on the type of deployment (k8s, openstack),
@@ -295,6 +326,9 @@ class DeployArgs(BaseModel):
     # acecloud (uses openstack)
     acecloud: Optional[AceCloudDeployArgs] = None
 
+    # e2e
+    e2e: Optional[E2EDeployArgs] = None
+
     class Config:
         extra = Extra.allow
 
@@ -309,7 +343,7 @@ class Deploy(BaseModel):
 
     @validator("type")
     def validate_type(cls, v, values, **kwargs):
-        if v not in ["k8s", "openstack", "acecloud"]:
+        if v not in ["k8s", "openstack", "acecloud", "e2e"]:
             raise ValueError("Invalid deploy type")
         return v
 
@@ -351,6 +385,19 @@ class Deploy(BaseModel):
                 for field in required_fields:
                     if not v or field not in v or not v[field]:
                         raise ValueError(f"Missing required field '{field}' for acecloud deploy type")
+            else:
+                raise ValueError(f"Unknown type of deployment {values['type']}")
+            if values["type"] == "e2e":
+                required_fields = [
+                    "kind",
+                    "name",
+                    "image",
+                    "plan",
+                    "network",
+                ]
+                for field in required_fields:
+                    if not v or field not in v or not v[field]:
+                        raise ValueError(f"Missing required field '{field}' for e2e deploy type")
             else:
                 raise ValueError(f"Unknown type of deployment {values['type']}")
         else:

@@ -712,6 +712,52 @@ class YamlCtl:
                 if acecloud_args.alarm_evaluation_periods:
                     deploy_args.append(f"--acecloud_alarm_evaluation_periods={acecloud_args.alarm_evaluation_periods}")
 
+        elif entity.deploy and entity.deploy.type == "e2e":
+            if entity.deploy and entity.deploy.args and entity.deploy.args.e2e:
+                e2e_args = entity.deploy.args.e2e
+                if e2e_args.kind:
+                    deploy_args.append(f"--e2e_kind={e2e_args.kind}")
+                if e2e_args.name:
+                    deploy_args.append(f"--e2e_name={e2e_args.name}")
+                if e2e_args.image:
+                    deploy_args.append(f"--e2e_image={e2e_args.image}")
+                if e2e_args.plan:
+                    deploy_args.append(f"--e2e_plan={e2e_args.plan}")
+                if e2e_args.ssh_keys:
+                    deploy_args.append(f"--e2e_ssh_keys={e2e_args.ssh_keys}")
+                if e2e_args.open_ports:
+                    deploy_args.append(f"--e2e_open_ports={e2e_args.open_ports}")
+                if e2e_args.tags:
+                    deploy_args.append(f"--e2e_tags={e2e_args.tags}")
+                if e2e_args.region:
+                    deploy_args.append(f"--e2e_region={e2e_args.region}")
+                if e2e_args.backup:
+                    deploy_args.append(f"--e2e_backup={e2e_args.backup}")
+                if e2e_args.min_instances:
+                    deploy_args.append(f"--e2e_min_instances={e2e_args.min_instances}")
+                if e2e_args.max_instances:
+                    deploy_args.append(f"--e2e_max_instances={e2e_args.max_instances}")
+                if e2e_args.desired_instances:
+                    deploy_args.append(f"--e2e_desired_instances={e2e_args.desired_instances}")
+                if e2e_args.protocol:
+                    deploy_args.append(f"--e2e_protocol={e2e_args.protocol}")
+                if e2e_args.port:
+                    deploy_args.append(f"--e2e_port={e2e_args.port}")
+                if e2e_args.target_port:
+                    deploy_args.append(f"--e2e_target_port={e2e_args.target_port}")
+                if e2e_args.scale_up_threshold:
+                    deploy_args.append(f"--e2e_scale_up_threshold={e2e_args.scale_up_threshold}")
+                if e2e_args.scale_up_adjustment:
+                    deploy_args.append(f"--e2e_scale_up_adjustment={e2e_args.scale_up_adjustment}")
+                if e2e_args.scale_down_threshold:
+                    deploy_args.append(f"--e2e_scale_down_threshold={e2e_args.scale_down_threshold}")
+                if e2e_args.scale_down_adjustment:
+                    deploy_args.append(f"--e2e_scale_down_adjustment={e2e_args.scale_down_adjustment}")
+                if e2e_args.alarm_period:
+                    deploy_args.append(f"--e2e_alarm_period={e2e_args.alarm_period}")
+                if e2e_args.alarm_evaluation_periods:
+                    deploy_args.append(f"--e2e_alarm_evaluation_periods={e2e_args.alarm_evaluation_periods}")
+
         else:
             if entity.deploy:
                 raise ValueError(f"Unknown deployment type: {entity.deploy.type}")
