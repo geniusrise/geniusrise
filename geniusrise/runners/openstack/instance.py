@@ -15,6 +15,7 @@
 
 from argparse import ArgumentParser, Namespace
 from typing import Optional, Any
+import base64
 
 from openstack import connection  # type: ignore
 
@@ -179,6 +180,8 @@ class OpenStackInstanceRunner:
             username=username,
             password=password,
             project_name=project_name,
+            project_domain_name="Default",
+            user_domain_name="Default",
         )
 
     def create(
@@ -207,24 +210,24 @@ class OpenStackInstanceRunner:
             open_ports (Optional[str]): Comma-separated list of ports to open.
             user_data (str): User data script for instances.
         """
-        image = self.conn.compute.find_image(image)
-        flavor = self.conn.compute.find_flavor(flavor)
+        _image = self.conn.compute.find_image(image)
+        _flavor = self.conn.compute.find_flavor(flavor)
 
+        networks = []
         if network:
-            network = self.conn.network.find_network(network)
-            nics = [{"net-id": network.id}]  # type: ignore
-        else:
-            nics = None
+            _network = self.conn.network.find_network(network)
+            if _network:
+                networks = [{"uuid": _network.id}]
 
         # Create security group and open specified ports
         if open_ports:
-            security_group = self.conn.network.create_security_group(
+            _security_group = self.conn.network.create_security_group(
                 name=f"{name}-security-group",
                 description=f"Security group for {name} instance",
             )
             for port in open_ports.split(","):
                 self.conn.network.create_security_group_rule(
-                    security_group_id=security_group.id,
+                    security_group_id=_security_group.id,
                     direction="ingress",
                     ethertype="IPv4",
                     port_range_min=int(port),
@@ -232,17 +235,7 @@ class OpenStackInstanceRunner:
                     protocol="tcp",
                 )
         else:
-            security_group = None
-
-        instance = self.conn.compute.create_server(
-            name=name,
-            image_id=image.id,  # type: ignore
-            flavor_id=flavor.id,  # type: ignore
-            key_name=key_name,
-            nics=nics,
-            security_groups=[security_group.name] if security_group else None,  # type: ignore
-            user_data=user_data,
-        )
+            _security_group = None
 
         # Attach block storage if specified
         if block_storage_size:
@@ -250,17 +243,35 @@ class OpenStackInstanceRunner:
                 name=f"{name}-volume",
                 size=block_storage_size,
             )
-            self.conn.compute.create_volume_attachment(
-                server=instance,
-                volumeId=volume.id,
-            )
-            print(f"🗃️ Attached block storage of size {block_storage_size}GB to instance {name}")
+            block_device_mapping = {
+                "source_type": "volume",
+                "destination_type": "volume",
+                "boot_index": 0,
+                "uuid": volume.id,
+                "delete_on_termination": True,
+            }
+            print(f"🗃️ Will attach block storage of size {block_storage_size}GB to instance {name}")
+        else:
+            block_device_mapping = None
+
+        instance = self.conn.compute.create_server(
+            name=name,
+            image_id=_image.id,
+            flavor_id=_flavor.id,
+            key_name=key_name,
+            networks=networks if networks else [],
+            security_group_ids=[_security_group.id] if _security_group else None,
+            block_device_mapping_v2=[block_device_mapping] if block_device_mapping else None,
+            user_data=base64.b64encode(bytes(user_data.encode("utf8"))).decode("utf8"),
+        )
+        # Wait for the instance to reach the "ACTIVE" state
+        instance = self.conn.compute.wait_for_server(instance, status="ACTIVE", wait=120)
 
         # Allocate a floating IP address
-        if allocate_ip and network:
-            floating_ip = self.conn.network.create_ip(floating_network_id=network.id)  # type: ignore
-            self.conn.compute.add_floating_ip_to_server(instance, floating_ip.floating_ip_address)
-            print(f"🌐 Allocated floating IP address {floating_ip.floating_ip_address} to instance {name}")
+        # if allocate_ip and _network:
+        #     floating_ip = self.conn.network.create_ip(floating_network_id=_network.id)
+        #     self.conn.compute.add_floating_ip_to_server(instance, floating_ip.floating_ip_address)
+        #     print(f"🌐 Allocated floating IP address {floating_ip.floating_ip_address} to instance {name}")
 
         print(f"🛠️ Created instance {name} with ID {instance.id}")
         return instance
@@ -274,6 +285,7 @@ class OpenStackInstanceRunner:
         """
         instance = self.conn.compute.find_server(name)
         self.conn.compute.delete_server(instance.id)
+        # TODO: delete the sec grp too?
         print(f"🗑️ Deleted instance {name}")
 
     def status(self, name: str) -> Any:
@@ -284,11 +296,13 @@ class OpenStackInstanceRunner:
             name (str): Name of the instance.
         """
         instance = self.conn.compute.find_server(name)
-        print(f"📊 Instance {name} details:")
-        print(f"  ID: {instance.id}")
-        print(f"  Status: {instance.status}")
-        print(f"  Image: {instance.image['id']}")
-        print(f"  Flavor: {instance.flavor['id']}")
-        print(f"  Key Name: {instance.key_name}")
-        print(f"  Networks: {instance.addresses}")
-        return instance
+
+        if instance:
+            print(f"📊 Instance {name} details:")
+            print(f"  ID: {instance.id}")
+            print(f"  Status: {instance.status}")
+            print(f"  Image: {instance.image['id']}")
+            print(f"  Flavor: {instance.flavor['id']}")
+            print(f"  Key Name: {instance.key_name}")
+            print(f"  Networks: {instance.addresses}")
+            return instance
