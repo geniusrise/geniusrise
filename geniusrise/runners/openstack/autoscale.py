@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from argparse import ArgumentParser, Namespace
+import base64
 from typing import Optional, Any
 
 from openstack import connection  # type: ignore
@@ -118,6 +119,7 @@ class OpenStackAutoscaleRunner:
         create_parser.add_argument("name", help="Name of the autoscaled deployment.", type=str)
         create_parser.add_argument("image", help="Image ID or name.", type=str)
         create_parser.add_argument("flavor", help="Flavor ID or name.", type=str)
+        create_parser.add_argument("--lb-type", help="Type of load balancer, e.g. Octavia.", type=str)
         create_parser.add_argument("--key-name", help="Key pair name.", type=str)
         create_parser.add_argument("--network", help="Network ID or name.", type=str)
         create_parser.add_argument("--min-instances", help="Minimum number of instances.", type=int, default=1)
@@ -178,6 +180,7 @@ class OpenStackAutoscaleRunner:
                 alarm_period=args.alarm_period,
                 alarm_evaluation_periods=args.alarm_evaluation_periods,
                 user_data=args.user_data,
+                lb_type=args.lb_type,
             )
         elif args.openstack_autoscale == "delete":
             self.delete(name=args.name)
@@ -223,6 +226,7 @@ class OpenStackAutoscaleRunner:
         alarm_period: int = 60,
         alarm_evaluation_periods: int = 5,
         user_data: str = "#!/bin/bash\napt-get update",
+        lb_type: str = "Octavia",
     ) -> Any:
         """
         🛠 Create an autoscaled deployment with a load balancer.
@@ -247,6 +251,7 @@ class OpenStackAutoscaleRunner:
         """
         _image = self.conn.compute.find_image(image)
         _flavor = self.conn.compute.find_flavor(flavor)
+        user_data = base64.b64encode(bytes(user_data.encode("utf8"))).decode("utf8")
 
         networks = []
         if network:
@@ -261,14 +266,14 @@ class OpenStackAutoscaleRunner:
                 "heat_template_version": "2016-10-14",
                 "resources": {
                     "loadbalancer": {
-                        "type": "OS::Octavia::LoadBalancer",
+                        "type": f"OS::{lb_type}::LoadBalancer",
                         "properties": {
                             "name": f"{name}-lb",
                             "vip_subnet": networks[0]["uuid"] if networks else None,
                         },
                     },
                     "listener": {
-                        "type": "OS::Octavia::Listener",
+                        "type": f"OS::{lb_type}::Listener",
                         "properties": {
                             "name": f"{name}-listener",
                             "protocol": protocol,
@@ -277,7 +282,7 @@ class OpenStackAutoscaleRunner:
                         },
                     },
                     "pool": {
-                        "type": "OS::Octavia::Pool",
+                        "type": f"OS::{lb_type}::Pool",
                         "properties": {
                             "name": f"{name}-pool",
                             "lb_algorithm": "ROUND_ROBIN",
@@ -286,7 +291,7 @@ class OpenStackAutoscaleRunner:
                         },
                     },
                     "healthmonitor": {
-                        "type": "OS::Octavia::HealthMonitor",
+                        "type": f"OS::{lb_type}::HealthMonitor",
                         "properties": {
                             "pool": {"get_resource": "pool"},
                             "type": protocol,
