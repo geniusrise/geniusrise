@@ -122,6 +122,7 @@ class OpenStackAutoscaleRunner:
         create_parser.add_argument("--lb-type", help="Type of load balancer, e.g. Octavia.", type=str)
         create_parser.add_argument("--key-name", help="Key pair name.", type=str)
         create_parser.add_argument("--network", help="Network ID or name.", type=str)
+        create_parser.add_argument("--subnet", help="Subnet ID or name.", type=str)
         create_parser.add_argument("--min-instances", help="Minimum number of instances.", type=int, default=1)
         create_parser.add_argument("--max-instances", help="Maximum number of instances.", type=int, default=5)
         create_parser.add_argument("--desired-instances", help="Desired number of instances.", type=int, default=2)
@@ -171,6 +172,7 @@ class OpenStackAutoscaleRunner:
                 flavor=args.flavor,
                 key_name=args.key_name,
                 network=args.network,
+                subnet=args.subnet,
                 min_instances=args.min_instances,
                 max_instances=args.max_instances,
                 desired_instances=args.desired_instances,
@@ -220,6 +222,7 @@ class OpenStackAutoscaleRunner:
         lb_type: str = "Octavia",
         key_name: Optional[str] = None,
         network: Optional[str] = None,
+        subnet: Optional[str] = None,
         min_instances: int = 1,
         max_instances: int = 5,
         desired_instances: int = 2,
@@ -260,11 +263,6 @@ class OpenStackAutoscaleRunner:
         _image = self.conn.compute.find_image(image)
         _flavor = self.conn.compute.find_flavor(flavor)
         user_data = base64.b64encode(bytes(user_data.encode("utf8"))).decode("utf8")
-        networks = []
-        if network:
-            _network = self.conn.network.find_network(network)
-            if _network:
-                networks = [{"uuid": _network.id}]
 
         networks = []
         subnets = []
@@ -272,11 +270,18 @@ class OpenStackAutoscaleRunner:
             _network = self.conn.network.find_network(network)
             if _network:
                 networks = [{"uuid": _network.id}]
-                _subnet = next(self.conn.network.subnets(network_id=_network.id), None)
-                if _subnet:
-                    subnets = [{"uuid": _subnet.id}]
+                if subnet:
+                    _subnet = self.conn.network.find_subnet(subnet)
+                    if _subnet and _subnet.network_id == _network.id:
+                        subnets = [{"uuid": _subnet.id}]
+                    else:
+                        raise ValueError(f"Subnet {subnet} not found or does not belong to network {network}")
                 else:
-                    raise ValueError(f"No subnet found for network {network}")
+                    _subnet = next(self.conn.network.subnets(network_id=_network.id), None)
+                    if _subnet:
+                        subnets = [{"uuid": _subnet.id}]
+                    else:
+                        raise ValueError(f"No subnet found for network {network}")
 
         # Create security group and open specified ports
         if open_ports:
