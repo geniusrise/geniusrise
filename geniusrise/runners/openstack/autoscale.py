@@ -260,12 +260,23 @@ class OpenStackAutoscaleRunner:
         _image = self.conn.compute.find_image(image)
         _flavor = self.conn.compute.find_flavor(flavor)
         user_data = base64.b64encode(bytes(user_data.encode("utf8"))).decode("utf8")
-
         networks = []
         if network:
             _network = self.conn.network.find_network(network)
             if _network:
                 networks = [{"uuid": _network.id}]
+
+        networks = []
+        subnets = []
+        if network:
+            _network = self.conn.network.find_network(network)
+            if _network:
+                networks = [{"uuid": _network.id}]
+                _subnet = next(self.conn.network.subnets(network_id=_network.id), None)
+                if _subnet:
+                    subnets = [{"uuid": _subnet.id}]
+                else:
+                    raise ValueError(f"No subnet found for network {network}")
 
         # Create security group and open specified ports
         if open_ports:
@@ -287,13 +298,18 @@ class OpenStackAutoscaleRunner:
 
         # Attach block storage if specified
         if block_storage_size:
+            volume = self.conn.block_storage.create_volume(
+                name=f"{name}-volume",
+                size=block_storage_size,
+            )
             block_device_mapping = {
-                "volume_size": block_storage_size,
+                "source_type": "volume",
+                "destination_type": "volume",
+                "boot_index": 0,
+                "uuid": volume.id,
                 "delete_on_termination": True,
             }
-            print(
-                f"🗃️ Will attach block storage of size {block_storage_size}GB to instances in autoscaled deployment {name}"
-            )
+            print(f"🗃️ Will attach block storage of size {block_storage_size}GB to instance {name}")
         else:
             block_device_mapping = None
 
@@ -307,7 +323,7 @@ class OpenStackAutoscaleRunner:
                         "type": f"OS::{lb_type}::LoadBalancer",
                         "properties": {
                             "name": f"{name}-lb",
-                            "vip_subnet": networks[0]["uuid"] if networks else None,
+                            "vip_subnet": subnets[0]["uuid"] if subnets else None,
                         },
                     },
                     "listener": {
