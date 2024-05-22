@@ -201,6 +201,8 @@ class OpenStackAutoscaleRunner:
             username=username,
             password=password,
             project_name=project_name,
+            project_domain_name="Default",
+            user_domain_name="Default",
         )
 
     def create(
@@ -362,9 +364,9 @@ class OpenStackAutoscaleRunner:
         """
         # Delete the autoscaling stack
         stack = self.conn.orchestration.find_stack(f"{name}-stack")
-        self.conn.orchestration.delete_stack(stack)
-
-        print(f"🗑️ Deleted autoscaled deployment {name}")
+        if stack:
+            self.conn.orchestration.delete_stack(stack)
+            print(f"🗑️ Deleted autoscaled deployment {name}")
 
     def status(self, name: str) -> Any:
         """
@@ -376,20 +378,22 @@ class OpenStackAutoscaleRunner:
         # Get the autoscaling stack
         stack = self.conn.orchestration.find_stack(f"{name}-stack")
 
-        print(f"📊 Autoscaled Deployment {name} Status:")
-        print(f"  ID: {stack.id}")
-        print(f"  Status: {stack.status}")
-        print(f"  Status Reason: {stack.status_reason}")
+        if stack:
+            print(f"📊 Autoscaled Deployment {name} Status:")
+            print(f"  ID: {stack.id}")
+            print(f"  Status: {stack.status}")
+            print(f"  Status Reason: {stack.status_reason}")
 
-        # Get the autoscaling group
-        autoscaling_group = self.conn.orchestration.resources(stack_id=stack.id, nested_depth=2).find(
-            resource_type="OS::Heat::AutoScalingGroup"
-        )
+            # Get the autoscaling group
+            autoscaling_group = self.conn.orchestration.resources(stack_id=stack.id, nested_depth=2).find(
+                resource_type="OS::Heat::AutoScalingGroup"
+            )
 
-        print(f"  Autoscaling Group: {autoscaling_group.physical_resource_id}")
-        print(f"    Min Instances: {autoscaling_group.attributes['min_size']}")
-        print(f"    Max Instances: {autoscaling_group.attributes['max_size']}")
-        print(f"    Desired Instances: {autoscaling_group.attributes['desired_capacity']}")
-        print(f"    Current Instances: {autoscaling_group.attributes['current_size']}")
+            if autoscaling_group:
+                print(f"  Autoscaling Group: {autoscaling_group.physical_resource_id}")
+                print(f"    Min Instances: {autoscaling_group.attributes['min_size']}")
+                print(f"    Max Instances: {autoscaling_group.attributes['max_size']}")
+                print(f"    Desired Instances: {autoscaling_group.attributes['desired_capacity']}")
+                print(f"    Current Instances: {autoscaling_group.attributes['current_size']}")
 
-        return stack
+            return stack
