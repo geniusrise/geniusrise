@@ -245,6 +245,15 @@ class OpenStackAutoscaleRunner:
             alarm_evaluation_periods (int): Number of periods to evaluate alarms.
             user_data (str): User data script for instances.
         """
+        _image = self.conn.compute.find_image(image)
+        _flavor = self.conn.compute.find_flavor(flavor)
+
+        networks = []
+        if network:
+            _network = self.conn.network.find_network(network)
+            if _network:
+                networks = [{"uuid": _network.id}]
+
         # Create a stack for autoscaling
         stack = self.conn.orchestration.create_stack(
             name=f"{name}-stack",
@@ -255,7 +264,7 @@ class OpenStackAutoscaleRunner:
                         "type": "OS::Octavia::LoadBalancer",
                         "properties": {
                             "name": f"{name}-lb",
-                            "vip_subnet": self.conn.network.find_network(network).subnets[0].id if network else None,
+                            "vip_subnet": networks[0]["uuid"] if networks else None,
                         },
                     },
                     "listener": {
@@ -296,10 +305,11 @@ class OpenStackAutoscaleRunner:
                                 "type": "OS::Nova::Server",
                                 "properties": {
                                     "name": f"{name}-instance",
-                                    "image": self.conn.compute.find_image(image).id,
-                                    "flavor": self.conn.compute.find_flavor(flavor).id,
+                                    "image": _image.id,
+                                    "flavor": _flavor.id,
                                     "key_name": key_name,
-                                    "user_data": user_data,
+                                    "networks": networks,
+                                    "user_data": {"Fn::Base64": user_data},
                                 },
                             },
                             "pool_id": {"get_resource": "pool"},
