@@ -132,6 +132,8 @@ class OpenStackAutoscaleRunner:
         create_parser.add_argument("--scale-down-adjustment", help="Number of instances to remove during scale-down.", type=int, default=-1)
         create_parser.add_argument("--alarm-period", help="Period for alarms (in seconds).", type=int, default=60)
         create_parser.add_argument("--alarm-evaluation-periods", help="Number of periods to evaluate alarms.", type=int, default=1)
+        create_parser.add_argument("--open-ports", help="Comma-separated list of ports to open.", type=str)
+        create_parser.add_argument("--block-storage-size", help="Size of the block storage in GB.", type=int)
         create_parser.add_argument("--user-data", help="User data script for instances.", type=str, default="#!/bin/bash\napt-get update")
         create_parser = self._add_connection_args(create_parser)
 
@@ -181,6 +183,8 @@ class OpenStackAutoscaleRunner:
                 alarm_evaluation_periods=args.alarm_evaluation_periods,
                 user_data=args.user_data,
                 lb_type=args.lb_type,
+                open_ports=args.open_ports,
+                block_storage_size=args.block_storage_size,
             )
         elif args.openstack_autoscale == "delete":
             self.delete(name=args.name)
@@ -213,6 +217,7 @@ class OpenStackAutoscaleRunner:
         name: str,
         image: str,
         flavor: str,
+        lb_type: str = "Octavia",
         key_name: Optional[str] = None,
         network: Optional[str] = None,
         min_instances: int = 1,
@@ -225,8 +230,9 @@ class OpenStackAutoscaleRunner:
         scale_down_adjustment: int = -1,
         alarm_period: int = 60,
         alarm_evaluation_periods: int = 5,
+        block_storage_size: Optional[int] = None,
+        open_ports: Optional[str] = None,
         user_data: str = "#!/bin/bash\napt-get update",
-        lb_type: str = "Octavia",
     ) -> Any:
         """
         🛠 Create an autoscaled deployment with a load balancer.
@@ -247,6 +253,8 @@ class OpenStackAutoscaleRunner:
             scale_down_adjustment (int): Number of instances to remove during scale-down.
             alarm_period (int): Period for alarms (in seconds).
             alarm_evaluation_periods (int): Number of periods to evaluate alarms.
+            block_storage_size (Optional[int]): Size of the block storage in GB.
+            open_ports (Optional[str]): Comma-separated list of ports to open.
             user_data (str): User data script for instances.
         """
         _image = self.conn.compute.find_image(image)
@@ -258,6 +266,36 @@ class OpenStackAutoscaleRunner:
             _network = self.conn.network.find_network(network)
             if _network:
                 networks = [{"uuid": _network.id}]
+
+        # Create security group and open specified ports
+        if open_ports:
+            _security_group = self.conn.network.create_security_group(
+                name=f"{name}-security-group",
+                description=f"Security group for {name} instance",
+            )
+            for port in open_ports.split(","):
+                self.conn.network.create_security_group_rule(
+                    security_group_id=_security_group.id,
+                    direction="ingress",
+                    ethertype="IPv4",
+                    port_range_min=int(port),
+                    port_range_max=int(port),
+                    protocol="tcp",
+                )
+        else:
+            _security_group = None
+
+        # Attach block storage if specified
+        if block_storage_size:
+            block_device_mapping = {
+                "volume_size": block_storage_size,
+                "delete_on_termination": True,
+            }
+            print(
+                f"🗃️ Will attach block storage of size {block_storage_size}GB to instances in autoscaled deployment {name}"
+            )
+        else:
+            block_device_mapping = None
 
         # Create a stack for autoscaling
         stack = self.conn.orchestration.create_stack(
@@ -314,6 +352,8 @@ class OpenStackAutoscaleRunner:
                                     "flavor": _flavor.id,
                                     "key_name": key_name,
                                     "networks": networks,
+                                    "security_group_ids": [_security_group.id] if _security_group else None,
+                                    "block_device_mapping_v2": [block_device_mapping] if block_device_mapping else None,
                                     "user_data": {"Fn::Base64": user_data},
                                 },
                             },
