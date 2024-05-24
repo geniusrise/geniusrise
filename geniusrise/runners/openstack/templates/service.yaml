@@ -26,51 +26,94 @@ parameters:
   port:
     type: number
     description: Port for the load balancer to listen to
+  min_size:
+    type: integer
+    description: The minimum number of instances in the autoscaling group.
+  max_size:
+    type: integer
+    description: The maximum number of instances in the autoscaling group.
+  cooldown:
+    type: integer
+    description: The number of seconds to wait before performing another scaling action.
+  upscale_adjustment:
+    type: integer
+    description: The number of instances to add when scaling up.
+  upscale_granularity:
+    type: integer
+    description: The granularity (in seconds) for the upscale alarm evaluation.
+  upscale_evaluation_periods:
+    type: integer
+    description: The number of periods to evaluate for the upscale alarm.
+  upscale_threshold:
+    type: integer
+    description: The threshold (in percent) for triggering the upscale alarm.
+  downscale_adjustment:
+    type: integer
+    description: The number of instances to remove when scaling down.
+  downscale_granularity:
+    type: integer
+    description: The granularity (in seconds) for the downscale alarm evaluation.
+  downscale_evaluation_periods:
+    type: integer
+    description: The number of periods to evaluate for the downscale alarm.
+  downscale_threshold:
+    type: integer
+    description: The threshold (in percent) for triggering the downscale alarm.
+  health_delay:
+    type: integer
+    description: The delay (in seconds) between health checks.
+  health_max_retries:
+    type: integer
+    description: The maximum number of retries for health checks before considering an instance unhealthy.
+  health_timeout:
+    type: integer
+    description: The timeout (in seconds) for health checks.
 
 resources:
   asg:
     type: OS::Heat::AutoScalingGroup
     properties:
-      min_size: 1
-      max_size: 3
+      min_size: { get_param: min_size }
+      max_size: { get_param: max_size }
       resource:
-        type: OS::Nova::Server
+        type: lb.yaml
         properties:
           flavor: { get_param: flavor }
           image: { get_param: image }
           key_name: { get_param: key }
+          network: { get_param: network }
+          subnet: { get_param: subnet_id }
+          pool_id: { get_resource: pool }
           metadata:
             metering.server_group: { get_param: "OS::stack_id" }
           user_data: { get_param: user_data }
-          user_data_format: RAW
-          networks:
-            - network: { get_param: network }
+          port: { get_param: port }
 
   web_server_scaleup_policy:
     type: OS::Heat::ScalingPolicy
     properties:
       adjustment_type: change_in_capacity
       auto_scaling_group_id: { get_resource: asg }
-      cooldown: 60
-      scaling_adjustment: 1
+      cooldown: { get_param: cooldown }
+      scaling_adjustment: { get_param: upscale_adjustment }
 
   web_server_scaledown_policy:
     type: OS::Heat::ScalingPolicy
     properties:
       adjustment_type: change_in_capacity
       auto_scaling_group_id: { get_resource: asg }
-      cooldown: 60
-      scaling_adjustment: -1
+      cooldown: { get_param: cooldown }
+      scaling_adjustment: { get_param: downscale_adjustment }
 
   cpu_alarm_high:
     type: OS::Aodh::GnocchiAggregationByResourcesAlarm
     properties:
-      description: Scale up if CPU > 80%
+      description: Scale up if CPU > x% for y minutes
       metric: cpu_util
       aggregation_method: mean
-      granularity: 300
-      evaluation_periods: 1
-      threshold: 80
+      granularity: { get_param: upscale_granularity }
+      evaluation_periods: { get_param: upscale_evaluation_periods }
+      threshold: { get_param: upscale_threshold }
       resource_type: instance
       comparison_operator: gt
       alarm_actions:
@@ -86,12 +129,12 @@ resources:
   cpu_alarm_low:
     type: OS::Aodh::GnocchiAggregationByResourcesAlarm
     properties:
-      description: Scale down if CPU < 15% for 5 minutes
+      description: Scale down if CPU < x% for y minutes
       metric: cpu_util
       aggregation_method: mean
-      granularity: 300
-      evaluation_periods: 1
-      threshold: 15
+      granularity: { get_param: downscale_granularity }
+      evaluation_periods: { get_param: downscale_evaluation_periods }
+      threshold: { get_param: downscale_threshold }
       resource_type: instance
       comparison_operator: lt
       alarm_actions:
@@ -130,15 +173,26 @@ resources:
     properties:
       pool: { get_resource: pool }
       type: TCP
-      delay: 5
-      max_retries: 5
-      timeout: 5
+      delay: { get_param: health_delay }
+      max_retries: { get_param: health_max_retries }
+      timeout: { get_param: health_timeout }
 
   lb_floating:
     type: OS::Neutron::FloatingIP
     properties:
       floating_network_id: { get_param: external_network_id }
       port_id: { get_attr: [lb, vip_port_id] }
+
+  server:
+    type: OS::Nova::Server
+    properties:
+      flavor: { get_param: flavor }
+      image: { get_param: image }
+      key_name: { get_param: key }
+      metadata: { "metering.server_group": { get_param: "OS::stack_id" } }
+      user_data: { get_param: user_data }
+      user_data_format: RAW
+      networks: [{ network: { get_param: network } }]
 
   member:
     type: OS::Octavia::PoolMember
@@ -151,7 +205,50 @@ resources:
 outputs:
   server_ip:
     description: IP Address of the load-balanced server.
-    value: { get_attr: [asg, outputs_list, 0, output_value] }
+    value: { get_attr: [server, first_address] }
   lb_member:
     description: LB member details.
     value: { get_attr: [member, show] }
+  scale_up_url:
+    description: >
+      This URL is the webhook to scale up the autoscaling group.  You
+      can invoke the scale-up operation by doing an HTTP POST to this
+      URL; no body nor extra headers are needed.
+    value: { get_attr: [web_server_scaleup_policy, alarm_url] }
+  scale_dn_url:
+    description: >
+      This URL is the webhook to scale down the autoscaling group.
+      You can invoke the scale-down operation by doing an HTTP POST to
+      this URL; no body nor extra headers are needed.
+    value: { get_attr: [web_server_scaledown_policy, alarm_url] }
+  pool_ip_address:
+    value: { get_attr: [lb, vip_address] }
+    description: The IP address of the load balancing pool
+  website_url:
+    value:
+      str_replace:
+        template: http://host/wordpress/
+        params:
+          host: { get_attr: [lb_floating, floating_ip_address] }
+    description: >
+      This URL is the "external" URL that can be used to access the
+      Wordpress site.
+  gnocchi_query:
+    value:
+      str_replace:
+        template: >
+          gnocchi measures aggregation --resource-type instance
+          --query 'server_group="stackval"'
+          --granularity 300 --aggregation mean -m cpu_util
+        params:
+          stackval: { get_param: "OS::stack_id" }
+    description: >
+      This is a Gnocchi query for statistics on the cpu_util measurements about
+      OS::Nova::Server instances in this stack. The --resource-type select the
+      type of Gnocchi resource. The --query parameter filters resources
+      according to its attributes. When a VM's metadata includes an item of the
+      form metering.server_group=X, the corresponding Gnocchi resource has a
+      attribute named server_group that can queried with 'server_group="X"' In
+      this case the nested stacks give their VMs metadata that is passed as a
+      nested stack parameter, and this stack passes a metadata of the form
+      metering.server_group=X, where X is this stack's ID.
