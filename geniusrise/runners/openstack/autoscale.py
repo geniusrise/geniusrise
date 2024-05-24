@@ -119,6 +119,7 @@ class OpenStackAutoscaleRunner:
         create_parser.add_argument("name", help="Name of the autoscaled deployment.", type=str)
         create_parser.add_argument("image", help="Image ID or name.", type=str)
         create_parser.add_argument("flavor", help="Flavor ID or name.", type=str)
+        create_parser.add_argument("--region-name", help="OpenStack region name.", type=str, required=True)
         create_parser.add_argument("--lb-type", help="Type of load balancer, e.g. Octavia.", type=str)
         create_parser.add_argument("--key-name", help="Key pair name.", type=str)
         create_parser.add_argument("--network", help="Network ID or name.", type=str)
@@ -163,6 +164,7 @@ class OpenStackAutoscaleRunner:
             username=args.username,
             password=args.password,
             project_name=args.project_name,
+            region_name=args.region_name,
         )
 
         if args.openstack_autoscale == "create":
@@ -170,6 +172,7 @@ class OpenStackAutoscaleRunner:
                 name=args.name,
                 image=args.image,
                 flavor=args.flavor,
+                region_name=args.region_name,
                 key_name=args.key_name,
                 network=args.network,
                 subnet=args.subnet,
@@ -195,7 +198,7 @@ class OpenStackAutoscaleRunner:
         else:
             raise ValueError(f"Unknown command: {args.openstack_autoscale}")
 
-    def connect(self, auth_url: str, username: str, password: str, project_name: str) -> None:
+    def connect(self, auth_url: str, username: str, password: str, project_name: str, region_name: str) -> None:
         """
         🌐 Connect to OpenStack.
 
@@ -204,6 +207,7 @@ class OpenStackAutoscaleRunner:
             username (str): OpenStack username.
             password (str): OpenStack password.
             project_name (str): OpenStack project name.
+            region_name (str): OpenStack region name.
         """
         self.conn = connection.Connection(
             auth_url=auth_url,
@@ -212,6 +216,7 @@ class OpenStackAutoscaleRunner:
             project_name=project_name,
             project_domain_name="Default",
             user_domain_name="Default",
+            region_name=region_name,
         )
 
     def create(
@@ -219,6 +224,7 @@ class OpenStackAutoscaleRunner:
         name: str,
         image: str,
         flavor: str,
+        region_name: str,
         lb_type: str = "Octavia",
         key_name: Optional[str] = None,
         network: Optional[str] = None,
@@ -282,6 +288,10 @@ class OpenStackAutoscaleRunner:
                         subnets = [{"uuid": _subnet.id}]
                     else:
                         raise ValueError(f"No subnet found for network {network}")
+            else:
+                raise ValueError(f"Could not find network {network}")
+        else:
+            raise ValueError("Need to supply a network and a subnet")
 
         # Create security group and open specified ports
         if open_ports:
@@ -303,18 +313,14 @@ class OpenStackAutoscaleRunner:
 
         # Attach block storage if specified
         if block_storage_size:
-            volume = self.conn.block_storage.create_volume(
-                name=f"{name}-volume",
-                size=block_storage_size,
-            )
             block_device_mapping = {
-                "source_type": "volume",
+                "volume_size": block_storage_size,
+                "source_type": "blank",
                 "destination_type": "volume",
-                "boot_index": 0,
-                "uuid": volume.id,
+                "boot_index": 1,
                 "delete_on_termination": True,
             }
-            print(f"🗃️ Will attach block storage of size {block_storage_size}GB to instance {name}")
+            print(f"🗃️ Will attach block storage of size {block_storage_size}GB to instances for {name}")
         else:
             block_device_mapping = None
 
@@ -373,12 +379,11 @@ class OpenStackAutoscaleRunner:
                                     "flavor": _flavor.id,
                                     "key_name": key_name,
                                     "networks": networks,
-                                    "security_group_ids": [_security_group.id] if _security_group else None,
+                                    "security_groups": [_security_group.id] if _security_group else None,
                                     "block_device_mapping_v2": [block_device_mapping] if block_device_mapping else None,
-                                    "user_data": {"Fn::Base64": user_data},
+                                    "user_data": user_data,
                                 },
                             },
-                            "pool_id": {"get_resource": "pool"},
                         },
                     },
                     "scale_up_policy": {

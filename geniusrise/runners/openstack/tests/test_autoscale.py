@@ -20,6 +20,7 @@ from test_config import (
     USERNAME,
     PASSWORD,
     PROJECT_NAME,
+    REGION_NAME,
     TEST_AUTOSCALE_NAME,
     TEST_IMAGE,
     TEST_FLAVOR,
@@ -50,6 +51,7 @@ def openstack_autoscale_manager():
         username=USERNAME,
         password=PASSWORD,
         project_name=PROJECT_NAME,
+        region_name=REGION_NAME,
     )
     yield manager
     manager.delete(name=TEST_AUTOSCALE_NAME)
@@ -60,6 +62,7 @@ def test_create_autoscale(openstack_autoscale_manager):
         name=TEST_AUTOSCALE_NAME,
         image=TEST_IMAGE,
         flavor=TEST_FLAVOR,
+        region_name=REGION_NAME,
         key_name=TEST_KEY_NAME,
         network=TEST_NETWORK,
         subnet=TEST_SUBNET,
