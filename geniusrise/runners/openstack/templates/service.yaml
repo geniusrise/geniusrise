@@ -23,51 +23,67 @@ parameters:
   user_data:
     type: string
     description: Base64 encoded user data script
+    default: ""
   port:
     type: number
     description: Port for the load balancer to listen to
+    default: 80
   min_size:
     type: integer
     description: The minimum number of instances in the autoscaling group.
+    default: 1
   max_size:
     type: integer
     description: The maximum number of instances in the autoscaling group.
+    default: 3
   cooldown:
     type: integer
     description: The number of seconds to wait before performing another scaling action.
+    default: 60
   upscale_adjustment:
     type: integer
     description: The number of instances to add when scaling up.
+    default: 1
   upscale_granularity:
     type: integer
     description: The granularity (in seconds) for the upscale alarm evaluation.
+    default: 60
   upscale_evaluation_periods:
     type: integer
     description: The number of periods to evaluate for the upscale alarm.
+    default: 1
   upscale_threshold:
     type: integer
     description: The threshold (in percent) for triggering the upscale alarm.
+    default: 80
   downscale_adjustment:
     type: integer
     description: The number of instances to remove when scaling down.
+    default: -1
   downscale_granularity:
     type: integer
     description: The granularity (in seconds) for the downscale alarm evaluation.
+    default: 300
   downscale_evaluation_periods:
     type: integer
     description: The number of periods to evaluate for the downscale alarm.
+    default: 1
   downscale_threshold:
     type: integer
     description: The threshold (in percent) for triggering the downscale alarm.
+    default: 20
   health_delay:
     type: integer
     description: The delay (in seconds) between health checks.
+    default: 5
   health_max_retries:
     type: integer
     description: The maximum number of retries for health checks before considering an instance unhealthy.
+    default: 3
   health_timeout:
     type: integer
     description: The timeout (in seconds) for health checks.
+    default: 2
 
 resources:
   asg:
