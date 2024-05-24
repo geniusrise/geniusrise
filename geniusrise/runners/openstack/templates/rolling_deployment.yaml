@@ -1,0 +1,26 @@
+heat_template_version: 2013-05-23
+description: Rolling software deployment
+
+parameters:
+  server_ids:
+    type: comma_delimited_list
+    description: List of server IDs to deploy software to
+  config_id:
+    type: string
+    description: ID of the software configuration to deploy
+  pause_time:
+    type: number
+    default: 30
+    description: Pause time (in seconds) between batches
+
+resources:
+  rolling_deployment:
+    type: OS::Heat::SoftwareDeploymentGroup
+    properties:
+      config: { get_param: config_id }
+      servers: { get_param: server_ids }
+      actions: [CREATE, UPDATE]
+      rolling_update:
+        min_in_service: 1
+        max_batch_size: 1
+        pause_time: { get_param: pause_time }

@@ -1,0 +1,18 @@
+heat_template_version: 2013-05-23
+description: Minimal software deployment
+
+parameters:
+  server_id:
+    type: string
+    description: ID of the server to deploy software to
+  config_id:
+    type: string
+    description: ID of the software configuration to deploy
+
+resources:
+  minimal_deployment:
+    type: OS::Heat::SoftwareDeployment
+    properties:
+      actions: [CREATE, UPDATE]
+      config: { get_param: config_id }
+      server: { get_param: server_id }

@@ -1,0 +1,157 @@
+heat_template_version: 2016-10-14
+description: AutoScaling service with a load-balanced server
+
+parameters:
+  image:
+    type: string
+    description: Image used for servers
+  key:
+    type: string
+    description: SSH key to connect to the servers
+  flavor:
+    type: string
+    description: flavor used by the web servers
+  network:
+    type: string
+    description: Network used by the server
+  subnet_id:
+    type: string
+    description: subnet on which the load balancer will be located
+  external_network_id:
+    type: string
+    description: UUID of a Neutron external network
+  user_data:
+    type: string
+    description: Base64 encoded user data script
+  port:
+    type: number
+    description: Port for the load balancer to listen to
+
+resources:
+  asg:
+    type: OS::Heat::AutoScalingGroup
+    properties:
+      min_size: 1
+      max_size: 3
+      resource:
+        type: OS::Nova::Server
+        properties:
+          flavor: { get_param: flavor }
+          image: { get_param: image }
+          key_name: { get_param: key }
+          metadata:
+            metering.server_group: { get_param: "OS::stack_id" }
+          user_data: { get_param: user_data }
+          user_data_format: RAW
+          networks:
+            - network: { get_param: network }
+
+  web_server_scaleup_policy:
+    type: OS::Heat::ScalingPolicy
+    properties:
+      adjustment_type: change_in_capacity
+      auto_scaling_group_id: { get_resource: asg }
+      cooldown: 60
+      scaling_adjustment: 1
+
+  web_server_scaledown_policy:
+    type: OS::Heat::ScalingPolicy
+    properties:
+      adjustment_type: change_in_capacity
+      auto_scaling_group_id: { get_resource: asg }
+      cooldown: 60
+      scaling_adjustment: -1
+
+  cpu_alarm_high:
+    type: OS::Aodh::GnocchiAggregationByResourcesAlarm
+    properties:
+      description: Scale up if CPU > 80%
+      metric: cpu_util
+      aggregation_method: mean
+      granularity: 300
+      evaluation_periods: 1
+      threshold: 80
+      resource_type: instance
+      comparison_operator: gt
+      alarm_actions:
+        - str_replace:
+            template: trust+url
+            params:
+              url: { get_attr: [web_server_scaleup_policy, signal_url] }
+      query:
+        list_join:
+          - ""
+          - - { "=": { server_group: { get_param: "OS::stack_id" } } }
+
+  cpu_alarm_low:
+    type: OS::Aodh::GnocchiAggregationByResourcesAlarm
+    properties:
+      description: Scale down if CPU < 15% for 5 minutes
+      metric: cpu_util
+      aggregation_method: mean
+      granularity: 300
+      evaluation_periods: 1
+      threshold: 15
+      resource_type: instance
+      comparison_operator: lt
+      alarm_actions:
+        - str_replace:
+            template: trust+url
+            params:
+              url: { get_attr: [web_server_scaledown_policy, signal_url] }
+      query:
+        list_join:
+          - ""
+          - - { "=": { server_group: { get_param: "OS::stack_id" } } }
+
+  lb:
+    type: OS::Octavia::LoadBalancer
+    properties:
+      vip_subnet: { get_param: subnet_id }
+
+  listener:
+    type: OS::Octavia::Listener
+    properties:
+      loadbalancer: { get_resource: lb }
+      protocol: HTTP
+      protocol_port: { get_param: port }
+
+  pool:
+    type: OS::Octavia::Pool
+    properties:
+      listener: { get_resource: listener }
+      lb_algorithm: ROUND_ROBIN
+      protocol: HTTP
+      session_persistence:
+        type: SOURCE_IP
+
+  lb_monitor:
+    type: OS::Octavia::HealthMonitor
+    properties:
+      pool: { get_resource: pool }
+      type: TCP
+      delay: 5
+      max_retries: 5
+      timeout: 5
+
+  lb_floating:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network_id: { get_param: external_network_id }
+      port_id: { get_attr: [lb, vip_port_id] }
+
+  member:
+    type: OS::Octavia::PoolMember
+    properties:
+      pool: { get_resource: pool }
+      address: { get_attr: [asg, outputs_list, 0, output_value] }
+      protocol_port: { get_param: port }
+      subnet: { get_param: subnet_id }
+
+outputs:
+  server_ip:
+    description: IP Address of the load-balanced server.
+    value: { get_attr: [asg, outputs_list, 0, output_value] }
+  lb_member:
+    description: LB member details.
+    value: { get_attr: [member, show] }
