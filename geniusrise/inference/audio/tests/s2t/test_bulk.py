@@ -16,7 +16,7 @@
 import os
 
 import pytest
-from geniusrise.core import BatchInput, BatchOutput, InMemoryState
+from geniusrise.core import BatchInput, BatchOutput
 
 from geniusrise.inference.audio import SpeechToTextBulk
 
@@ -31,7 +31,7 @@ def speech_to_text_bulk():
 
     input = BatchInput(input_dir, "geniusrise-test-bucket", "api_input")
     output = BatchOutput(output_dir, "geniusrise-test-bucket", "api_output")
-    state = InMemoryState(1)
+    state = None
 
     speech_to_text_bulk = SpeechToTextBulk(
         input=input,

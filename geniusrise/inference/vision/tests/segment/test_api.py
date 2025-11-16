@@ -21,7 +21,7 @@ import pytest
 import shutil
 import json
 import cherrypy
-from geniusrise import BatchInput, BatchOutput, InMemoryState
+from geniusrise import BatchInput, BatchOutput
 from geniusrise.inference.vision.segment.api import VisionSegmentationAPI
 from PIL import Image, ImageDraw, ImageFont
 from unittest.mock import MagicMock
@@ -82,7 +82,7 @@ def segment_api_instance(tmpdir, request):
     os.makedirs(input_dir, exist_ok=True)
     os.makedirs(output_dir, exist_ok=True)
 
-    state = InMemoryState()
+    state = None
 
     model_name, _, _, _, subtask = request.param
 

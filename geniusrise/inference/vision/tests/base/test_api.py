@@ -19,7 +19,7 @@ import pytest
 import torch
 
 # import transformers
-from geniusrise.core import BatchInput, BatchOutput, InMemoryState
+from geniusrise.core import BatchInput, BatchOutput
 
 from geniusrise.inference.vision.api import VisionAPI
 
@@ -52,7 +52,7 @@ def hfa():
 
     input = BatchInput(input_dir, "geniusrise-test", "api_input")
     output = BatchOutput(output_dir, "geniusrise-test", "api_output")
-    state = InMemoryState()
+    state = None
 
     hfa = VisionAPI(
         input=input,

@@ -17,7 +17,7 @@ import os
 
 import numpy as np
 import pytest
-from geniusrise.core import BatchInput, BatchOutput, InMemoryState
+from geniusrise.core import BatchInput, BatchOutput
 
 from geniusrise.inference.audio.t2s.inference import TextToSpeechInference
 
@@ -32,7 +32,7 @@ def t2s_inference():
 
     input = BatchInput(input_dir, "geniusrise-test-bucket", "api_input")
     output = BatchOutput(output_dir, "geniusrise-test-bucket", "api_output")
-    state = InMemoryState(1)
+    state = None
 
     t2s_inference = TextToSpeechInference(
         input=input,

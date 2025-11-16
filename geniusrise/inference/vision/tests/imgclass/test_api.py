@@ -23,7 +23,7 @@ import string
 from unittest.mock import patch, MagicMock
 from PIL import Image
 from PIL import Image, ImageDraw, ImageFont
-from geniusrise import BatchInput, BatchOutput, InMemoryState, State
+from geniusrise import BatchInput, BatchOutput, State
 from geniusrise.inference.vision.imgclass.api import ImageClassificationAPI
 from transformers import AutoModelForImageClassification, AutoProcessor
 
@@ -48,7 +48,7 @@ def base64_test_image():
 def api_instance():
     input = MagicMock(spec=BatchInput)
     output = MagicMock(spec=BatchOutput)
-    state = MagicMock(spec=InMemoryState)
+    state = MagicMock(spec=State)
 
     api = ImageClassificationAPI("microsoft/resnet-50", input, output, state)
 

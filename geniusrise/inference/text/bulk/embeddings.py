@@ -28,7 +28,7 @@ import torch
 import transformers
 import yaml  # type: ignore
 from datasets import Dataset
-from geniusrise import BatchInput, BatchOutput, Bolt, State
+from geniusrise import BatchInput, BatchOutput, State
 from geniusrise.logging import setup_logger
 from sentence_transformers import SentenceTransformer
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -41,7 +41,7 @@ from geniusrise.inference.text.utils.embeddings import (
 )
 
 
-class EmbeddingsBulk(Bolt):
+class EmbeddingsBulk:
     r"""
     The `EmbeddingsBulk` class is designed to generate embeddings in bulk for various types of text data.
     It supports multiple data formats: JSONL, CSV, Parquet, JSON, XML, YAML, TSV, Excel, SQLite, and Feather.
@@ -93,7 +93,9 @@ class EmbeddingsBulk(Bolt):
     """
 
     def __init__(self, input: BatchInput, output: BatchOutput, state: State, **kwargs) -> None:
-        super().__init__(input, output, state, **kwargs)
+        self.input = input
+        self.output = output
+        self.state = state
         self.log = setup_logger(self.state)
 
     def load_models(

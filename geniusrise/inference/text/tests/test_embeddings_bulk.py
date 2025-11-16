@@ -23,7 +23,7 @@ import pandas as pd
 import pytest
 import yaml  # type: ignore
 from datasets import Dataset
-from geniusrise.core import BatchInput, BatchOutput, InMemoryState
+from geniusrise.core import BatchInput, BatchOutput
 from pyarrow import feather
 from pyarrow import parquet as pq
 
@@ -103,7 +103,7 @@ def embeddings_bulk_bolt(tmpdir):
     os.makedirs(output_dir)
     input = BatchInput(input_dir, "geniusrise-test", "test-🤗-input")
     output = BatchOutput(output_dir, "geniusrise-test", "test-🤗-output")
-    state = InMemoryState()
+    state = None
     bolt = EmbeddingsBulk(
         input=input,
         output=output,

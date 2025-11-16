@@ -15,6 +15,5 @@
 
 from .base import State
 from .postgres import PostgresState
-from .memory import InMemoryState  # For testing only
 
-__all__ = ["State", "PostgresState", "InMemoryState"]
+__all__ = ["State", "PostgresState"]

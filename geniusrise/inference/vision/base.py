@@ -20,7 +20,7 @@ import threading
 import torch
 import transformers
 import cherrypy
-from geniusrise import BatchInput, BatchOutput, Bolt, State
+from geniusrise import BatchInput, BatchOutput, State
 from geniusrise.logging import setup_logger
 from transformers import AutoModel, AutoProcessor
 from geniusrise.inference.vision.utils.communication import send_email
@@ -32,9 +32,9 @@ from optimum.bettertransformer import BetterTransformer
 sequential_lock = threading.Lock()
 
 
-class VisionBulk(Bolt):
+class VisionBulk:
     """
-    A class representing the VisionBulk operations that inherits from Bolt.
+    A class representing the VisionBulk operations.
 
     This class encapsulates methods for loading and utilizing models for image-related bulk operations.
     It must be subclassed with an implementation for the 'generate' method which is specific to the inheriting class.
@@ -66,7 +66,9 @@ class VisionBulk(Bolt):
             output (BatchOutput): The holder for the output results of the bulk operation.
             state (State): The state of the bulk operation, containing any required metadata or context.
         """
-        super().__init__(input=input, output=output, state=state)
+        self.input = input
+        self.output = output
+        self.state = state
         self.log = setup_logger(self)
 
     def generate(*args, **kwargs):

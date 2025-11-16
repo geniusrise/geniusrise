@@ -23,7 +23,7 @@ import cherrypy
 import llama_cpp
 import torch
 import transformers
-from geniusrise import BatchInput, BatchOutput, Bolt, State
+from geniusrise import BatchInput, BatchOutput, State
 from geniusrise.logging import setup_logger
 from llama_cpp import Llama as LlamaCPP
 from optimum.bettertransformer import BetterTransformer
@@ -45,7 +45,7 @@ from vllm.config import ParallelConfig, SchedulerConfig
 sequential_lock = threading.Lock()
 
 
-class TextBulk(Bolt):
+class TextBulk:
     """
     TextBulk is a foundational class for enabling bulk processing of text with various generation models.
     It primarily focuses on using Hugging Face models to provide a robust and efficient framework for
@@ -93,7 +93,10 @@ class TextBulk(Bolt):
             state (State): The state configuration for the Bolt, managing its operational status.
             **kwargs: Additional keyword arguments for extended functionality and model configurations.
         """
-        super().__init__(input=input, output=output, state=state)
+        self.input = input
+        self.output = output
+        self.state = state
+        self.notification_email = None
         self.log = setup_logger(self)
 
     def generate(

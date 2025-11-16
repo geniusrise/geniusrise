@@ -20,7 +20,7 @@ import tempfile
 import json
 import shutil
 from PIL import Image
-from geniusrise import BatchInput, BatchOutput, InMemoryState
+from geniusrise import BatchInput, BatchOutput
 from geniusrise.inference.vision.segment.bulk import VisionSegmentationBulk
 from transformers import AutoModelForSemanticSegmentation, AutoImageProcessor
 
@@ -51,7 +51,7 @@ def model(request):
 def image_segmentation_bulk():
     input_dir = tempfile.mkdtemp()
     output_dir = tempfile.mkdtemp()
-    state = InMemoryState()
+    state = None
     klass = VisionSegmentationBulk(
         input=BatchInput(input_dir, "geniusrise-test", "test-🤗-input"),
         output=BatchOutput(output_dir, "geniusrise-test", "test-🤗-output"),

@@ -18,7 +18,7 @@ import time
 
 import pytest
 import requests  # type: ignore
-from geniusrise.core import BatchInput, BatchOutput, InMemoryState
+from geniusrise.core import BatchInput, BatchOutput
 
 from geniusrise.inference.audio.base.api import AudioAPI
 
@@ -30,7 +30,7 @@ def audio_api():
 
     input = BatchInput(input_dir, "geniusrise-test-bucket", "api_input")
     output = BatchOutput(output_dir, "geniusrise-test-bucket", "api_output")
-    state = InMemoryState(1)
+    state = None
 
     audio_api = AudioAPI(
         input=input,

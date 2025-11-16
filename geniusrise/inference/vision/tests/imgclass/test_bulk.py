@@ -19,7 +19,7 @@ import glob
 import tempfile
 import json
 from PIL import Image
-from geniusrise import BatchInput, BatchOutput, InMemoryState
+from geniusrise import BatchInput, BatchOutput
 from geniusrise.inference.vision.imgclass.bulk import ImageClassificationBulk
 from transformers import AutoModelForImageClassification, AutoProcessor
 
@@ -43,7 +43,7 @@ def image_classification_bulk(tmpdir):
     os.makedirs(input_dir, exist_ok=True)
     os.makedirs(output_dir, exist_ok=True)
 
-    state = InMemoryState()
+    state = None
     klass = ImageClassificationBulk(
         input=BatchInput(input_dir, "geniusrise-test", "test-🤗-input"),
         output=BatchOutput(output_dir, "geniusrise-test", "test-🤗-output"),

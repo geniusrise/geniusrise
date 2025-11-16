@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from geniusrise.core.bolt import Bolt  # Legacy compatibility
 from geniusrise.core.data import (
     BatchInput,
     BatchOutput,
@@ -23,7 +22,6 @@ from geniusrise.core.data import (
     StreamingOutput,
 )
 from geniusrise.core.state import (
-    InMemoryState,
     PostgresState,
     State,
 )
@@ -40,8 +38,6 @@ __all__ = [
     # State
     "State",
     "PostgresState",
-    "InMemoryState",  # For testing only
     # Task
     "Task",
-    "Bolt",  # Legacy compatibility for migrated code
 ]

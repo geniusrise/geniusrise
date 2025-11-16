@@ -26,7 +26,7 @@ import pytest
 import torch
 import yaml  # type: ignore
 from datasets import Dataset
-from geniusrise.core import BatchInput, BatchOutput, InMemoryState
+from geniusrise.core import BatchInput, BatchOutput
 from pyarrow import feather
 from pyarrow import parquet as pq
 
@@ -126,7 +126,7 @@ def lm_bolt():
 
     input = BatchInput(input_dir, "geniusrise-test", "api_input")
     output = BatchOutput(output_dir, "geniusrise-test", "api_output")
-    state = InMemoryState()
+    state = None
 
     lm_bolt = LanguageModelBulk(
         input=input,

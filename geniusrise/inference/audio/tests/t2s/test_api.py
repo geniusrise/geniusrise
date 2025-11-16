@@ -19,7 +19,7 @@ import time
 
 import pytest
 import requests  # type: ignore
-from geniusrise.core import BatchInput, BatchOutput, InMemoryState
+from geniusrise.core import BatchInput, BatchOutput
 
 from geniusrise.inference.audio import TextToSpeechAPI
 
@@ -31,7 +31,7 @@ def text_to_speech_api():
 
     input = BatchInput(input_dir, "geniusrise-test-bucket", "text_input")
     output = BatchOutput(output_dir, "geniusrise-test-bucket", "audio_output")
-    state = InMemoryState(1)
+    state = None
 
     text_to_speech_api = TextToSpeechAPI(
         input=input,

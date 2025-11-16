@@ -24,7 +24,7 @@ import pandas as pd
 import pytest
 import yaml  # type: ignore
 from datasets import Dataset
-from geniusrise.core import BatchInput, BatchOutput, InMemoryState
+from geniusrise.core import BatchInput, BatchOutput
 from pyarrow import feather
 from pyarrow import parquet as pq
 
@@ -142,7 +142,7 @@ def classification_bolt():
     output_dir = tempfile.mkdtemp()
     input = BatchInput(input_dir, "geniusrise-test", "test-🤗-input")
     output = BatchOutput(output_dir, "geniusrise-test", "test-🤗-output")
-    state = InMemoryState()
+    state = None
     klass = TextClassificationBulk(
         input=input,
         output=output,

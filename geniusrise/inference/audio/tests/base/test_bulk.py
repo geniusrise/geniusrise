@@ -17,7 +17,7 @@ import os
 
 import pytest
 import torch
-from geniusrise.core import BatchInput, BatchOutput, InMemoryState
+from geniusrise.core import BatchInput, BatchOutput
 
 from geniusrise.inference.audio import AudioBulk
 
@@ -32,7 +32,7 @@ def audio_bulk():
 
     input = BatchInput(input_dir, "geniusrise-test-bucket", "api_input")
     output = BatchOutput(output_dir, "geniusrise-test-bucket", "api_output")
-    state = InMemoryState(1)
+    state = None
 
     audio_bulk = AudioBulk(
         input=input,

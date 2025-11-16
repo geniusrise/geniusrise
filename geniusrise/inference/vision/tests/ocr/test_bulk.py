@@ -18,7 +18,7 @@ import tempfile
 import pytest
 import shutil
 import json
-from geniusrise import BatchInput, BatchOutput, InMemoryState
+from geniusrise import BatchInput, BatchOutput
 from PIL import Image
 from geniusrise.inference.vision.ocr.bulk import ImageOCRBulk
 from PIL import Image, ImageDraw, ImageFont
@@ -70,7 +70,7 @@ def ocr_bulk(tmpdir):
     os.makedirs(input_dir, exist_ok=True)
     os.makedirs(output_dir, exist_ok=True)
 
-    state = InMemoryState()
+    state = None
     ocr_bulk_instance = ImageOCRBulk(
         input=BatchInput(input_dir, "geniusrise-test", "test-🤗-input"),
         output=BatchOutput(output_dir, "geniusrise-test", "test-🤗-output"),

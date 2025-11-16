@@ -24,7 +24,7 @@ import cherrypy
 import torch
 import transformers
 from faster_whisper import WhisperModel
-from geniusrise import BatchInput, BatchOutput, Bolt, State
+from geniusrise import BatchInput, BatchOutput, State
 from geniusrise.logging import setup_logger
 from transformers import (
     AutoConfig,
@@ -160,7 +160,7 @@ def send_fine_tuning_email(
         print(f"An error occurred: {e}")
 
 
-class AudioBulk(Bolt):
+class AudioBulk:
     """
     AudioBulk is a class designed for bulk processing of audio data using various audio models from Hugging Face.
     It focuses on audio generation and transformation tasks, supporting a range of models and configurations.
@@ -204,7 +204,9 @@ class AudioBulk(Bolt):
             state (State): The state configuration for the Bolt, managing its operational status.
             **kwargs: Additional keyword arguments for extended functionality and model configurations.
         """
-        super().__init__(input=input, output=output, state=state)
+        self.input = input
+        self.output = output
+        self.state = state
         self.log = setup_logger(self)
 
     def load_models(
