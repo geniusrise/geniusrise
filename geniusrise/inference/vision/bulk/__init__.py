@@ -13,5 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .instance import OpenStackInstanceRunner
-from .autoscale import OpenStackAutoscaleRunner
+from geniusrise.inference.vision.bulk.imgclass import ImageClassificationBulk
+from geniusrise.inference.vision.bulk.segment import VisionSegmentationBulk
+from geniusrise.inference.vision.bulk.ocr import ImageOCRBulk
+
+__all__ = [
+    "ImageClassificationBulk",
+    "VisionSegmentationBulk",
+    "ImageOCRBulk",
+]

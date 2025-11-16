@@ -13,7 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .base import State
-from .postgres import PostgresState
+from geniusrise.inference.audio.base import AudioAPI, AudioBulk, send_email, send_fine_tuning_email
+from geniusrise.inference.audio.api.s2t import SpeechToTextAPI
+from geniusrise.inference.audio.api.t2s import TextToSpeechAPI
+from geniusrise.inference.audio.bulk.s2t import SpeechToTextBulk
+from geniusrise.inference.audio.bulk.t2s import TextToSpeechBulk
 
-__all__ = ["State", "PostgresState"]
+__all__ = [
+    "AudioAPI",
+    "AudioBulk",
+    "send_email",
+    "send_fine_tuning_email",
+    "SpeechToTextAPI",
+    "TextToSpeechAPI",
+    "SpeechToTextBulk",
+    "TextToSpeechBulk",
+]

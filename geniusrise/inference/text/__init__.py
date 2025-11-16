@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .base import State
-from .postgres import PostgresState
+from geniusrise.inference.text.base import TextAPI, TextBulk
 
-__all__ = ["State", "PostgresState"]
+__all__ = ["TextAPI", "TextBulk"]

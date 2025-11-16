@@ -13,7 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .base import State
-from .postgres import PostgresState
+from geniusrise.inference.vision.api.imgclass import ImageClassificationAPI
+from geniusrise.inference.vision.api.segment import VisionSegmentationAPI
+from geniusrise.inference.vision.api.ocr import ImageOCRAPI
+from geniusrise.inference.vision.api.vqa import VisualQAAPI
 
-__all__ = ["State", "PostgresState"]
+__all__ = [
+    "ImageClassificationAPI",
+    "VisionSegmentationAPI",
+    "ImageOCRAPI",
+    "VisualQAAPI",
+]

@@ -1,0 +1,136 @@
+openapi: 3.0.0
+info:
+  title: SpeechToText API
+  description: API for converting speech to text using various ASR models.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Development server
+paths:
+  /transcribe:
+    post:
+      summary: Transcribe audio to text
+      description: Transcribes the given audio input to text using the speech-to-text model.
+      operationId: transcribeAudio
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                audio_file:
+                  type: string
+                  format: base64
+                  description: Base64 encoded audio file content.
+                  example: "UklGRk5RAABXQVZFZm10IBAAAAABAAEAIl..."
+                model_sampling_rate:
+                  type: integer
+                  description: Sampling rate of the model in Hertz.
+                  example: 16000
+                processor_args:
+                  type: object
+                  additionalProperties: true
+                  description: Additional arguments for the processor.
+                chunk_size:
+                  type: integer
+                  description: Size of audio chunks for processing, in bytes.
+                  example: 1280000
+                overlap_size:
+                  type: integer
+                  description: Size of overlap between chunks, in bytes.
+                  example: 213333
+                do_sample:
+                  type: boolean
+                  description: Whether to enable sampling.
+                  example: true
+                num_beams:
+                  type: integer
+                  description: Number of beams for beam search.
+                  example: 4
+                temperature:
+                  type: number
+                  format: float
+                  description: Temperature for sampling.
+                  example: 0.6
+                tgt_lang:
+                  type: string
+                  description: Target language for transcription.
+                  example: "eng"
+              required:
+                - audio_file
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transcriptions:
+                    type: string
+                    description: Transcribed text from the audio.
+                    example: "Hello, this is a sample transcription."
+        400:
+          description: Bad request, if audio data is not provided or invalid.
+        401:
+          description: Unauthorized, if authentication fails.
+  /asr_pipeline:
+    post:
+      summary: Recognize speech using the ASR pipeline
+      description: Uses a Hugging Face ASR pipeline to convert speech to text.
+      operationId: asrPipeline
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                audio_file:
+                  type: string
+                  format: base64
+                  description: Base64 encoded audio file content.
+                  example: "UklGRk5RAABXQVZFZm10IBAAAAABAAEAIl..."
+                model_sampling_rate:
+                  type: integer
+                  description: Sampling rate of the model in Hertz.
+                  example: 16000
+                chunk_length_s:
+                  type: number
+                  format: float
+                  description: Length of audio chunks for processing, in seconds.
+                  example: 60.0
+              required:
+                - audio_file
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transcriptions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        text:
+                          type: string
+                          description: The transcribed text.
+                          example: "Hello, this is a sample transcription."
+                        start:
+                          type: number
+                          format: float
+                          description: Start time of the speech segment in seconds.
+                          example: 0.0
+                        end:
+                          type: number
+                          format: float
+                          description: End time of the speech segment in seconds.
+                          example: 3.5
+        400:
+          description: Bad request, if audio data is not provided or invalid.
+        401:
+          description: Unauthorized, if authentication fails.

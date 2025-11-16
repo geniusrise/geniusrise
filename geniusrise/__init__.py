@@ -16,17 +16,38 @@
 from geniusrise.core import (
     BatchInput,
     BatchOutput,
-    Bolt,
-    DynamoDBState,
-    InMemoryState,
     Input,
     Output,
     PostgresState,
-    RedisState,
-    Spout,
     State,
     StreamingInput,
     StreamingOutput,
     Task,
 )
+from geniusrise.inference import InferenceTask, InferenceMode
 from geniusrise.runners import CronJob, Deployment, Job, K8sResourceManager, Service
+
+__version__ = "0.2.0"
+
+__all__ = [
+    # Core I/O
+    "Input",
+    "Output",
+    "BatchInput",
+    "BatchOutput",
+    "StreamingInput",
+    "StreamingOutput",
+    # State
+    "State",
+    "PostgresState",
+    # Task & Inference
+    "Task",
+    "InferenceTask",
+    "InferenceMode",
+    # Kubernetes Runners
+    "K8sResourceManager",
+    "Deployment",
+    "Service",
+    "Job",
+    "CronJob",
+]
