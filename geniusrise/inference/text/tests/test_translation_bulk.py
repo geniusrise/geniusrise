@@ -13,7 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .base import State
-from .postgres import PostgresState
-
-__all__ = ["State", "PostgresState"]
+# # Models to test
+# models = {
+#     # fmt: off
+#     "bart": "dslim/bert-large-NER",
+#     "50": "facebook/mbart-large-50-many-to-many-mmt",
+#     "to-en": "facebook/wmt21-dense-24-wide-x-en",
+#     "from-en": "facebook/wmt21-dense-24-wide-en-x",
+#     # fmt: on
+# }

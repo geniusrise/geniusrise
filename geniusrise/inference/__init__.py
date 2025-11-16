@@ -13,7 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .base import State
-from .postgres import PostgresState
+"""
+Unified inference module for vision, text, and audio models.
 
-__all__ = ["State", "PostgresState"]
+This module provides a simplified architecture for running inference on AI models:
+- API mode: Serve models via HTTP/REST endpoints
+- Batch mode: Process files from input folder to output folder
+- Streaming mode: Real-time processing via Kafka
+
+No training or fine-tuning - inference only.
+"""
+
+from geniusrise.inference.base import InferenceTask, InferenceMode
+
+__all__ = [
+    "InferenceTask",
+    "InferenceMode",
+]

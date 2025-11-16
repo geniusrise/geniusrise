@@ -13,7 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .base import State
-from .postgres import PostgresState
+from geniusrise.inference.audio.bulk.s2t import SpeechToTextBulk
+from geniusrise.inference.audio.bulk.t2s import TextToSpeechBulk
 
-__all__ = ["State", "PostgresState"]
+__all__ = [
+    "SpeechToTextBulk",
+    "TextToSpeechBulk",
+]

@@ -1,0 +1,95 @@
+openapi: 3.0.0
+info:
+  title: TextToSpeech API
+  description: API for converting text to speech using various TTS models.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Development server
+paths:
+  /synthesize:
+    post:
+      summary: Convert text to speech
+      description: Converts the given text input to speech using the text-to-speech model.
+      operationId: synthesizeText
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                  description: Text input to be synthesized.
+                  example: "Hello, world!"
+                output_type:
+                  type: string
+                  description: Output audio format (e.g., wav, mp3).
+                  example: "wav"
+                voice_preset:
+                  type: string
+                  description: Identifier for the voice preset to use for synthesis.
+                  example: "0"
+              required:
+                - text
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  audio_file:
+                    type: string
+                    format: base64
+                    description: Base64 encoded audio file content.
+                    example: "UklGRk5RAABXQVZFZm10IBAAAAABAAEAIl..."
+                  input:
+                    type: string
+                    description: The original text input.
+                    example: "Hello, world!"
+        400:
+          description: Bad request, if text data is not provided or invalid.
+        401:
+          description: Unauthorized, if authentication fails.
+  /tts_pipeline:
+    post:
+      summary: Convert text to speech using Hugging Face pipeline
+      description: Utilizes a Hugging Face pipeline for text-to-speech conversion.
+      operationId: ttsPipeline
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                  description: Text input for speech synthesis.
+                  example: "Good morning, have a great day!"
+              required:
+                - text
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  audio_file:
+                    type: string
+                    format: base64
+                    description: Base64 encoded audio data.
+                    example: "UklGRk5RAABXQVZFZm10IBAAAAABAAEAIl..."
+                  input:
+                    type: string
+                    description: The original text input.
+                    example: "Good morning, have a great day!"
+        400:
+          description: Bad request, if text data is not provided or invalid.
+        401:
+          description: Unauthorized, if authentication fails.
