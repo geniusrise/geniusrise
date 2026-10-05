@@ -1,0 +1,472 @@
+{
+  "generated_at": "2026-10-05T00:00:00Z",
+  "gateway_monthly_usd": {
+    "aws": 11.0,
+    "gcp": 7.0,
+    "azure": 9.0,
+    "runpod": 8.0,
+    "lambda": 0.0,
+    "hyperbolic": 0.0,
+    "ssh": 0.0,
+    "fake": 0.0
+  },
+  "providers": {
+    "aws": {
+      "us-east-1": [
+        {
+          "gpu_class": "cpu",
+          "instance_type": "c7i.xlarge",
+          "capacity": "on-demand",
+          "usd_hr": 0.0894,
+          "available": true
+        },
+        {
+          "gpu_class": "T4",
+          "instance_type": "g4dn.xlarge",
+          "capacity": "on-demand",
+          "usd_hr": 1.006,
+          "available": true
+        },
+        {
+          "gpu_class": "T4",
+          "instance_type": "g4dn.xlarge",
+          "capacity": "spot",
+          "usd_hr": 0.3,
+          "available": true
+        },
+        {
+          "gpu_class": "L4",
+          "instance_type": "g6.xlarge",
+          "capacity": "on-demand",
+          "usd_hr": 0.8048,
+          "available": true
+        },
+        {
+          "gpu_class": "L4",
+          "instance_type": "g6.xlarge",
+          "capacity": "spot",
+          "usd_hr": 0.26,
+          "available": true
+        },
+        {
+          "gpu_class": "A10G",
+          "instance_type": "g5.xlarge",
+          "capacity": "on-demand",
+          "usd_hr": 1.006,
+          "available": true
+        },
+        {
+          "gpu_class": "A10G",
+          "instance_type": "g5.xlarge",
+          "capacity": "spot",
+          "usd_hr": 0.35,
+          "available": true
+        },
+        {
+          "gpu_class": "L40S",
+          "instance_type": "g6e.xlarge",
+          "capacity": "on-demand",
+          "usd_hr": 1.1929,
+          "available": true
+        },
+        {
+          "gpu_class": "L40S",
+          "instance_type": "g6e.xlarge",
+          "capacity": "spot",
+          "usd_hr": 0.5,
+          "available": true
+        },
+        {
+          "gpu_class": "A100-40",
+          "instance_type": "p4d.24xlarge",
+          "capacity": "on-demand",
+          "usd_hr": 32.7726,
+          "available": true
+        },
+        {
+          "gpu_class": "A100-80",
+          "instance_type": "p4de.24xlarge",
+          "capacity": "on-demand",
+          "usd_hr": 40.9657,
+          "available": true
+        },
+        {
+          "gpu_class": "H100",
+          "instance_type": "p5.48xlarge",
+          "capacity": "on-demand",
+          "usd_hr": 98.32,
+          "available": true
+        }
+      ],
+      "us-west-2": [
+        {
+          "gpu_class": "cpu",
+          "instance_type": "c7i.xlarge",
+          "capacity": "on-demand",
+          "usd_hr": 0.0894,
+          "available": true
+        },
+        {
+          "gpu_class": "T4",
+          "instance_type": "g4dn.xlarge",
+          "capacity": "on-demand",
+          "usd_hr": 1.006,
+          "available": true
+        },
+        {
+          "gpu_class": "T4",
+          "instance_type": "g4dn.xlarge",
+          "capacity": "spot",
+          "usd_hr": 0.32,
+          "available": true
+        },
+        {
+          "gpu_class": "L4",
+          "instance_type": "g6.xlarge",
+          "capacity": "on-demand",
+          "usd_hr": 0.8048,
+          "available": true
+        },
+        {
+          "gpu_class": "L4",
+          "instance_type": "g6.xlarge",
+          "capacity": "spot",
+          "usd_hr": 0.28,
+          "available": true
+        },
+        {
+          "gpu_class": "A10G",
+          "instance_type": "g5.xlarge",
+          "capacity": "on-demand",
+          "usd_hr": 1.006,
+          "available": true
+        },
+        {
+          "gpu_class": "L40S",
+          "instance_type": "g6e.xlarge",
+          "capacity": "on-demand",
+          "usd_hr": 1.1929,
+          "available": true
+        },
+        {
+          "gpu_class": "H100",
+          "instance_type": "p5.48xlarge",
+          "capacity": "on-demand",
+          "usd_hr": 98.32,
+          "available": true
+        }
+      ],
+      "eu-central-1": [
+        {
+          "gpu_class": "cpu",
+          "instance_type": "c7i.xlarge",
+          "capacity": "on-demand",
+          "usd_hr": 0.1007,
+          "available": true
+        },
+        {
+          "gpu_class": "T4",
+          "instance_type": "g4dn.xlarge",
+          "capacity": "on-demand",
+          "usd_hr": 1.141,
+          "available": true
+        },
+        {
+          "gpu_class": "L4",
+          "instance_type": "g6.xlarge",
+          "capacity": "on-demand",
+          "usd_hr": 0.9225,
+          "available": true
+        },
+        {
+          "gpu_class": "L4",
+          "instance_type": "g6.xlarge",
+          "capacity": "spot",
+          "usd_hr": 0.31,
+          "available": true
+        },
+        {
+          "gpu_class": "A10G",
+          "instance_type": "g5.xlarge",
+          "capacity": "on-demand",
+          "usd_hr": 1.006,
+          "available": true
+        },
+        {
+          "gpu_class": "L40S",
+          "instance_type": "g6e.xlarge",
+          "capacity": "on-demand",
+          "usd_hr": 1.1929,
+          "available": true
+        }
+      ],
+      "ap-south-1": [
+        {
+          "gpu_class": "cpu",
+          "instance_type": "c7i.xlarge",
+          "capacity": "on-demand",
+          "usd_hr": 0.0962,
+          "available": true
+        },
+        {
+          "gpu_class": "T4",
+          "instance_type": "g4dn.xlarge",
+          "capacity": "on-demand",
+          "usd_hr": 1.09,
+          "available": true
+        },
+        {
+          "gpu_class": "L4",
+          "instance_type": "g6.xlarge",
+          "capacity": "on-demand",
+          "usd_hr": 0.8853,
+          "available": true
+        },
+        {
+          "gpu_class": "L4",
+          "instance_type": "g6.xlarge",
+          "capacity": "spot",
+          "usd_hr": 0.3,
+          "available": true
+        },
+        {
+          "gpu_class": "A10G",
+          "instance_type": "g5.xlarge",
+          "capacity": "on-demand",
+          "usd_hr": 1.006,
+          "available": true
+        }
+      ]
+    },
+    "gcp": {
+      "us-central1": [
+        {
+          "gpu_class": "cpu",
+          "instance_type": "e2-standard-4",
+          "capacity": "on-demand",
+          "usd_hr": 0.134,
+          "available": true
+        },
+        {
+          "gpu_class": "T4",
+          "instance_type": "n1-standard-8+t4",
+          "capacity": "on-demand",
+          "usd_hr": 0.72,
+          "available": true
+        },
+        {
+          "gpu_class": "T4",
+          "instance_type": "n1-standard-8+t4",
+          "capacity": "spot",
+          "usd_hr": 0.21,
+          "available": true
+        },
+        {
+          "gpu_class": "L4",
+          "instance_type": "g2-standard-4",
+          "capacity": "on-demand",
+          "usd_hr": 0.85,
+          "available": true
+        },
+        {
+          "gpu_class": "L4",
+          "instance_type": "g2-standard-4",
+          "capacity": "spot",
+          "usd_hr": 0.26,
+          "available": true
+        },
+        {
+          "gpu_class": "A100-40",
+          "instance_type": "a2-highgpu-1g",
+          "capacity": "on-demand",
+          "usd_hr": 3.67,
+          "available": true
+        },
+        {
+          "gpu_class": "A100-40",
+          "instance_type": "a2-highgpu-1g",
+          "capacity": "spot",
+          "usd_hr": 1.47,
+          "available": true
+        },
+        {
+          "gpu_class": "H100",
+          "instance_type": "a3-highgpu-1g",
+          "capacity": "on-demand",
+          "usd_hr": 11.31,
+          "available": true
+        }
+      ]
+    },
+    "azure": {
+      "eastus": [
+        {
+          "gpu_class": "cpu",
+          "instance_type": "Standard_D4s_v5",
+          "capacity": "on-demand",
+          "usd_hr": 0.192,
+          "available": true
+        },
+        {
+          "gpu_class": "T4",
+          "instance_type": "Standard_NC4as_T4_v3",
+          "capacity": "on-demand",
+          "usd_hr": 0.526,
+          "available": true
+        },
+        {
+          "gpu_class": "T4",
+          "instance_type": "Standard_NC4as_T4_v3",
+          "capacity": "spot",
+          "usd_hr": 0.16,
+          "available": true
+        },
+        {
+          "gpu_class": "A10G",
+          "instance_type": "Standard_NV36ads_A10_v5",
+          "capacity": "on-demand",
+          "usd_hr": 1.944,
+          "available": true
+        },
+        {
+          "gpu_class": "A100-80",
+          "instance_type": "Standard_ND96asr_v4",
+          "capacity": "on-demand",
+          "usd_hr": 27.2,
+          "available": true
+        },
+        {
+          "gpu_class": "H100",
+          "instance_type": "Standard_ND H100 v5",
+          "capacity": "on-demand",
+          "usd_hr": 38.75,
+          "available": true
+        }
+      ]
+    },
+    "runpod": {
+      "global": [
+        {
+          "gpu_class": "cpu",
+          "instance_type": "cpu-4",
+          "capacity": "on-demand",
+          "usd_hr": 0.099,
+          "available": true
+        },
+        {
+          "gpu_class": "T4",
+          "instance_type": "NVIDIA RTX A30",
+          "capacity": "on-demand",
+          "usd_hr": 0.35,
+          "available": true
+        },
+        {
+          "gpu_class": "L4",
+          "instance_type": "NVIDIA RTX A40",
+          "capacity": "on-demand",
+          "usd_hr": 0.79,
+          "available": true
+        },
+        {
+          "gpu_class": "L4",
+          "instance_type": "NVIDIA RTX A40",
+          "capacity": "spot",
+          "usd_hr": 0.44,
+          "available": true
+        },
+        {
+          "gpu_class": "A100-40",
+          "instance_type": "NVIDIA A100 PCIe 40GB",
+          "capacity": "on-demand",
+          "usd_hr": 1.79,
+          "available": true
+        },
+        {
+          "gpu_class": "A100-80",
+          "instance_type": "NVIDIA A100 SXM 80GB",
+          "capacity": "on-demand",
+          "usd_hr": 2.39,
+          "available": true
+        },
+        {
+          "gpu_class": "H100",
+          "instance_type": "NVIDIA H100 PCIe",
+          "capacity": "on-demand",
+          "usd_hr": 2.99,
+          "available": true
+        },
+        {
+          "gpu_class": "H100",
+          "instance_type": "NVIDIA H100 SXM",
+          "capacity": "on-demand",
+          "usd_hr": 3.99,
+          "available": true
+        }
+      ]
+    },
+    "lambda": {
+      "global": [
+        {
+          "gpu_class": "A100-40",
+          "instance_type": "gpu_1x_a10",
+          "capacity": "on-demand",
+          "usd_hr": 0.75,
+          "available": true
+        },
+        {
+          "gpu_class": "A100-40",
+          "instance_type": "gpu_1x_a100_sxm",
+          "capacity": "on-demand",
+          "usd_hr": 1.99,
+          "available": true
+        },
+        {
+          "gpu_class": "H100",
+          "instance_type": "gpu_1x_h100_sxm",
+          "capacity": "on-demand",
+          "usd_hr": 2.99,
+          "available": true
+        },
+        {
+          "gpu_class": "H200",
+          "instance_type": "gpu_1x_h200",
+          "capacity": "on-demand",
+          "usd_hr": 3.79,
+          "available": true
+        }
+      ]
+    },
+    "hyperbolic": {
+      "global": [
+        {
+          "gpu_class": "A100-40",
+          "instance_type": "a100-40gb",
+          "capacity": "on-demand",
+          "usd_hr": 1.25,
+          "available": true
+        },
+        {
+          "gpu_class": "A100-80",
+          "instance_type": "a100-80gb-pcie",
+          "capacity": "on-demand",
+          "usd_hr": 1.65,
+          "available": true
+        },
+        {
+          "gpu_class": "H100",
+          "instance_type": "h100-80gb-pcie",
+          "capacity": "on-demand",
+          "usd_hr": 1.95,
+          "available": true
+        },
+        {
+          "gpu_class": "H200",
+          "instance_type": "h200",
+          "capacity": "on-demand",
+          "usd_hr": 2.45,
+          "available": true
+        }
+      ]
+    }
+  }
+}
