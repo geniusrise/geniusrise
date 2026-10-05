@@ -1,0 +1,27 @@
+id: llama-3.1-8b-instruct
+type: llm
+license: llama3.1
+gated: true
+default_variant: awq
+variants:
+  - name: awq
+    engine: vllm
+    hf_repo: hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4
+    gpus: [L4, A10G, L40S]
+    args: [--max-model-len, "16384", --gpu-memory-utilization, "0.92"]
+    capacity: {concurrency: 32}
+    tested: {date: "2026-10-01", provider: aws, gpu: L4, engine_version: "0.11.0"}
+  - name: fp16
+    engine: vllm
+    hf_repo: meta-llama/Llama-3.1-8B-Instruct
+    gpus: [L40S, A100-80]
+    args: [--max-model-len, "32768", --gpu-memory-utilization, "0.92"]
+    capacity: {concurrency: 48}
+    tested: {date: "2026-10-01", provider: aws, gpu: L40S, engine_version: "0.11.0"}
+  - name: q4-cpu
+    engine: llamacpp
+    hf_repo: bartowski/Meta-Llama-3.1-8B-Instruct-GGUF
+    file: Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf
+    gpus: [cpu]
+    capacity: {concurrency: 2}
+    tested: {date: "2026-10-01", provider: ssh, gpu: cpu, engine_version: "b4XXX"}

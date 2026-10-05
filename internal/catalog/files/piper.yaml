@@ -1,0 +1,13 @@
+id: piper
+type: tts
+license: mit
+gated: false
+default_variant: cpu
+variants:
+  - name: cpu
+    engine: speaches
+    hf_repo: rhasspy/piper-voices
+    gpus: [cpu]
+    args: [--tts--, model, rhasspy/piper-voices,en_US,amy,low]
+    capacity: {concurrency: 4}
+    tested: {date: "2026-10-01", provider: ssh, gpu: cpu, engine_version: "0.9.0"}

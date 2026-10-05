@@ -1,0 +1,13 @@
+id: kokoro-82m
+type: tts
+license: apache-2.0
+gated: false
+default_variant: cpu
+variants:
+  - name: cpu
+    engine: speaches
+    hf_repo: hexgrad/Kokoro-82M
+    gpus: [cpu]
+    args: [--tts--, model, hexgrad/Kokoro-82M]
+    capacity: {concurrency: 4}
+    tested: {date: "2026-10-01", provider: ssh, gpu: cpu, engine_version: "0.9.0"}

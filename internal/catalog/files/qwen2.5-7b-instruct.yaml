@@ -1,0 +1,20 @@
+id: qwen2.5-7b-instruct
+type: llm
+license: apache-2.0
+gated: false
+default_variant: awq
+variants:
+  - name: awq
+    engine: vllm
+    hf_repo: Qwen/Qwen2.5-7B-Instruct-AWQ
+    gpus: [L4, A10G, L40S]
+    args: [--max-model-len, "16384", --gpu-memory-utilization, "0.92"]
+    capacity: {concurrency: 32}
+    tested: {date: "2026-10-01", provider: aws, gpu: L4, engine_version: "0.11.0"}
+  - name: q4-cpu
+    engine: llamacpp
+    hf_repo: bartowski/Qwen2.5-7B-Instruct-GGUF
+    file: Qwen2.5-7B-Instruct-Q4_K_M.gguf
+    gpus: [cpu]
+    capacity: {concurrency: 2}
+    tested: {date: "2026-10-01", provider: ssh, gpu: cpu, engine_version: "b4XXX"}

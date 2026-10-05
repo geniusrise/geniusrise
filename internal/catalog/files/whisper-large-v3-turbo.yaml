@@ -1,0 +1,19 @@
+id: whisper-large-v3-turbo
+type: stt
+license: mit
+gated: false
+default_variant: fp16
+variants:
+  - name: fp16
+    engine: speaches
+    hf_repo: Systran/faster-whisper-large-v3-turbo
+    gpus: [T4, L4, A10G]
+    capacity: {concurrency: 8}
+    tested: {date: "2026-10-01", provider: aws, gpu: T4, engine_version: "0.9.0"}
+  - name: cpu
+    engine: speaches
+    hf_repo: Systran/faster-whisper-large-v3-turbo
+    gpus: [cpu]
+    args: [--whisper--, model, Systran/faster-whisper-large-v3-turbo, --whisper--, device, cpu, --whisper--, compute-type, int8]
+    capacity: {concurrency: 2}
+    tested: {date: "2026-10-01", provider: ssh, gpu: cpu, engine_version: "0.9.0"}

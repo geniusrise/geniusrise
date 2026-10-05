@@ -1,0 +1,13 @@
+id: whisper-small
+type: stt
+license: mit
+gated: false
+default_variant: cpu
+variants:
+  - name: cpu
+    engine: speaches
+    hf_repo: Systran/faster-whisper-small
+    gpus: [cpu]
+    args: [--whisper--, model, Systran/faster-whisper-small, --whisper--, device, cpu, --whisper--, compute-type, int8]
+    capacity: {concurrency: 2}
+    tested: {date: "2026-10-01", provider: ssh, gpu: cpu, engine_version: "0.9.0"}

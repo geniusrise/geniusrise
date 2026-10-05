@@ -1,0 +1,20 @@
+id: llama-3.2-3b-instruct
+type: llm
+license: llama3.2
+gated: true
+default_variant: q4-cpu
+variants:
+  - name: q4-cpu
+    engine: llamacpp
+    hf_repo: bartowski/Llama-3.2-3B-Instruct-GGUF
+    file: Llama-3.2-3B-Instruct-Q4_K_M.gguf
+    gpus: [cpu]
+    capacity: {concurrency: 2}
+    tested: {date: "2026-10-01", provider: ssh, gpu: cpu, engine_version: "b4XXX"}
+  - name: fp16
+    engine: vllm
+    hf_repo: meta-llama/Llama-3.2-3B-Instruct
+    gpus: [T4, L4, A10G]
+    args: [--max-model-len, "16384", --gpu-memory-utilization, "0.9"]
+    capacity: {concurrency: 24}
+    tested: {date: "2026-10-01", provider: aws, gpu: T4, engine_version: "0.11.0"}
