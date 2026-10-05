@@ -1,5 +1,5 @@
 # 🧠 Geniusrise
-# Copyright (C) 2023  geniusrise.ai
+# Copyright (C) 2023-2025  geniusrise.ai
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 
 import pytest
 
-from geniusrise.core import Spout
+from geniusrise.core import Task
 from geniusrise.core.data import BatchOutput, StreamingOutput
 from geniusrise.core.state import (
     DynamoDBState,
@@ -41,7 +41,7 @@ s3_bucket = "geniusrise-test"
 s3_folder = "whatever"
 
 
-class TestSpout(Spout):
+class TestTaskProducer(Task):
     def test_method(self, *args, **kwargs):
         return sum(args) * sum(kwargs.values())
 
@@ -78,7 +78,7 @@ def state(request):
 
 
 # Define a fixture for the output
-@pytest.fixture(params=[BatchOutput, StreamingOutput])  # Add StreamToBatchOutput
+@pytest.fixture(params=[BatchOutput, StreamingOutput])
 def output(request, tmpdir):
     if request.param == BatchOutput:
         return request.param(tmpdir, s3_bucket, s3_folder)
@@ -86,18 +86,19 @@ def output(request, tmpdir):
         return request.param(output_topic, kafka_servers)
 
 
-def test_spout_init(output, state):
-    spout = TestSpout(output, state)
-    assert spout.output == output
-    assert spout.state == state
+def test_task_producer_init(output, state):
+    task = TestTaskProducer(output=output, state=state)
+    assert task.output == output
+    assert task.state == state
+    assert task.input is None
 
 
-def test_spout_call(output, state):
-    spout = TestSpout(output, state)
+def test_task_producer_call(output, state):
+    task = TestTaskProducer(output=output, state=state)
     method_name = "test_method"
     args = (1, 2, 3)
     kwargs = {"a": 4, "b": 5, "c": 6}
-    result = spout(method_name, *args, **kwargs)
+    result = task(method_name, *args, **kwargs)
     assert result == 6 * (4 + 5 + 6)
 
 
@@ -111,7 +112,7 @@ def state_type(request):
     return request.param
 
 
-def test_spout_create(output_type, state_type, tmpdir):
+def test_task_producer_create(output_type, state_type, tmpdir):
     kwargs = {
         "output_folder": tmpdir,
         "output_s3_bucket": s3_bucket,
@@ -132,26 +133,33 @@ def test_spout_create(output_type, state_type, tmpdir):
         "buffer_size": 1,
     }
 
-    spout = Spout.create(TestSpout, output_type, state_type, **kwargs)
+    task = Task.create(
+        TestTaskProducer,
+        input_type=None,  # No input, only output like legacy Spout
+        output_type=output_type,
+        state_type=state_type,
+        **kwargs
+    )
 
-    assert isinstance(spout, TestSpout)
+    assert isinstance(task, TestTaskProducer)
+    assert task.input is None  # Producer-only task has no input
 
     if output_type == "batch":
-        assert isinstance(spout.output, BatchOutput)
+        assert isinstance(task.output, BatchOutput)
     elif output_type == "streaming":
-        assert isinstance(spout.output, StreamingOutput)
+        assert isinstance(task.output, StreamingOutput)
 
     if state_type == "none":
-        assert isinstance(spout.state, InMemoryState)
+        assert isinstance(task.state, InMemoryState)
     elif state_type == "redis":
-        assert isinstance(spout.state, RedisState)
+        assert isinstance(task.state, RedisState)
     elif state_type == "postgres":
-        assert isinstance(spout.state, PostgresState)
+        assert isinstance(task.state, PostgresState)
     elif state_type == "dynamodb":
-        assert isinstance(spout.state, DynamoDBState)
+        assert isinstance(task.state, DynamoDBState)
 
 
-def test_spout_run(output_type, state_type, tmpdir):
+def test_task_producer_run(output_type, state_type, tmpdir):
     kwargs = {
         "output_folder": tmpdir,
         "output_s3_bucket": s3_bucket,
@@ -171,13 +179,20 @@ def test_spout_run(output_type, state_type, tmpdir):
         "dynamodb_region_name": dynamodb_region_name,
     }
 
-    spout = Spout.create(TestSpout, output_type, state_type, **kwargs)
+    task = Task.create(
+        TestTaskProducer,
+        input_type=None,  # No input, only output like legacy Spout
+        output_type=output_type,
+        state_type=state_type,
+        **kwargs
+    )
+
     method_name = "test_method"
     args = (1, 2, 3)
     kwargs_for_method = {"a": 4, "b": 5, "c": 6}
 
-    # Running the spout
-    result = spout.__call__(method_name, *args, **kwargs_for_method)
+    # Running the task
+    result = task.__call__(method_name, *args, **kwargs_for_method)
 
     # Verifying the result
     assert result == 6 * (4 + 5 + 6)

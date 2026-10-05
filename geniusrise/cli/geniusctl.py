@@ -1,5 +1,5 @@
 # 🧠 Geniusrise
-# Copyright (C) 2023  geniusrise.ai
+# Copyright (C) 2023-2025  geniusrise.ai
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,7 +17,8 @@ import argparse
 import logging
 import os
 import sys
-from typing import Dict
+import warnings
+from typing import Dict, Optional
 
 from prettytable import PrettyTable
 from rich import print as richprint
@@ -26,17 +27,13 @@ from rich.text import Text
 from rich_argparse import RichHelpFormatter
 from termcolor import colored  # type: ignore
 
-from geniusrise.cli.boltctl import BoltCtl
-from geniusrise.cli.discover import Discover, DiscoveredBolt, DiscoveredSpout
+from geniusrise.cli.discover import Discover, DiscoveredTask
 from geniusrise.cli.dockerctl import DockerCtl
-from geniusrise.cli.spoutctl import SpoutCtl
+from geniusrise.cli.taskctl import TaskCtl
 from geniusrise.cli.yamlctl import YamlCtl
-from geniusrise.logging import setup_logger
-from geniusrise.runners.k8s import CronJob, Deployment, Job, K8sResourceManager, Service
-from geniusrise.runners.openstack import OpenStackAutoscaleRunner, OpenStackInstanceRunner
-from geniusrise.runners.acecloud import AceCloudAutoscaleRunner, AceCloudInstanceRunner
-from geniusrise.runners.e2e import E2EAutoscaleRunner, E2EInstanceRunner
+from geniusrise.core import AVAILABLE_RUNNERS
 from geniusrise.core.state.base import PrometheusMetricsServer
+from geniusrise.logging import setup_logger
 
 
 class GeniusCtl:
@@ -46,24 +43,22 @@ class GeniusCtl:
 
     def __init__(self):
         """
-        Initialize GeniusCtl.v
+        Initialize GeniusCtl.
 
         Args:
-            directory (str): The directory to scan for spouts and bolts.
+            directory (str): The directory to scan for tasks.
         """
         self.log = logging.getLogger(self.__class__.__name__)
-
-        self.spout_ctls: Dict[str, SpoutCtl] = {}
-        self.bolt_ctls: Dict[str, BoltCtl] = {}
+        self.task_ctls: Dict[str, TaskCtl] = {}
 
         text = """
          %&&&&&&&&&&
      %%%@%@%%@@%%%%@@@@&&&&/
-  /%@@@%%%%@%%%#%@%%%%%&@//%%        ██████  ███████ ███    ██ ██ ██    ██ ███████ ██████  ██ ███████ ███████
-  ###@###@###@@@/@%%%%%%/%@%@&&     ██       ██      ████   ██ ██ ██    ██ ██      ██   ██ ██ ██      ██
- ##@##@##@#@##/@%%@@%@@%%%%&@#@&    ██   ███ █████   ██ ██  ██ ██ ██    ██ ███████ ██████  ██ ███████ █████ 
-#@#@@@@@@@(#######@#/%@%%%%%%@%%    ██    ██ ██      ██  ██ ██ ██ ██    ██      ██ ██   ██ ██      ██ ██
- ((((@(@@######/########@@@@#%%%     ██████  ███████ ██   ████ ██  ██████  ███████ ██   ██ ██ ███████ ███████
+  /%@@@%%%%@%%%#%@%%%%%&@//%%        ██████  ███████ ███    ██ ██ ██    ██ ███████ ██████  ██ ███████ ███████
+  ###@###@###@@@/@%%%%%%/%@%@&&     ██       ██      ████   ██ ██ ██    ██ ██      ██   ██ ██ ██      ██
+ ##@##@##@#@##/@%%@@%@@%%%%&@#@&    ██   ███ █████   ██ ██  ██ ██ ██    ██ ███████ ██████  ██ ███████ █████
+#@#@@@@@@@(#######@#/%@%%%%%%@%%    ██    ██ ██      ██  ██ ██ ██ ██    ██      ██ ██   ██ ██      ██ ██
+ ((((@(@@######/########@@@@#%%%     ██████  ███████ ██   ████ ██  ██████  ███████ ██   ██ ██ ███████ ███████
   /#@#@##@###@#@#@##@##@###
     (((((@&#(@((@(((((##
         ((@/#/
@@ -96,127 +91,139 @@ class GeniusCtl:
         # Run module discovery
         self.discover()
 
-        # Create subparser for each discovered spout
-        for spout_name, discovered_spout in self.spouts.items():
-            spout_parser = subparsers.add_parser(
-                spout_name,
-                help=f"Manage spout {spout_name}.",
+        # Create subparser for each discovered task
+        for task_name, discovered_task in self.tasks.items():
+            task_parser = subparsers.add_parser(
+                task_name,
+                help=f"Manage task {task_name}.",
                 formatter_class=RichHelpFormatter,
             )
-            spout_ctl = SpoutCtl(discovered_spout)
-            self.spout_ctls[spout_name] = spout_ctl
-            spout_ctl.create_parser(spout_parser)
-
-        # Create subparser for each discovered bolt
-        for bolt_name, discovered_bolt in self.bolts.items():
-            bolt_parser = subparsers.add_parser(
-                bolt_name,
-                help=f"Manage bolt {bolt_name}.",
-                formatter_class=RichHelpFormatter,
-            )
-            bolt_ctl = BoltCtl(discovered_bolt)
-            self.bolt_ctls[bolt_name] = bolt_ctl
-            bolt_ctl.create_parser(bolt_parser)
+            task_ctl = TaskCtl(discovered_task)
+            self.task_ctls[task_name] = task_ctl
+            task_ctl.create_parser(task_parser)
 
         # Create subparser for YAML operations
         yaml_parser = subparsers.add_parser(
             "rise",
-            help="Manage spouts and bolts with a YAML file.",
+            help="Manage tasks with a YAML file.",
             formatter_class=RichHelpFormatter,
         )
-        # Initialize YamlCtl with both spout_ctls and bolt_ctls
-        self.yaml_ctl = YamlCtl(self.spout_ctls, self.bolt_ctls)
+        # Initialize YamlCtl with task controllers
+        self.yaml_ctl = YamlCtl(self.task_ctls)
         self.yaml_ctl.create_parser(yaml_parser)
 
-        docker_parser = subparsers.add_parser("docker", help="Package this application into a Docker image.")
+        docker_parser = subparsers.add_parser(
+            "docker",
+            help="Package this application into a Docker image.",
+            formatter_class=RichHelpFormatter,
+        )
         self.docker_ctl = DockerCtl()
         self.docker_ctl.create_parser(docker_parser)
 
-        # Connect to kubernetes runner
-        pod_parser = subparsers.add_parser("pod", help="Manage spouts and bolts as kubernetes pod")
-        self.k8s_pod = K8sResourceManager()
-        self.k8s_pod.create_parser(pod_parser)
+        # Add all available runners from the plugin system
+        self.runners = {}
+        for runner_name, runner_class in AVAILABLE_RUNNERS.items():
+            runner_parser = subparsers.add_parser(
+                runner_name,
+                help=f"Manage tasks with {runner_name}",
+                formatter_class=RichHelpFormatter,
+            )
+            runner = runner_class()
+            runner.create_parser(runner_parser)
+            self.runners[runner_name] = runner
 
-        deployment_parser = subparsers.add_parser("deployment", help="Manage spouts and bolts as kubernetes deployment")
-        self.k8s_deployment = Deployment()
-        self.k8s_deployment.create_parser(deployment_parser)
+        # Try to load legacy runners with warnings
+        # K8s runners - these could be moved to plugins
+        try:
+            from geniusrise.runners.k8s import CronJob, Deployment, Job, K8sResourceManager, Service
 
-        service_parser = subparsers.add_parser("service", help="Manage spouts and bolts as kubernetes service")
-        self.k8s_service = Service()
-        self.k8s_service.create_parser(service_parser)
+            warnings.warn(
+                "The embedded Kubernetes runners are deprecated and will be moved to a separate package. "
+                "Please install geniusrise-runner-kubernetes in the future.",
+                DeprecationWarning,
+            )
 
-        job_parser = subparsers.add_parser("job", help="Manage spouts and bolts as kubernetes job")
-        self.k8s_job = Job()
-        self.k8s_job.create_parser(job_parser)
+            # All of these will be handled with the plugin system
+        except ImportError:
+            pass
 
-        cron_job_parser = subparsers.add_parser("cron_job", help="Manage spouts and bolts as kubernetes cron_job")
-        self.k8s_cron_job = CronJob()
-        self.k8s_cron_job.create_parser(cron_job_parser)
+        # Try to load legacy OpenStack runners
+        try:
+            from geniusrise.runners.openstack import OpenStackAutoscaleRunner, OpenStackInstanceRunner
 
-        # Connect to openstack runner
-        openstack_parser = subparsers.add_parser("openstack", help="Manage spouts and bolts as openstack instance")
-        self.openstack = OpenStackInstanceRunner()
-        self.openstack.create_parser(openstack_parser)
+            warnings.warn(
+                "The embedded OpenStack runners are deprecated and will be moved to a separate package. "
+                "Please install geniusrise-runner-openstack in the future.",
+                DeprecationWarning,
+            )
 
-        openstack_autoscale_parser = subparsers.add_parser(
-            "openstack-autoscale", help="Manage spouts and bolts as openstack autoscaled instances"
-        )
-        self.openstack_autoscale = OpenStackAutoscaleRunner()
-        self.openstack_autoscale.create_parser(openstack_autoscale_parser)
+            # All of these will be handled with the plugin system
+        except ImportError:
+            pass
 
-        # Connect to acecloud runner
-        acecloud_parser = subparsers.add_parser("acecloud", help="Manage spouts and bolts as acecloud instance")
-        self.acecloud = AceCloudInstanceRunner()
-        self.acecloud.create_parser(acecloud_parser)
+        # Try to load legacy AceCloud runners
+        try:
+            from geniusrise.runners.acecloud import AceCloudAutoscaleRunner, AceCloudInstanceRunner
 
-        acecloud_autoscale_parser = subparsers.add_parser(
-            "acecloud-autoscale", help="Manage spouts and bolts as acecloud autoscaled instances"
-        )
-        self.acecloud_autoscale = AceCloudAutoscaleRunner()
-        self.acecloud_autoscale.create_parser(acecloud_autoscale_parser)
+            warnings.warn(
+                "The embedded AceCloud runners are deprecated and will be moved to a separate package. "
+                "Please install geniusrise-runner-acecloud in the future.",
+                DeprecationWarning,
+            )
 
-        # Connect to E2E runner
-        e2e_parser = subparsers.add_parser("e2e", help="Manage spouts and bolts as E2E instance")
-        self.e2e = E2EInstanceRunner()
-        self.e2e.create_parser(e2e_parser)
+            # All of these will be handled with the plugin system
+        except ImportError:
+            pass
 
-        e2e_autoscale_parser = subparsers.add_parser(
-            "e2e-autoscale", help="Manage spouts and bolts as E2E autoscaled instances"
-        )
-        self.e2e_autoscale = E2EAutoscaleRunner()
-        self.e2e_autoscale.create_parser(e2e_autoscale_parser)
+        # Try to load legacy E2E runners
+        try:
+            from geniusrise.runners.e2e_networks import E2EAutoscaleRunner, E2EInstanceRunner
 
-        # Add a 'help' command to print help for all spouts and bolts
+            warnings.warn(
+                "The embedded E2E Networks runners are deprecated and will be moved to a separate package. "
+                "Please install geniusrise-runner-e2e in the future.",
+                DeprecationWarning,
+            )
+
+            # All of these will be handled with the plugin system
+        except ImportError:
+            pass
+
+        # Add a 'help' command to print help for all components
         help_parser = subparsers.add_parser(
             "plugins",
-            help="Print help for all spouts and bolts.",
+            help="Print help for all discovered components.",
             formatter_class=RichHelpFormatter,
         )
-        help_parser.add_argument("spout_or_bolt", nargs="?", help="The spout or bolt to print help for.")
+        help_parser.add_argument("component", nargs="?", help="The component to print help for.")
 
-        # Add a 'list' command to list all discovered spouts and bolts
+        # Add a 'list' command to list all discovered components
         list_parser = subparsers.add_parser(
             "list",
-            help="List all discovered spouts and bolts.",
+            help="List all discovered components.",
             formatter_class=RichHelpFormatter,
         )
         list_parser.add_argument("--verbose", action="store_true", help="Print verbose output.")
 
+        # Add a 'runners' command to list all available runners
+        runners_parser = subparsers.add_parser(
+            "runners",
+            help="List all available runners.",
+            formatter_class=RichHelpFormatter,
+        )
+
         return parser
 
     def discover(self):
-        self.discover = Discover()
-        discovered_components = self.discover.scan_directory(os.getenv("GENIUS_DIR", "."))
-        discovered_installed_components = self.discover.discover_geniusrise_installed_modules()
+        self.discover_obj = Discover()
+        discovered_components = self.discover_obj.scan_directory(os.getenv("GENIUS_DIR", "."))
+        discovered_installed_components = self.discover_obj.discover_geniusrise_installed_modules()
 
         components = {**discovered_components, **discovered_installed_components}
 
-        # Segregate the discovered components based on their type
-        self.spouts = {
-            name: component for name, component in components.items() if isinstance(component, DiscoveredSpout)
-        }
-        self.bolts = {
-            name: component for name, component in components.items() if isinstance(component, DiscoveredBolt)
+        # Get the discovered tasks
+        self.tasks = {
+            name: component for name, component in components.items() if isinstance(component, DiscoveredTask)
         }
 
     def run(self, args):
@@ -225,57 +232,70 @@ class GeniusCtl:
 
         Args:
             args (argparse.Namespace): Parsed command-line arguments.
+
+        Returns:
+            int: Exit code (0 for success, 1 for error)
         """
+        if not hasattr(args, "top_level_command") or not args.top_level_command:
+            self.log.error("No command specified.")
+            return 1
+
         self.log.debug(f"Running command: {args.top_level_command} with args {args}")
 
-        if args.top_level_command in self.spouts:
-            self.spout_ctls[args.top_level_command].run(args)
-        elif args.top_level_command in self.bolts:
-            self.bolt_ctls[args.top_level_command].run(args)
+        # Task command
+        if args.top_level_command in self.tasks:
+            self.task_ctls[args.top_level_command].run(args)
+        # YAML command
         elif args.top_level_command == "rise":
             self.yaml_ctl.run(args)
+        # Docker command
         elif args.top_level_command == "docker":
             self.docker_ctl.run(args)
-        elif args.top_level_command == "pod":
-            self.k8s_pod.run(args)
-        elif args.top_level_command == "deployment":
-            self.k8s_deployment.run(args)
-        elif args.top_level_command == "service":
-            self.k8s_service.run(args)
-        elif args.top_level_command == "job":
-            self.k8s_job.run(args)
-        elif args.top_level_command == "cron_job":
-            self.k8s_cron_job.run(args)
-        elif args.top_level_command == "openstack":
-            self.openstack.run(args)
-        elif args.top_level_command == "openstack-autoscale":
-            self.openstack_autoscale.run(args)
-        elif args.top_level_command == "acecloud":
-            self.acecloud.run(args)
-        elif args.top_level_command == "acecloud-autoscale":
-            self.acecloud_autoscale.run(args)
-        elif args.top_level_command == "e2e":
-            self.e2e.run(args)
-        elif args.top_level_command == "e2e-autoscale":
-            self.e2e_autoscale.run(args)
+        # Plugin runners
+        elif args.top_level_command in self.runners:
+            self.runners[args.top_level_command].run(args)
+        # Legacy commands - these will be handled by the plugin system
+        elif args.top_level_command in ["pod", "deployment", "service", "job", "cron_job",
+                                      "openstack", "openstack-autoscale",
+                                      "acecloud", "acecloud-autoscale",
+                                      "e2e", "e2e-autoscale"]:
+            self.log.error(f"The '{args.top_level_command}' command is now handled by the plugin system. "
+                           f"Please install the appropriate plugin package.")
+            return 1
+        # Plugins command
         elif args.top_level_command == "plugins":
-            if args.spout_or_bolt in self.spouts:
-                self.spout_ctls[args.spout_or_bolt].run(args)
-            elif args.spout_or_bolt in self.bolts:
-                self.bolt_ctls[args.spout_or_bolt].run(args)
+            if hasattr(args, "component") and args.component:
+                if args.component in self.tasks:
+                    self.task_ctls[args.component].run(args)
+                elif args.component in self.runners:
+                    self.runners[args.component].run(args)
+                else:
+                    self.log.error(f"Unknown component: {args.component}")
+                    return 1
             else:
-                for spout_ctl in self.spout_ctls.values():
-                    spout_ctl.run(args)
-                for bolt_ctl in self.bolt_ctls.values():
-                    bolt_ctl.run(args)
+                # Show all components
+                for task_ctl in self.task_ctls.values():
+                    task_ctl.run(args)
+                for runner in self.runners.values():
+                    if hasattr(runner, "help"):
+                        runner.help()
+        # List command
         elif args.top_level_command == "list":
-            if len(self.spouts.keys()) == 0 and len(self.bolts.keys()) == 0:
-                self.log.warn("No spouts or bolts discovered.")
-            self.list_spouts_and_bolts(args.verbose)
+            if len(self.tasks.keys()) == 0:
+                self.log.warn("No components discovered.")
+            self.list_components(args.verbose if hasattr(args, "verbose") else False)
+        # Runners command
+        elif args.top_level_command == "runners":
+            self.list_runners()
+        else:
+            self.log.error(f"Unknown command: {args.top_level_command}")
+            return 1
 
-    def list_spouts_and_bolts(self, verbose: bool = False):
+        return 0
+
+    def list_components(self, verbose: bool = False):
         """
-        List all discovered spouts and bolts in a table.
+        List all discovered components in a table.
         """
         table = (
             PrettyTable(
@@ -296,45 +316,54 @@ class GeniusCtl:
             )
         )
 
-        for spout_name in self.spouts.keys():
-            s = self.spouts[spout_name].klass
+        # List tasks
+        for task_name in self.tasks.keys():
+            t = self.tasks[task_name].klass
             table.add_row(
                 (
                     [
-                        colored(spout_name, "yellow"),
-                        colored("Spout", "cyan"),
-                        "\n".join([colored(x, "cyan") for x in dir(s) if not x.startswith("_")]),
+                        colored(task_name, "yellow"),
+                        colored("Task", "blue"),
+                        "\n".join([colored(x, "blue") for x in dir(t) if not x.startswith("_")]),
                     ]
                     if verbose
                     else [
-                        colored(spout_name, "yellow"),
-                        colored("Spout", "cyan"),
+                        colored(task_name, "yellow"),
+                        colored("Task", "blue"),
                     ]
                 ),
                 divider=verbose,
             )
-        for bolt_name in self.bolts.keys():
-            b = self.bolts[bolt_name].klass
+
+        sys.stdout.write(table.__repr__())
+
+    def list_runners(self):
+        """
+        List all available runners.
+        """
+        table = PrettyTable(
+            [
+                colored("Runner Name", "green"),
+                colored("Description", "green"),
+            ],
+            align="l",
+        )
+
+        for runner_name, runner_class in AVAILABLE_RUNNERS.items():
             table.add_row(
-                (
-                    [
-                        colored(bolt_name, "yellow"),
-                        colored("Bolt", "magenta"),
-                        "\n".join([colored(x, "magenta") for x in dir(b) if not x.startswith("_")]),
-                    ]
-                    if verbose
-                    else [
-                        colored(bolt_name, "yellow"),
-                        colored("Bolt", "magenta"),
-                    ]
-                ),
-                divider=verbose,
+                [
+                    colored(runner_name, "yellow"),
+                    colored(getattr(runner_class, "__doc__", "No description").split("\n")[0].strip(), "cyan"),
+                ],
             )
         sys.stdout.write(table.__repr__())
 
     def cli(self):
         """
         Main function to be called when geniusrise is run from the command line.
+
+        Returns:
+            int: Exit code (0 for success, 1 for error)
         """
         parser = self.create_parser()
         args = parser.parse_args()
@@ -342,16 +371,27 @@ class GeniusCtl:
 
 
 def main():
+    """
+    Main entry point for the geniusrise CLI.
+
+    Returns:
+        int: Exit code (0 for success, 1 for error)
+    """
     setup_logger()
     genius_ctl = GeniusCtl()
-    genius_ctl.cli()
+    return genius_ctl.cli()
 
 
 if __name__ == "__main__":
-    genius_ctl = GeniusCtl()
-    genius_ctl.cli()
+    sys.exit(main())
 
 
 def create_parser():
+    """
+    Create a command-line parser for the geniusrise CLI.
+
+    Returns:
+        argparse.ArgumentParser: The command-line parser.
+    """
     genius_ctl = GeniusCtl()
     return genius_ctl.create_parser()

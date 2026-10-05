@@ -1,5 +1,5 @@
 # 🧠 Geniusrise
-# Copyright (C) 2023  geniusrise.ai
+# Copyright (C) 2023-2025  geniusrise.ai
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,9 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from geniusrise.core import Spout
+from geniusrise.core import Task
 
 
-class TestSpoutCtlSpout(Spout):
+class TestTaskProducer(Task):
     def test_method(self, *args, **kwargs):
         return sum(args) * sum(kwargs.values())

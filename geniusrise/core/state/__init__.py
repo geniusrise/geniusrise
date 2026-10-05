@@ -1,5 +1,5 @@
 # 🧠 Geniusrise
-# Copyright (C) 2023  geniusrise.ai
+# Copyright (C) 2023-2025  geniusrise.ai
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,39 @@
 # limitations under the License.
 
 from .base import State
-from .dynamo import DynamoDBState
 from .memory import InMemoryState
-from .postgres import PostgresState
-from .redis import RedisState
+from .registry import (
+    register_state_backend,
+    STATE_BACKENDS,
+    discover_state_backends
+)
+
+# For backwards compatibility
+class RedisState:
+    def __new__(cls, *args, **kwargs):
+        raise ImportError(
+            "Redis state backend is not installed. Install with: pip install geniusrise-state-redis"
+        )
+
+class PostgresState:
+    def __new__(cls, *args, **kwargs):
+        raise ImportError(
+            "Postgres state backend is not installed. Install with: pip install geniusrise-state-postgres"
+        )
+
+class DynamoDBState:
+    def __new__(cls, *args, **kwargs):
+        raise ImportError(
+            "DynamoDB state backend is not installed. Install with: pip install geniusrise-state-dynamo"
+        )
+
+__all__ = [
+    "State",
+    "InMemoryState",
+    "RedisState",
+    "PostgresState",
+    "DynamoDBState",
+    "register_state_backend",
+    "STATE_BACKENDS",
+    "discover_state_backends"
+]

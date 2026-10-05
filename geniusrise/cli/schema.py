@@ -1,5 +1,5 @@
 # 🧠 Geniusrise
-# Copyright (C) 2023  geniusrise.ai
+# Copyright (C) 2023-2025  geniusrise.ai
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ class StateArgs(BaseModel):
 
 class State(BaseModel):
     """
-    This class defines the state of the spout or bolt. The state can be of type none, redis, postgres, or dynamodb.
+    This class defines the state of the task, spout, or bolt. The state can be of type none, redis, postgres, or dynamodb.
     """
 
     type: str
@@ -102,7 +102,7 @@ class OutputArgs(BaseModel):
 
 class Output(BaseModel):
     """
-    This class defines the output of the spout or bolt. The output can be of type batch or streaming.
+    This class defines the output of the task, spout, or bolt. The output can be of type batch or streaming.
     """
 
     type: str
@@ -150,7 +150,7 @@ class InputArgs(BaseModel):
 
 class Input(BaseModel):
     """
-    This class defines the input of the bolt. The input can be of type batch, streaming, spout, or bolt.
+    This class defines the input of the task or bolt. The input can be of type batch, streaming, spout, or bolt.
     """
 
     type: str
@@ -161,8 +161,7 @@ class Input(BaseModel):
         if v not in [
             "batch",
             "streaming",
-            "spout",
-            "bolt",
+            "task",
         ]:
             raise ValueError("Invalid input type")
         return v
@@ -176,7 +175,7 @@ class Input(BaseModel):
             elif values["type"] == "streaming":
                 if not v or "input_topic" not in v or "kafka_servers" not in v:
                     raise ValueError("Missing required fields for streaming input type")
-            elif values["type"] in ["spout", "bolt"]:
+            elif values["type"] == "task":
                 if not v or "name" not in v:
                     raise ValueError(f"Missing required fields for {values['type']} input type")
             else:
@@ -335,7 +334,7 @@ class DeployArgs(BaseModel):
 
 class Deploy(BaseModel):
     """
-    This class defines the deployment of the spout or bolt. The deployment can be of type k8s, openstack or acecloud.
+    This class defines the deployment of the task, spout, or bolt. The deployment can be of type k8s, openstack or acecloud.
     """
 
     type: str
@@ -405,41 +404,28 @@ class Deploy(BaseModel):
         return v
 
 
-class Spout(BaseModel):
+class Task(BaseModel):
     """
-    This class defines a spout. A spout has a name, method, optional arguments, output, state, and deployment.
-    """
-
-    name: str
-    method: str
-    args: Optional[ExtraKwargs]
-    output: Output
-    state: Optional[State] = None
-    deploy: Optional[Deploy] = None
-
-
-class Bolt(BaseModel):
-    """
-    This class defines a bolt. A bolt has a name, method, optional arguments, input, output, state, and deployment.
+    This class defines a task. A task can have input and output, or just one of them.
     """
 
     name: str
+    id: Optional[str] = None
     method: str
     args: Optional[ExtraKwargs]
-    input: Input
-    output: Output
+    input: Optional[Input] = None
+    output: Optional[Output] = None
     state: Optional[State] = None
     deploy: Optional[Deploy] = None
 
 
 class Geniusfile(BaseModel):
     """
-    This class defines the overall structure of the YAML file. It includes a version, spouts, and bolts.
+    This class defines the overall structure of the YAML file. It includes a version and tasks.
     """
 
     version: Union[int, str, float]
-    spouts: Dict[str, Spout] = {}
-    bolts: Dict[str, Bolt] = {}
+    tasks: Dict[str, Task] = {}
 
     @validator("version")
     def validate_version(cls, v, values, **kwargs):

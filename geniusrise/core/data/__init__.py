@@ -1,5 +1,5 @@
 # 🧠 Geniusrise
-# Copyright (C) 2023  geniusrise.ai
+# Copyright (C) 2023-2025  geniusrise.ai
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,9 +13,55 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .batch_input import BatchInput
-from .batch_output import BatchOutput
 from .input import Input
 from .output import Output
-from .streaming_input import StreamingInput
-from .streaming_output import StreamingOutput
+from .input_registry import (
+    register_input_backend,
+    INPUT_BACKENDS,
+    discover_input_backends
+)
+from .output_registry import (
+    register_output_backend,
+    OUTPUT_BACKENDS,
+    discover_output_backends
+)
+
+# For backwards compatibility
+class BatchInput(Input):
+    def __new__(cls, *args, **kwargs):
+        raise ImportError(
+            "BatchInput with S3 support is not available. Install with: pip install geniusrise-data-s3"
+        )
+
+class BatchOutput(Output):
+    def __new__(cls, *args, **kwargs):
+        raise ImportError(
+            "BatchOutput with S3 support is not available. Install with: pip install geniusrise-data-s3"
+        )
+
+class StreamingInput(Input):
+    def __new__(cls, *args, **kwargs):
+        raise ImportError(
+            "StreamingInput is not available. Install with: pip install geniusrise-data-kafka"
+        )
+
+class StreamingOutput(Output):
+    def __new__(cls, *args, **kwargs):
+        raise ImportError(
+            "StreamingOutput is not available. Install with: pip install geniusrise-data-kafka"
+        )
+
+__all__ = [
+    "Input",
+    "Output",
+    "BatchInput",
+    "BatchOutput",
+    "StreamingInput",
+    "StreamingOutput",
+    "register_input_backend",
+    "INPUT_BACKENDS",
+    "discover_input_backends",
+    "register_output_backend",
+    "OUTPUT_BACKENDS",
+    "discover_output_backends"
+]

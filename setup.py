@@ -3,7 +3,7 @@ from setuptools import find_packages, setup  # type: ignore
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
-with open("requirements.txt", "r", encoding="utf-8") as f:
+with open("requirements-core.txt", "r", encoding="utf-8") as f:
     requirements = f.read().splitlines()
 
 entry_points = {
@@ -15,8 +15,8 @@ entry_points = {
 
 setup(
     name="geniusrise",
-    version="0.1.7",
-    packages=find_packages(exclude=["tests", "tests.*"]),
+    version="0.2.0",
+    packages=find_packages(exclude=["tests", "tests.*", "build", "dist", "venv"]),
     install_requires=requirements,
     entry_points=entry_points,
     python_requires=">=3.10",
@@ -32,6 +32,8 @@ setup(
         "Topic :: Software Development :: Build Tools",
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Operating System :: OS Independent",
     ],
     keywords="mlops, llm, geniusrise, machine learning, data processing",
@@ -44,7 +46,32 @@ setup(
         "geniusrise": [],
     },
     extras_require={
-        "dev": ["check-manifest"],
-        "test": ["coverage"],
+        "dev": ["check-manifest", "black", "flake8", "mypy"],
+        "test": ["coverage", "pytest", "pytest-asyncio"],
+        "docs": ["sphinx", "sphinx-rtd-theme"],
+        # Runner plugins are now separate packages
+        "k8s": ["geniusrise-runner-k8s>=0.1.0"],
+        "docker": ["geniusrise-runner-docker>=0.1.0"],
+        "openstack": ["geniusrise-runner-openstack>=0.1.0"],
+        "airflow": ["geniusrise-runner-airflow>=0.1.0"],
+        # State backend plugins
+        "redis": ["geniusrise-state-redis>=0.1.0"],
+        "postgres": ["geniusrise-state-postgres>=0.1.0"],
+        "dynamo": ["geniusrise-state-dynamo>=0.1.0"],
+        # Data backend plugins
+        "s3": ["geniusrise-data-s3>=0.1.0"],
+        "kafka": ["geniusrise-data-kafka>=0.1.0"],
+        # Full installation with all plugins
+        "full": [
+            "geniusrise-runner-k8s>=0.1.0",
+            "geniusrise-runner-docker>=0.1.0",
+            "geniusrise-runner-openstack>=0.1.0",
+            "geniusrise-runner-airflow>=0.1.0",
+            "geniusrise-state-redis>=0.1.0",
+            "geniusrise-state-postgres>=0.1.0",
+            "geniusrise-state-dynamo>=0.1.0",
+            "geniusrise-data-s3>=0.1.0",
+            "geniusrise-data-kafka>=0.1.0",
+        ],
     },
 )
