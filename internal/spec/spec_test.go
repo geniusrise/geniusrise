@@ -46,7 +46,7 @@ func TestParseMinimal(t *testing.T) {
 	if dur.Minutes() != 15 {
 		t.Fatalf("default idle timeout not applied: %v", dur)
 	}
-	if d.Models[1].Replicas.Max != 1 {
+	if d.Models[1].Replicas.Max != 2 {
 		t.Fatalf("default max not applied")
 	}
 }
@@ -60,38 +60,25 @@ func TestStrictRejectsUnknownField(t *testing.T) {
 
 func TestValidateErrors(t *testing.T) {
 	cases := []struct {
-		name, mutate, wantErr string
+		name, src, wantErr string
 	}{
-		{"bad name", "name: acme-ai", "name"},
-		{"bad provider", "type: aws", "provider.type"},
-		{"region missing", "region: us-east-1\n", "region"},
-		{"serverless non-runpod", "capacity: spot-fallback", "serverless"},
-		{"lambda needs gateway host", "type: aws", "gateway.host"},
+		{"bad name", strings.Replace(minimal, "name: acme-ai", "name: ACME", 1), "name"},
+		{"bad provider", strings.Replace(minimal, "type: aws", "type: dreamhost", 1), "provider.type"},
+		{"region missing", strings.Replace(minimal, "  region: us-east-1\n", "", 1), "region"},
+		{"serverless non-runpod", strings.Replace(minimal, "capacity: spot-fallback", "capacity: serverless", 1), "serverless"},
+		{"lambda needs gateway host", strings.Replace(minimal, "type: aws", "type: lambda", 1), "gateway.host"},
+		{"duplicate model", strings.Replace(minimal, "  - id: whisper-large-v3-turbo", "  - id: llama-3.1-8b-instruct", 1), "duplicated"},
+		{"duplicate key", strings.Replace(minimal, "secrets:", "  - name: alice\n    key: sk-x\nsecrets:", 1), "duplicated"},
+		{"no models", strings.Replace(minimal, "models:\n  - id: llama-3.1-8b-instruct\n    variant: awq\n    replicas: {min: 0, max: 4}\n    idle_timeout: 15m\n  - id: whisper-large-v3-turbo\n    replicas: {min: 1, max: 2}\n", "models: []\n", 1), "model"},
+		{"bad budget", strings.Replace(minimal, "monthly_usd: 500", "monthly_usd: -1", 1), "budget"},
+		{"bad idle timeout", strings.Replace(minimal, "idle_timeout: 15m", "idle_timeout: 15x", 1), "idle_timeout"},
+		{"replicas max < min", strings.Replace(minimal, "{min: 0, max: 4}", "{min: 3, max: 2}", 1), "replicas.max"},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			var src, want string
-			switch c.name {
-			case "bad name":
-				src = strings.Replace(minimal, "name: acme-ai", "name: ACME", 1)
-				want = "name"
-			case "bad provider":
-				src = strings.Replace(minimal, "type: aws", "type: dreamhost", 1)
-				want = "provider.type"
-			case "region missing":
-				src = strings.Replace(minimal, "region: us-east-1\n", "", 1)
-				want = "region"
-			case "serverless non-runpod":
-				src = strings.Replace(minimal, "capacity: spot-fallback", "capacity: serverless", 1)
-				want = "serverless"
-			case "lambda needs gateway host":
-				src = strings.Replace(minimal, "type: aws", "type: lambda", 1)
-				want = "gateway.host"
-			}
-			_ = c
-			_, err := Parse([]byte(src))
-			if err == nil || !strings.Contains(err.Error(), want) {
-				t.Fatalf("want error containing %q, got %v", want, err)
+			_, err := Parse([]byte(c.src))
+			if err == nil || !strings.Contains(err.Error(), c.wantErr) {
+				t.Fatalf("want error containing %q, got %v", c.wantErr, err)
 			}
 		})
 	}
@@ -106,9 +93,19 @@ provider:
     - {addr: 10.0.0.5, user: ubuntu, gpus: 2}
 models:
   - id: llama-3.1-8b-instruct
+keys:
+  - name: bob
+    key: sk-bob
 `
 	if _, err := Parse([]byte(src)); err != nil {
 		t.Fatal(err)
+	}
+	d, _ := Parse([]byte(src))
+	if d.Models[0].Replicas.Max != 1 || d.Models[0].Replicas.Min != 0 {
+		t.Fatalf("default replicas not applied: %+v", d.Models[0].Replicas)
+	}
+	if len(d.Keys[0].Models) != 1 || d.Keys[0].Models[0] != "*" {
+		t.Fatal("default key models not applied")
 	}
 	noHosts := strings.Replace(src, "    - {addr: 10.0.0.5, user: ubuntu, gpus: 2}\n", "", 1)
 	if _, err := Parse([]byte(noHosts)); err == nil || !strings.Contains(err.Error(), "hosts") {
