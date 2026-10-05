@@ -163,6 +163,11 @@ type Client struct {
 	session     *yamux.Session
 	Control     io.ReadWriteCloser
 	ctrlReader  *bufio.Reader
+	LocalDial   func(port uint16) (net.Conn, error)
+}
+
+func defaultLocalDial(port uint16) (net.Conn, error) {
+	return net.DialTimeout("tcp", fmt.Sprintf("127.0.0.1:%d", port), 5*time.Second)
 }
 
 func Connect(nodeID, gatewayAddr string, conn net.Conn) (*Client, error) {
@@ -172,7 +177,7 @@ func Connect(nodeID, gatewayAddr string, conn net.Conn) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	c := &Client{NodeID: nodeID, GatewayAddr: gatewayAddr, session: sess}
+	c := &Client{NodeID: nodeID, GatewayAddr: gatewayAddr, session: sess, LocalDial: defaultLocalDial}
 	ctrl, err := c.openStream(ControlPort)
 	if err != nil {
 		sess.Close()
@@ -207,7 +212,11 @@ func (c *Client) handleStream(stream net.Conn) {
 	if port == ControlPort {
 		return
 	}
-	target, err := net.DialTimeout("tcp", fmt.Sprintf("127.0.0.1:%d", port), 5*time.Second)
+	dial := c.LocalDial
+	if dial == nil {
+		dial = defaultLocalDial
+	}
+	target, err := dial(port)
 	if err != nil {
 		stream.Close()
 		return
