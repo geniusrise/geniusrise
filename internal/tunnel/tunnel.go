@@ -17,12 +17,24 @@ const ALPN = "gr-tunnel"
 
 const ControlPort = uint16(0)
 
+const PlainPrefixByte = 0x01
+
+func WritePlainPrefix(conn net.Conn, nodeID string) error {
+	buf := []byte{PlainPrefixByte}
+	var lenBuf [2]byte
+	binary.BigEndian.PutUint16(lenBuf[:], uint16(len(nodeID)))
+	buf = append(buf, lenBuf[:]...)
+	buf = append(buf, nodeID...)
+	_, err := conn.Write(buf)
+	return err
+}
+
 type Message struct {
-	Type    string `json:"type"`
-	NodeID  string `json:"node_id,omitempty"`
-	Inflight int   `json:"inflight,omitempty"`
-	Queue   int   `json:"queue,omitempty"`
-	Error   string `json:"error,omitempty"`
+	Type     string `json:"type"`
+	NodeID   string `json:"node_id,omitempty"`
+	Inflight int    `json:"inflight,omitempty"`
+	Queue    int    `json:"queue,omitempty"`
+	Error    string `json:"error,omitempty"`
 }
 
 const (
@@ -36,8 +48,8 @@ const (
 )
 
 type Server struct {
-	mu       sync.Mutex
-	sessions map[string]*yamux.Session
+	mu         sync.Mutex
+	sessions   map[string]*yamux.Session
 	OnRegister func(nodeID string, control io.ReadWriteCloser)
 }
 

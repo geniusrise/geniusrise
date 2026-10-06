@@ -15,8 +15,8 @@ import (
 )
 
 type recordingTLSServer struct {
-	srv  *http.Server
-	ln   net.Listener
+	srv *http.Server
+	ln  net.Listener
 }
 
 type demuxListener struct {
@@ -24,7 +24,9 @@ type demuxListener struct {
 	done chan struct{}
 }
 
-func newDemux() *demuxListener { return &demuxListener{c: make(chan net.Conn), done: make(chan struct{})} }
+func newDemux() *demuxListener {
+	return &demuxListener{c: make(chan net.Conn), done: make(chan struct{})}
+}
 
 func (d *demuxListener) Accept() (net.Conn, error) {
 	select {

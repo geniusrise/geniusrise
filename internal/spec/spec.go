@@ -13,19 +13,19 @@ import (
 const (
 	Version = 1
 
-	ProviderAWS       = "aws"
-	ProviderGCP       = "gcp"
-	ProviderAzure     = "azure"
-	ProviderRunPod    = "runpod"
-	ProviderLambda    = "lambda"
+	ProviderAWS        = "aws"
+	ProviderGCP        = "gcp"
+	ProviderAzure      = "azure"
+	ProviderRunPod     = "runpod"
+	ProviderLambda     = "lambda"
 	ProviderHyperbolic = "hyperbolic"
-	ProviderSSH       = "ssh"
-	ProviderFake      = "fake"
+	ProviderSSH        = "ssh"
+	ProviderFake       = "fake"
 
-	CapacitySpot        = "spot"
-	CapacityOnDemand    = "on-demand"
+	CapacitySpot         = "spot"
+	CapacityOnDemand     = "on-demand"
 	CapacitySpotFallback = "spot-fallback"
-	CapacityServerless  = "serverless"
+	CapacityServerless   = "serverless"
 )
 
 var Providers = []string{ProviderAWS, ProviderGCP, ProviderAzure, ProviderRunPod, ProviderLambda, ProviderHyperbolic, ProviderSSH, ProviderFake}
@@ -34,12 +34,12 @@ var Capacities = []string{CapacitySpot, CapacityOnDemand, CapacitySpotFallback, 
 var nameRe = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{2,31}$`)
 
 type Provider struct {
-	Type        string     `yaml:"type"`
-	Region      string     `yaml:"region"`
-	Capacity    string     `yaml:"capacity"`
-	Subnet      string     `yaml:"subnet"`
-	Credentials string     `yaml:"credentials"`
-	Hosts       []SSHHost  `yaml:"hosts"`
+	Type        string    `yaml:"type"`
+	Region      string    `yaml:"region"`
+	Capacity    string    `yaml:"capacity"`
+	Subnet      string    `yaml:"subnet"`
+	Credentials string    `yaml:"credentials"`
+	Hosts       []SSHHost `yaml:"hosts"`
 }
 
 type SSHHost struct {
@@ -70,16 +70,16 @@ type Replicas struct {
 }
 
 type Model struct {
-	ID          string    `yaml:"id"`
-	Variant     string    `yaml:"variant"`
-	Replicas    Replicas  `yaml:"replicas"`
-	IdleTimeout string    `yaml:"idle_timeout"`
+	ID          string   `yaml:"id"`
+	Variant     string   `yaml:"variant"`
+	Replicas    Replicas `yaml:"replicas"`
+	IdleTimeout string   `yaml:"idle_timeout"`
 }
 
 type Limits struct {
-	RPM          int64 `yaml:"rpm"`
-	TokensPerDay int64 `yaml:"tokens_per_day"`
-	STTMBPerDay  int64 `yaml:"stt_mb_per_day"`
+	RPM            int64 `yaml:"rpm"`
+	TokensPerDay   int64 `yaml:"tokens_per_day"`
+	STTMBPerDay    int64 `yaml:"stt_mb_per_day"`
 	TTSCharsPerDay int64 `yaml:"tts_chars_per_day"`
 }
 
@@ -91,15 +91,15 @@ type Key struct {
 }
 
 type Deployment struct {
-	Version int               `yaml:"version"`
-	Name    string            `yaml:"name"`
-	Provider Provider         `yaml:"provider"`
-	Budget  *Budget           `yaml:"budget"`
-	Alerts  *Alerts           `yaml:"alerts"`
-	Gateway Gateway           `yaml:"gateway"`
-	Models  []Model           `yaml:"models"`
-	Keys    []Key             `yaml:"keys"`
-	Secrets map[string]string `yaml:"secrets"`
+	Version  int               `yaml:"version"`
+	Name     string            `yaml:"name"`
+	Provider Provider          `yaml:"provider"`
+	Budget   *Budget           `yaml:"budget"`
+	Alerts   *Alerts           `yaml:"alerts"`
+	Gateway  Gateway           `yaml:"gateway"`
+	Models   []Model           `yaml:"models"`
+	Keys     []Key             `yaml:"keys"`
+	Secrets  map[string]string `yaml:"secrets"`
 }
 
 func (m Model) IdleDuration() (time.Duration, error) {
@@ -312,6 +312,17 @@ func LoadResolved(path string) (*Deployment, error) {
 	return Parse(data)
 }
 
+func Marshal(d *Deployment) ([]byte, error) {
+	var b strings.Builder
+	enc := yaml.NewEncoder(&b)
+	enc.SetIndent(2)
+	if err := enc.Encode(d); err != nil {
+		return nil, err
+	}
+	enc.Close()
+	return []byte(b.String()), nil
+}
+
 func WriteBack(path string, mutate func(*Deployment)) error {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -330,8 +341,7 @@ func WriteBack(path string, mutate func(*Deployment)) error {
 	if err := setMappingValue(doc, "gateway", func(gw *yaml.Node) {
 		setField(gw, "url", d.Gateway.URL)
 		setField(gw, "admin_token", d.Gateway.AdminToken)
-	});
-	err != nil {
+	}); err != nil {
 		return err
 	}
 	var out strings.Builder

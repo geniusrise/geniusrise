@@ -136,8 +136,8 @@ type TokenManager struct {
 }
 
 type tokenEntry struct {
-	secret   string
-	expires  time.Time
+	secret  string
+	expires time.Time
 }
 
 func NewTokenManager(ttl time.Duration) *TokenManager {

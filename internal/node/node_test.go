@@ -18,7 +18,7 @@ import (
 
 type fakeEngine struct {
 	*httptest.Server
-	requests atomic.Int64
+	requests   atomic.Int64
 	failCanary atomic.Bool
 }
 
@@ -39,7 +39,7 @@ func newFakeEngine(t *testing.T) *fakeEngine {
 		json.NewEncoder(w).Encode(map[string]any{
 			"id": "canary", "object": "chat.completion",
 			"choices": []map[string]any{{"message": map[string]string{"role": "assistant", "content": "pong"}, "finish_reason": "stop"}},
-			"usage": map[string]int{"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+			"usage":   map[string]int{"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
 		})
 	})
 	fe.Server = httptest.NewServer(mux)

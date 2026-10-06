@@ -113,10 +113,10 @@ type JoinRequest struct {
 }
 
 type JoinResponse struct {
-	Cert         string `json:"cert"`
-	CA           string `json:"ca"`
-	GatewayAddr  string `json:"gateway_addr"`
-	EngineSpec   json.RawMessage `json:"engine_spec,omitempty"`
+	Cert        string          `json:"cert"`
+	CA          string          `json:"ca"`
+	GatewayAddr string          `json:"gateway_addr"`
+	EngineSpec  json.RawMessage `json:"engine_spec,omitempty"`
 }
 
 func Join(ctx context.Context, gatewayURL, token string) (*JoinResponse, []byte, string, error) {

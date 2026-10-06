@@ -3,7 +3,6 @@ package node
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -19,14 +19,14 @@ import (
 )
 
 type Config struct {
-	NodeID      string
-	GatewayURL  string
-	GatewayAddr string
-	JoinToken   string
+	NodeID        string
+	GatewayURL    string
+	GatewayAddr   string
+	JoinToken     string
 	CAFingerprint string
-	AdminPort   int
-	AdminToken  string
-	HFToken     string
+	AdminPort     int
+	AdminToken    string
+	HFToken       string
 
 	EngineCmd    []string
 	EngineEnv    map[string]string
@@ -34,6 +34,7 @@ type Config struct {
 	EngineType   string
 	ExternalURL  string
 	ReadyTimeout time.Duration
+	PlainDial    bool
 }
 
 const (
@@ -45,16 +46,17 @@ const (
 )
 
 type Agent struct {
-	cfg    Config
-	mu     sync.Mutex
-	cmd    *exec.Cmd
-	logs   ringBuffer
-	inflight int
-	restarts []time.Time
-	unhealthy bool
+	cfg         Config
+	mu          sync.Mutex
+	adminPort   int
+	cmd         *exec.Cmd
+	logs        ringBuffer
+	inflight    int
+	restarts    []time.Time
+	unhealthy   bool
 	engineReady bool
-	spotNotice bool
-	client *tunnel.Client
+	spotNotice  bool
+	client      *tunnel.Client
 }
 
 func New(cfg Config) *Agent {
@@ -87,26 +89,44 @@ func (a *Agent) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	a.mu.Lock()
+	a.adminPort = adminLn.Addr().(*net.TCPAddr).Port
+	a.mu.Unlock()
+	go func() {
+		<-ctx.Done()
+		adminLn.Close()
+	}()
 	go a.serveAdmin(adminLn)
 
 	jr, keyPEM, _, err := tunnel.Join(ctx, a.cfg.GatewayURL, a.cfg.JoinToken)
 	if err != nil {
 		return fmt.Errorf("join: %w", err)
 	}
-	tlsCfg, err := tunnel.ClientTLSConfig([]byte(jr.Cert), keyPEM, []byte(jr.CA), a.cfg.CAFingerprint)
-	if err != nil {
-		return err
-	}
 	dialAddr := a.cfg.GatewayAddr
 	if dialAddr == "" {
 		dialAddr = strings.TrimPrefix(strings.TrimPrefix(a.cfg.GatewayURL, "https://"), "http://")
 	}
-	conn, err := tunnel.DialTLS(ctx, dialAddr, tlsCfg)
+	var rawConn net.Conn
+	if a.cfg.PlainDial {
+		d := &net.Dialer{Timeout: 30 * time.Second}
+		rawConn, err = d.DialContext(ctx, "tcp", dialAddr)
+		if err == nil {
+			if perr := tunnel.WritePlainPrefix(rawConn, a.cfg.NodeID); perr != nil {
+				rawConn.Close()
+				return fmt.Errorf("plain prefix: %w", perr)
+			}
+		}
+	} else {
+		tlsCfg, cerr := tunnel.ClientTLSConfig([]byte(jr.Cert), keyPEM, []byte(jr.CA), a.cfg.CAFingerprint)
+		if cerr != nil {
+			return cerr
+		}
+		rawConn, err = tunnel.DialTLS(ctx, dialAddr, tlsCfg)
+	}
 	if err != nil {
 		return fmt.Errorf("tunnel dial: %w", err)
 	}
-	tlsConn := conn.(*tls.Conn)
-	client, err := tunnel.Connect(a.cfg.NodeID, dialAddr, tlsConn)
+	client, err := tunnel.Connect(a.cfg.NodeID, dialAddr, rawConn)
 	if err != nil {
 		return fmt.Errorf("tunnel connect: %w", err)
 	}
@@ -128,31 +148,60 @@ func (a *Agent) Run(ctx context.Context) error {
 }
 
 func (a *Agent) localDial(port uint16) (net.Conn, error) {
-	if port == uint16(a.cfg.AdminPort) {
+	targetPort := int(port)
+	if a.cfg.ExternalURL != "" {
+		if _, p, err := net.SplitHostPort(a.cfg.ExternalURL[strings.Index(a.cfg.ExternalURL, "://")+3:]); err == nil {
+			targetPort, _ = strconv.Atoi(p)
+		}
+	}
+	if port == uint16(a.cfg.AdminPort) && a.cfg.AdminPort != 0 {
 		return net.DialTimeout("tcp", fmt.Sprintf("127.0.0.1:%d", a.cfg.AdminPort), 5*time.Second)
 	}
 	a.mu.Lock()
 	a.inflight++
 	a.mu.Unlock()
-	conn, err := net.DialTimeout("tcp", fmt.Sprintf("127.0.0.1:%d", port), 5*time.Second)
+	conn, err := net.DialTimeout("tcp", fmt.Sprintf("127.0.0.1:%d", targetPort), 5*time.Second)
 	if err != nil {
 		a.mu.Lock()
 		a.inflight--
 		a.mu.Unlock()
 		return nil, err
 	}
-	go func() {
-		buf := make([]byte, 1)
-		for {
-			if _, err := conn.Read(buf); err != nil {
-				a.mu.Lock()
-				a.inflight--
-				a.mu.Unlock()
-				return
-			}
-		}
-	}()
-	return conn, nil
+	done := sync.OnceFunc(func() {
+		a.mu.Lock()
+		a.inflight--
+		a.mu.Unlock()
+	})
+	return &countingConn{Conn: conn, onDone: done}, nil
+}
+
+type countingConn struct {
+	net.Conn
+	onDone func()
+	closed bool
+	mu     sync.Mutex
+}
+
+func (c *countingConn) Read(p []byte) (int, error) {
+	n, err := c.Conn.Read(p)
+	if err != nil && !c.closed {
+		c.mu.Lock()
+		c.closed = true
+		c.mu.Unlock()
+		c.onDone()
+	}
+	return n, err
+}
+
+func (c *countingConn) Close() error {
+	c.mu.Lock()
+	first := !c.closed
+	c.closed = true
+	c.mu.Unlock()
+	if first {
+		c.onDone()
+	}
+	return c.Conn.Close()
 }
 
 func (a *Agent) startEngine(ctx context.Context) error {

@@ -13,32 +13,32 @@ import (
 const HoursPerMonth = 730
 
 type Slot struct {
-	Host    string
+	Host     string
 	GPUIndex int
 }
 
 type ModelPlan struct {
-	ID             string
-	Type           string
-	Variant        string
-	Engine         string
-	HFRepo         string
-	Concurrency    int
-	Min, Max       int
-	Ranked         []pricing.Offering
-	MonthlyMinUSD  float64
-	MonthlyMaxUSD  float64
-	Slots          []Slot
+	ID            string
+	Type          string
+	Variant       string
+	Engine        string
+	HFRepo        string
+	Concurrency   int
+	Min, Max      int
+	Ranked        []pricing.Offering
+	MonthlyMinUSD float64
+	MonthlyMaxUSD float64
+	Slots         []Slot
 }
 
 type Result struct {
-	Provider        string
-	Region          string
+	Provider          string
+	Region            string
 	GatewayMonthlyUSD float64
-	Models          []ModelPlan
-	TotalMinUSD     float64
-	TotalMaxUSD     float64
-	Warnings        []string
+	Models            []ModelPlan
+	TotalMinUSD       float64
+	TotalMaxUSD       float64
+	Warnings          []string
 }
 
 func (p *Result) Describe() string {
@@ -77,7 +77,7 @@ func fakeOfferings(classes []string) []pricing.Offering {
 	return out
 }
 
-func offeringsFor(snap *pricing.Snapshot, provider, region string, classes []string, capacity string) []pricing.Offering {
+func Ranked(snap *pricing.Snapshot, provider, region string, classes []string, capacity string) []pricing.Offering {
 	if provider == spec.ProviderFake {
 		return fakeOfferings(classes)
 	}
@@ -171,7 +171,7 @@ func Plan(d *spec.Deployment, cat *catalog.Catalog, snap *pricing.Snapshot) (*Re
 			}
 			minSum += mp.Min
 		} else {
-			mp.Ranked = offeringsFor(snap, d.Provider.Type, p.Region, variant.GPUs, d.Provider.Capacity)
+			mp.Ranked = Ranked(snap, d.Provider.Type, p.Region, variant.GPUs, d.Provider.Capacity)
 			if len(mp.Ranked) == 0 {
 				return nil, fmt.Errorf("%s/%s: no %s offerings for %s in %s (gpus: %s)",
 					m.ID, variant.Name, d.Provider.Capacity, d.Provider.Type, p.Region, strings.Join(variant.GPUs, ","))
