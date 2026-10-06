@@ -171,7 +171,12 @@ func New(opts Options) (*Server, error) {
 			s.logger.Error("saved config invalid", "err", err)
 		}
 	}
-	s.tunnels.OnRegister = s.onNodeRegister
+	s.tunnels.OnMessage = s.onNodeMessage
+	if cb, ok := opts.Provider.(interface {
+		SetCall(func(nodeID string, msg tunnel.Message, timeout time.Duration) (*tunnel.Message, error))
+	}); ok {
+		cb.SetCall(s.tunnels.Call)
+	}
 	return s, nil
 }
 

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -30,11 +31,13 @@ func WritePlainPrefix(conn net.Conn, nodeID string) error {
 }
 
 type Message struct {
-	Type     string `json:"type"`
-	NodeID   string `json:"node_id,omitempty"`
-	Inflight int    `json:"inflight,omitempty"`
-	Queue    int    `json:"queue,omitempty"`
-	Error    string `json:"error,omitempty"`
+	Type     string          `json:"type"`
+	NodeID   string          `json:"node_id,omitempty"`
+	ReqID    string          `json:"req_id,omitempty"`
+	Inflight int             `json:"inflight,omitempty"`
+	Queue    int             `json:"queue,omitempty"`
+	Error    string          `json:"error,omitempty"`
+	Data     json.RawMessage `json:"data,omitempty"`
 }
 
 const (
@@ -45,16 +48,22 @@ const (
 	MsgRestart    = "restart"
 	MsgTerminate  = "terminate"
 	MsgSpotNotice = "spot_notice"
+
+	MsgHostRun  = "host_run"
+	MsgHostStop = "host_stop"
+	MsgHostList = "host_list"
+	MsgReply    = "reply"
 )
 
 type Server struct {
-	mu         sync.Mutex
-	sessions   map[string]*yamux.Session
-	OnRegister func(nodeID string, control io.ReadWriteCloser)
+	mu        sync.Mutex
+	sessions  map[string]*yamux.Session
+	pending   map[string]chan *Message
+	OnMessage func(nodeID string, msg *Message)
 }
 
 func NewServer() *Server {
-	return &Server{sessions: map[string]*yamux.Session{}}
+	return &Server{sessions: map[string]*yamux.Session{}, pending: map[string]chan *Message{}}
 }
 
 func (s *Server) HandleSession(nodeID string, conn net.Conn) error {
@@ -90,9 +99,7 @@ func (s *Server) handleStream(nodeID string, stream net.Conn) {
 	}
 	port := binary.BigEndian.Uint16(portBuf[:])
 	if port == ControlPort {
-		if s.OnRegister != nil {
-			s.OnRegister(nodeID, stream)
-		}
+		s.dispatchControl(nodeID, stream)
 		return
 	}
 	engine := net.TCPAddr{IP: net.IPv4(127, 0, 0, 1), Port: int(port)}
@@ -102,6 +109,33 @@ func (s *Server) handleStream(nodeID string, stream net.Conn) {
 		return
 	}
 	go pipe(stream, target)
+}
+
+func (s *Server) dispatchControl(nodeID string, control io.ReadWriteCloser) {
+	go func() {
+		dec := json.NewDecoder(bufio.NewReader(control))
+		for {
+			var m Message
+			if err := dec.Decode(&m); err != nil {
+				return
+			}
+			s.mu.Lock()
+			if m.ReqID != "" {
+				if ch, ok := s.pending[m.ReqID]; ok {
+					delete(s.pending, m.ReqID)
+					s.mu.Unlock()
+					ch <- &m
+					close(ch)
+					continue
+				}
+			}
+			h := s.OnMessage
+			s.mu.Unlock()
+			if h != nil {
+				h(nodeID, &m)
+			}
+		}
+	}()
 }
 
 func pipe(a, b net.Conn) {
@@ -131,6 +165,34 @@ func (s *Server) Dial(nodeID string, port uint16) (net.Conn, error) {
 		return nil, err
 	}
 	return stream, nil
+}
+
+func (s *Server) Call(nodeID string, msg Message, timeout time.Duration) (*Message, error) {
+	if msg.ReqID == "" {
+		msg.ReqID = fmt.Sprintf("req-%d", time.Now().UnixNano())
+	}
+	ch := make(chan *Message, 1)
+	s.mu.Lock()
+	s.pending[msg.ReqID] = ch
+	s.mu.Unlock()
+	if err := s.SendControl(nodeID, msg); err != nil {
+		s.mu.Lock()
+		delete(s.pending, msg.ReqID)
+		s.mu.Unlock()
+		return nil, err
+	}
+	select {
+	case reply := <-ch:
+		if reply.Error != "" {
+			return nil, errors.New(reply.Error)
+		}
+		return reply, nil
+	case <-time.After(timeout):
+		s.mu.Lock()
+		delete(s.pending, msg.ReqID)
+		s.mu.Unlock()
+		return nil, fmt.Errorf("host %s did not answer %s within %s", nodeID, msg.Type, timeout)
+	}
 }
 
 func (s *Server) SendControl(nodeID string, msg Message) error {

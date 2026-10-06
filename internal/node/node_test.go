@@ -55,19 +55,10 @@ func TestAgentJoinsAndHeartbeats(t *testing.T) {
 
 	var gotHeartbeats atomic.Int64
 	tun := tunnel.NewServer()
-	tun.OnRegister = func(nodeID string, control io.ReadWriteCloser) {
-		go func() {
-			dec := json.NewDecoder(control)
-			for {
-				var m tunnel.Message
-				if err := dec.Decode(&m); err != nil {
-					return
-				}
-				if m.Type == tunnel.MsgHeartbeat {
-					gotHeartbeats.Add(1)
-				}
-			}
-		}()
+	tun.OnMessage = func(nodeID string, m *tunnel.Message) {
+		if m.Type == tunnel.MsgHeartbeat {
+			gotHeartbeats.Add(1)
+		}
 	}
 
 	cert, fp, _ := tunnel.SelfSignedCert([]string{"localhost"})

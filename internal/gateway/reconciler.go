@@ -7,6 +7,7 @@ import (
 	"io"
 	"math"
 	"net/http"
+	"os"
 	"sort"
 	"strings"
 	"time"
@@ -270,7 +271,9 @@ func (s *Server) launchNode(ctx context.Context, p *pool) {
 		return
 	}
 	chosen := ranked[0]
+	image := engineImage(p.variant.Engine)
 	ns := provider.NodeSpec{
+		Image:      image,
 		Deployment: cfg.Name, Model: p.model.ID, Variant: p.variant.Name,
 		Engine: p.variant.Engine, HFRepo: p.variant.HFRepo, File: p.variant.File,
 		GPUClass: chosen.GPUClass, InstanceType: chosen.InstanceType,
@@ -463,6 +466,14 @@ func (s *Server) publicURL() string {
 	return "http://" + s.publicAddr()
 }
 
+func engineImage(engine string) string {
+	tag := os.Getenv("GR_IMAGE_TAG")
+	if tag == "" {
+		tag = "latest"
+	}
+	return fmt.Sprintf("ghcr.io/geniusrise/%s:%s", engine, tag)
+}
+
 func gpuClassFor(v *catalog.Variant) string {
 	for _, g := range v.GPUs {
 		if g != "cpu" {
@@ -486,34 +497,25 @@ func engineCommandFor(v *catalog.Variant) []string {
 	return cmd
 }
 
-func (s *Server) onNodeRegister(nodeID string, control io.ReadWriteCloser) {
-	go func() {
-		dec := json.NewDecoder(control)
-		for {
-			var msg tunnel.Message
-			if err := dec.Decode(&msg); err != nil {
-				return
-			}
-			switch msg.Type {
-			case tunnel.MsgRegister, tunnel.MsgHeartbeat:
-				s.markNode(nodeID, func(n *nodeEntry) {
-					n.LastBeat = time.Now()
-					n.Inflight = msg.Inflight
-					n.State = provider.StateRunning
-				})
-			case tunnel.MsgUnhealthy:
-				s.markNode(nodeID, func(n *nodeEntry) { n.Unhealthy = true })
-				s.logger.Warn("node reported unhealthy", "node", nodeID)
-			case tunnel.MsgSpotNotice:
-				s.logger.Warn("node spot interruption", "node", nodeID)
-				s.markNode(nodeID, func(n *nodeEntry) { n.State = provider.StateTerminating })
-				cfg := s.Config()
-				if cfg != nil {
-					go s.launchNode(context.Background(), s.poolFor(modelForNode(s, nodeID)))
-				}
-			}
+func (s *Server) onNodeMessage(nodeID string, msg *tunnel.Message) {
+	switch msg.Type {
+	case tunnel.MsgRegister, tunnel.MsgHeartbeat:
+		s.markNode(nodeID, func(n *nodeEntry) {
+			n.LastBeat = time.Now()
+			n.Inflight = msg.Inflight
+			n.State = provider.StateRunning
+		})
+	case tunnel.MsgUnhealthy:
+		s.markNode(nodeID, func(n *nodeEntry) { n.Unhealthy = true })
+		s.logger.Warn("node reported unhealthy", "node", nodeID)
+	case tunnel.MsgSpotNotice:
+		s.logger.Warn("node spot interruption", "node", nodeID)
+		s.markNode(nodeID, func(n *nodeEntry) { n.State = provider.StateTerminating })
+		cfg := s.Config()
+		if cfg != nil {
+			go s.launchNode(context.Background(), s.poolFor(modelForNode(s, nodeID)))
 		}
-	}()
+	}
 }
 
 func modelForNode(s *Server, nodeID string) string {
