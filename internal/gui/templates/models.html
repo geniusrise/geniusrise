@@ -1,0 +1,27 @@
+{{define "content"}}
+<h1>models</h1>
+<div id="catalog">loading catalog…</div>
+<h2>configured</h2>
+<table id="models"><thead><tr><th>id</th><th>variant</th><th>min</th><th>max</th><th>idle</th></tr></thead><tbody></tbody></table>
+<p>edit the model list by editing the <a href="/yaml">yaml</a>, or with your editor — this screen is read-only for v1.</p>
+<script>
+fetch('/api/catalog').then(r=>r.json()).then(list=>{
+  const div=document.getElementById('catalog');
+  const ul=document.createElement('ul');
+  (list||[]).sort((a,b)=>a.id<b.id?-1:1).forEach(r=>{
+    const li=document.createElement('li');
+    li.textContent=`${r.id} — ${r.type}, variants: ${r.variants.map(v=>v.name).join(', ')}, license ${r.license}${r.gated?' (gated)':''}`;
+    ul.appendChild(li);
+  });
+  div.innerHTML=''; div.appendChild(ul);
+});
+fetch('/api/spec').then(r=>r.json()).then(d=>{
+  const tb=document.querySelector('#models tbody');
+  (d.models||[]).forEach(m=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${m.id}</td><td>${m.variant||'default'}</td><td>${m.replicas.min}</td><td>${m.replicas.max}</td><td>${m.idle_timeout||'15m'}</td>`;
+    tb.appendChild(tr);
+  });
+});
+</script>
+{{end}}

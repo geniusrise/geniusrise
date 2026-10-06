@@ -1,0 +1,13 @@
+{{define "content"}}
+<h1>yaml</h1>
+<textarea id="yaml" spellcheck="false"></textarea>
+<button onclick="save()">save</button> <span id="msg"></span>
+<script>
+fetch('/api/yaml').then(r=>r.text()).then(t=>document.getElementById('yaml').value=t);
+async function save(){
+  const body=document.getElementById('yaml').value;
+  const resp=await fetch('/api/yaml',{method:'POST',body});
+  document.getElementById('msg').textContent=resp.ok?'saved':'invalid: '+await resp.text();
+}
+</script>
+{{end}}

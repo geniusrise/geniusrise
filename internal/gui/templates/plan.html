@@ -1,0 +1,22 @@
+{{define "content"}}
+<h1>plan &amp; apply</h1>
+<pre id="plan">planning…</pre>
+<button onclick="apply()">apply</button>
+<pre id="applyout"></pre>
+<script>
+fetch('/api/plan').then(r=>r.json()).then(p=>{
+  document.getElementById('plan').textContent=JSON.stringify(p,null,2);
+}).catch(e=>document.getElementById('plan').textContent='error: '+e);
+async function apply(){
+  const out=document.getElementById('applyout'); out.textContent='';
+  const resp=await fetch('/api/apply');
+  const reader=resp.body.getReader();
+  const dec=new TextDecoder();
+  for(;;){
+    const {done,value}=await reader.read();
+    if(done)break;
+    out.textContent+=dec.decode(value);
+  }
+}
+</script>
+{{end}}

@@ -1,0 +1,10 @@
+{{define "content"}}
+<h1>{{.D.Name}}</h1>
+<p>provider <b>{{.D.Provider.Type}}</b> {{if .D.Provider.Region}}in {{.D.Provider.Region}}{{end}},
+{{.D.Provider.Capacity}} capacity,
+{{len .D.Models}} model(s),
+{{len .D.Keys}} key(s),
+{{if .D.Budget.MonthlyUSD}}budget ${{.D.Budget.MonthlyUSD}}/month{{else}}no budget{{end}}</p>
+{{if .D.Gateway.URL}}<p>gateway: <code>{{.D.Gateway.URL}}</code></p>{{else}}<p>gateway: not bootstrapped — go to <a href="/plan">plan &amp; apply</a></p>{{end}}
+<p><a class="btn" href="/plan">open plan &amp; apply</a></p>
+{{end}}

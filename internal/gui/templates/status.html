@@ -1,0 +1,12 @@
+{{define "content"}}
+<h1>status</h1>
+<pre id="status">loading…</pre>
+<script>
+function tick(){
+  fetch('/api/status').then(r=>r.json()).then(st=>{
+    document.getElementById('status').textContent=JSON.stringify(st,null,2);
+  }).catch(e=>document.getElementById('status').textContent='error: '+e);
+}
+tick(); setInterval(tick, 5000);
+</script>
+{{end}}

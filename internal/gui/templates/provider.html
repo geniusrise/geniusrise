@@ -1,0 +1,18 @@
+{{define "content"}}
+<h1>provider &amp; budget</h1>
+<div id="compare">run a comparison below — no cloud account needed.</div>
+<button onclick="loadCompare()">compare all providers</button>
+<p>edit provider, region, capacity, budget and alerts in the <a href="/yaml">yaml</a>.</p>
+<script>
+function loadCompare(){
+  const el=document.getElementById('compare'); el.textContent='planning…';
+  fetch('/api/compare').then(r=>r.json()).then(plans=>{
+    let html='<table><tr><th>provider</th><th>$/month min</th><th>$/month max</th><th>gateway</th></tr>';
+    for(const [name,p] of Object.entries(plans)){
+      html+=`<tr><td>${name}</td><td>$${p.TotalMinUSD.toFixed(2)}</td><td>$${p.TotalMaxUSD.toFixed(2)}</td><td>$${p.GatewayMonthlyUSD.toFixed(2)}</td></tr>`;
+    }
+    el.innerHTML=html+'</table>';
+  }).catch(e=>el.textContent='error: '+e);
+}
+</script>
+{{end}}

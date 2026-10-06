@@ -1,0 +1,23 @@
+{{define "content"}}
+<h1>keys</h1>
+<table id="keys"><thead><tr><th>name</th><th>models</th><th>rpm</th><th>tokens/day</th><th>stt mb/day</th><th>tts chars/day</th></tr></thead><tbody></tbody></table>
+<button onclick="newKey()">generate a new key value</button> <span id="newkey"></span>
+<p>paste keys into the <a href="/yaml">yaml</a> keys list.</p>
+<script>
+fetch('/api/spec').then(r=>r.json()).then(d=>{
+  const tb=document.querySelector('#keys tbody');
+  (d.keys||[]).forEach(k=>{
+    const tr=document.createElement('tr');
+    const l=k.limits||{};
+    tr.innerHTML=`<td>${k.name}</td><td>${(k.models||[]).join(', ')}</td><td>${l.rpm||'—'}</td><td>${l.tokens_per_day||'—'}</td><td>${l.stt_mb_per_day||'—'}</td><td>${l.tts_chars_per_day||'—'}</td>`;
+    tb.appendChild(tr);
+  });
+});
+async function newKey(){
+  const c=[...crypto.getRandomValues(new Uint8Array(18))];
+  const key='sk-gr-'+c.map(b=>b.toString(16).padStart(2,'0')).join('');
+  document.getElementById('newkey').textContent=key;
+  await navigator.clipboard?.writeText(key).catch(()=>{});
+}
+</script>
+{{end}}

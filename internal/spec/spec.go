@@ -122,6 +122,16 @@ func Parse(data []byte) (*Deployment, error) {
 	return &d, nil
 }
 
+var ErrNotImplemented = fmt.Errorf("provider is not implemented yet")
+
+func ResolveEnvFile(path string) ([]byte, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	return ResolveEnv(data)
+}
+
 func Load(path string) (*Deployment, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {

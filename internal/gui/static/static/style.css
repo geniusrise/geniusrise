@@ -1,0 +1,18 @@
+:root { color-scheme: light dark; }
+* { box-sizing: border-box; }
+body { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; margin: 0; background: #14161a; color: #d7dce3; }
+nav { display: flex; gap: 1rem; padding: 0.8rem 1.2rem; background: #1b1f26; border-bottom: 1px solid #2a3038; flex-wrap: wrap; }
+nav a { color: #8ab4f8; text-decoration: none; }
+nav .brand { font-weight: 700; color: #d7dce3; margin-right: 1rem; }
+main { padding: 1.2rem; max-width: 60rem; margin: 0 auto; }
+footer { padding: 1rem; text-align: center; color: #5c6672; font-size: 0.8rem; }
+h1 { font-size: 1.3rem; }
+table { border-collapse: collapse; width: 100%; margin: 0.6rem 0; }
+th, td { text-align: left; padding: 0.35rem 0.6rem; border-bottom: 1px solid #2a3038; font-size: 0.85rem; }
+pre, textarea { background: #10131a; border: 1px solid #2a3038; padding: 0.8rem; white-space: pre-wrap; font-size: 0.8rem; }
+textarea { width: 100%; min-height: 26rem; }
+button { background: #8ab4f8; color: #10131a; border: 0; padding: 0.45rem 1rem; font: inherit; font-weight: 700; cursor: pointer; }
+.error { background: #3a1f24; color: #f0b8bf; padding: 0.6rem 0.9rem; margin-bottom: 1rem; }
+code { color: #9ee6a0; }
+ul { padding-left: 1.1rem; }
+.btn { display: inline-block; margin-top: 0.5rem; }

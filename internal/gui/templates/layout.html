@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>geniusrise</title>
+<link rel="stylesheet" href="/static/static/style.css">
+</head>
+<body>
+<nav>
+  <span class="brand">geniusrise</span>
+  <a href="/">deployment</a>
+  <a href="/models">models</a>
+  <a href="/provider">provider &amp; budget</a>
+  <a href="/keys">keys</a>
+  <a href="/plan">plan &amp; apply</a>
+  <a href="/status">status</a>
+  <a href="/yaml">yaml</a>
+</nav>
+<main>
+{{if .Error}}<div class="error">{{.Error}}</div>{{end}}
+{{block "content" .}}{{end}}
+</main>
+<footer>the file on disk is the source of truth — the gui only reads and writes it</footer>
+<script src="/static/static/app.js"></script>
+</body>
+</html>

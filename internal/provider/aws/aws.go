@@ -13,6 +13,7 @@ import (
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	iamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
+	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 
@@ -342,4 +343,46 @@ func cloneMap(m map[string]string) map[string]string {
 		out[k] = v
 	}
 	return out
+}
+
+func (p *Provider) Doctor(ctx context.Context, d *spec.Deployment) error {
+	c := sts.NewFromConfig(p.cfg)
+	out, err := c.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
+	if err != nil {
+		return fmt.Errorf("credentials: %w (run `aws configure` or set AWS_* env vars)", err)
+	}
+	fmt.Printf("aws identity: %s (account %s)\n", aws.ToString(out.Arn), aws.ToString(out.Account))
+	if _, _, err := p.defaultVPC(ctx); err != nil {
+		return fmt.Errorf("default vpc: %w", err)
+	}
+	fmt.Println("default vpc: ok")
+	sq := servicequotas.NewFromConfig(p.cfg, func(o *servicequotas.Options) { o.Region = p.region })
+	for _, q := range []struct {
+		code, name string
+	}{
+		{"L-417A185B", "Running On-Demand G and VT instances"},
+		{"L-3819A6DF", "G and VT Spot instances"},
+	} {
+		quota, err := sq.GetServiceQuota(ctx, &servicequotas.GetServiceQuotaInput{
+			ServiceCode: aws.String("ec2"), QuotaCode: aws.String(q.code),
+		})
+		if err != nil {
+			fmt.Printf("quota %s: unable to check (%v)\n", q.name, err)
+			continue
+		}
+		v := quota.Quota.Value
+		if v == nil || *v < 4 {
+			fmt.Printf("quota %s: %.0f vCPUs — REQUEST AN INCREASE: https://console.aws.amazon.com/servicequotas/home/services/ec2/quotas/%s\n", q.name, deref(v), q.code)
+		} else {
+			fmt.Printf("quota %s: %.0f vCPUs — ok\n", q.name, deref(v))
+		}
+	}
+	return nil
+}
+
+func deref(v *float64) float64 {
+	if v == nil {
+		return 0
+	}
+	return *v
 }
