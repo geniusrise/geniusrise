@@ -33,9 +33,9 @@ type Offering struct {
 }
 
 type Snapshot struct {
-	GeneratedAt time.Time                           `json:"generated_at"`
-	GatewayMonthlyUSD map[string]float64            `json:"gateway_monthly_usd"`
-	Providers   map[string]map[string][]Offering    `json:"providers"`
+	GeneratedAt       time.Time                        `json:"generated_at"`
+	GatewayMonthlyUSD map[string]float64               `json:"gateway_monthly_usd"`
+	Providers         map[string]map[string][]Offering `json:"providers"`
 }
 
 func (s *Snapshot) Offerings(provider, region string) []Offering {

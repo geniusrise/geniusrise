@@ -14,7 +14,7 @@ import (
 
 func testSpec() *spec.Deployment {
 	return &spec.Deployment{
-		Name:     "homelab",
+		Name: "homelab",
 		Provider: spec.Provider{Type: spec.ProviderSSH, Hosts: []spec.SSHHost{
 			{Addr: "10.0.0.5", User: "u", GPUs: 2, CostHr: 0.2},
 			{Addr: "10.0.0.6", User: "u", GPUs: 1, CostHr: 0.1},

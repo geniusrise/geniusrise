@@ -17,9 +17,9 @@ func main() {
 	flag.Parse()
 
 	s := &pricing.Snapshot{
-		GeneratedAt:     time.Now().UTC(),
+		GeneratedAt:       time.Now().UTC(),
 		GatewayMonthlyUSD: map[string]float64{"aws": 11, "gcp": 7, "azure": 9, "runpod": 8, "lambda": 0, "hyperbolic": 0, "ssh": 0},
-		Providers:       map[string]map[string][]pricing.Offering{},
+		Providers:         map[string]map[string][]pricing.Offering{},
 	}
 	var warnings []string
 	add := func(p string, fn func() (map[string][]pricing.Offering, error)) {

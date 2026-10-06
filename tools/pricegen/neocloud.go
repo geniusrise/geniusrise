@@ -27,21 +27,21 @@ func getJSON(url string, out any) error {
 
 func fetchAzure() (map[string][]pricing.Offering, error) {
 	type item struct {
-		MeterID          string `json:"meterId"`
-		MeterName        string `json:"meterName"`
-		ProductName      string `json:"productName"`
-		SkuName          string `json:"skuName"`
-		MeterCategory    string `json:"meterCategory"`
-		MeterSubCategory string `json:"meterSubCategory"`
+		MeterID          string  `json:"meterId"`
+		MeterName        string  `json:"meterName"`
+		ProductName      string  `json:"productName"`
+		SkuName          string  `json:"skuName"`
+		MeterCategory    string  `json:"meterCategory"`
+		MeterSubCategory string  `json:"meterSubCategory"`
 		UnitPrice        float64 `json:"unitPrice"`
-		UnitOfMeasure    string `json:"unitOfMeasure"`
-		ArmRegionName    string `json:"armRegionName"`
-		Type             string `json:"type"`
-		ReservationTerm  string `json:"reservationTerm"`
+		UnitOfMeasure    string  `json:"unitOfMeasure"`
+		ArmRegionName    string  `json:"armRegionName"`
+		Type             string  `json:"type"`
+		ReservationTerm  string  `json:"reservationTerm"`
 	}
 	var page struct {
-		Items     []item `json:"Items"`
-		NextPage  string `json:"NextPageLink"`
+		Items    []item `json:"Items"`
+		NextPage string `json:"NextPageLink"`
 	}
 	url := "https://prices.azure.com/api/retail/prices?$filter=" + strings.Join([]string{
 		"serviceName eq 'Virtual Machines'",
@@ -68,17 +68,17 @@ func fetchAzure() (map[string][]pricing.Offering, error) {
 }
 
 func azureMapItem(it struct {
-	MeterID          string `json:"meterId"`
-	MeterName        string `json:"meterName"`
-	ProductName      string `json:"productName"`
-	SkuName          string `json:"skuName"`
-	MeterCategory    string `json:"meterCategory"`
-	MeterSubCategory string `json:"meterSubCategory"`
+	MeterID          string  `json:"meterId"`
+	MeterName        string  `json:"meterName"`
+	ProductName      string  `json:"productName"`
+	SkuName          string  `json:"skuName"`
+	MeterCategory    string  `json:"meterCategory"`
+	MeterSubCategory string  `json:"meterSubCategory"`
 	UnitPrice        float64 `json:"unitPrice"`
-	UnitOfMeasure    string `json:"unitOfMeasure"`
-	ArmRegionName    string `json:"armRegionName"`
-	Type             string `json:"type"`
-	ReservationTerm  string `json:"reservationTerm"`
+	UnitOfMeasure    string  `json:"unitOfMeasure"`
+	ArmRegionName    string  `json:"armRegionName"`
+	Type             string  `json:"type"`
+	ReservationTerm  string  `json:"reservationTerm"`
 }) (pricing.Offering, bool) {
 	if it.UnitOfMeasure != "1 Hour" || strings.Contains(it.ProductName, "Windows") {
 		return pricing.Offering{}, false
@@ -120,9 +120,9 @@ func fetchGCP() (map[string][]pricing.Offering, error) {
 		return nil, fmt.Errorf("GCP_BILLING_API_KEY not set")
 	}
 	type sku struct {
-		Description string `json:"description"`
+		Description    string   `json:"description"`
 		ServiceRegions []string `json:"serviceRegions"`
-		PricingInfo []struct {
+		PricingInfo    []struct {
 			PricingExpression struct {
 				TieredRates []struct {
 					UnitPrice struct {
@@ -135,7 +135,7 @@ func fetchGCP() (map[string][]pricing.Offering, error) {
 		ResourceFamily string `json:"resourceFamily"`
 	}
 	var page struct {
-		Skus     []sku   `json:"skus"`
+		Skus          []sku  `json:"skus"`
 		NextPageToken string `json:"nextPageToken"`
 	}
 	url := fmt.Sprintf("https://cloudbilling.googleapis.com/v1/services/6F81-5844-456A/skus?key=%s", key)
@@ -165,9 +165,9 @@ func fetchGCP() (map[string][]pricing.Offering, error) {
 }
 
 func gcpMapSKU(s struct {
-	Description string `json:"description"`
+	Description    string   `json:"description"`
 	ServiceRegions []string `json:"serviceRegions"`
-	PricingInfo []struct {
+	PricingInfo    []struct {
 		PricingExpression struct {
 			TieredRates []struct {
 				UnitPrice struct {
@@ -219,11 +219,11 @@ func fetchRunPod() (map[string][]pricing.Offering, error) {
 	var resp struct {
 		Data struct {
 			GpuTypes []struct {
-				ID            string  `json:"id"`
-				DisplayName   string  `json:"displayName"`
-				PricePerHour  float64 `json:"pricePerHour"`
+				ID               string  `json:"id"`
+				DisplayName      string  `json:"displayName"`
+				PricePerHour     float64 `json:"pricePerHour"`
 				SpotPricePerHour float64 `json:"spotPricePerHour"`
-				CommunityCloud bool   `json:"communityCloud"`
+				CommunityCloud   bool    `json:"communityCloud"`
 			} `json:"gpuTypes"`
 		} `json:"data"`
 	}
@@ -284,7 +284,7 @@ func fetchLambda() (map[string][]pricing.Offering, error) {
 	defer resp.Body.Close()
 	var data struct {
 		Data []struct {
-			Name string `json:"name"`
+			Name  string `json:"name"`
 			Price struct {
 				Amount string `json:"amount"`
 			} `json:"price"`
@@ -333,7 +333,7 @@ func fetchHyperbolic() (map[string][]pricing.Offering, error) {
 	}
 	defer resp.Body.Close()
 	var data []struct {
-		GPUType string `json:"gpu_type"`
+		GPUType      string  `json:"gpu_type"`
 		PricePerHour float64 `json:"price_per_hour"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {

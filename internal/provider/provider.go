@@ -64,10 +64,10 @@ type GatewayInfo struct {
 }
 
 type BootstrapOpts struct {
-	GatewayImage      string
-	Version           string
+	GatewayImage       string
+	Version            string
 	ExternalGatewayURL string
-	AdminToken        string
+	AdminToken         string
 }
 
 type Provider interface {
@@ -81,16 +81,16 @@ type Provider interface {
 }
 
 type Fake struct {
-	mu           sync.Mutex
-	nextID       int
-	Nodes        map[string]*Node
-	LaunchDelay  time.Duration
-	LaunchFail   int
-	launchCount  int
-	Calls        []string
-	offerings    []pricing.Offering
-	BootstrapFn  func(d *spec.Deployment, opts BootstrapOpts) (*GatewayInfo, error)
-	Gateway      *GatewayInfo
+	mu          sync.Mutex
+	nextID      int
+	Nodes       map[string]*Node
+	LaunchDelay time.Duration
+	LaunchFail  int
+	launchCount int
+	Calls       []string
+	offerings   []pricing.Offering
+	BootstrapFn func(d *spec.Deployment, opts BootstrapOpts) (*GatewayInfo, error)
+	Gateway     *GatewayInfo
 }
 
 func NewFake() *Fake {

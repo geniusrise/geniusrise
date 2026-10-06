@@ -20,14 +20,14 @@ import (
 var awsRegions = []string{"us-east-1", "us-west-2", "eu-central-1", "ap-south-1", "ap-southeast-1"}
 
 var awsFamilies = map[string]string{
-	"c7i":   "cpu",
-	"g4dn":  "T4",
-	"g5":    "A10G",
-	"g6":    "L4",
-	"g6e":   "L40S",
-	"p4d":   "A100-40",
-	"p4de":  "A100-80",
-	"p5":    "H100",
+	"c7i":  "cpu",
+	"g4dn": "T4",
+	"g5":   "A10G",
+	"g6":   "L4",
+	"g6e":  "L40S",
+	"p4d":  "A100-40",
+	"p4de": "A100-80",
+	"p5":   "H100",
 }
 
 func familyOf(instanceType string) (string, string) {
@@ -64,8 +64,8 @@ func fetchAWS() (map[string][]pricing.Offering, error) {
 	var next *string
 	for {
 		resp, err := pc.GetProducts(ctx, &awspricing.GetProductsInput{
-			ServiceCode:    aws.String("AmazonEC2"),
-			NextToken:      next,
+			ServiceCode: aws.String("AmazonEC2"),
+			NextToken:   next,
 			Filters: []awspricingtypes.Filter{
 				{Field: aws.String("preInstalledSw"), Type: "TERM_MATCH", Value: aws.String("NA")},
 				{Field: aws.String("operatingSystem"), Type: "TERM_MATCH", Value: aws.String("Linux")},
@@ -139,8 +139,8 @@ func addSpotPrices(ctx context.Context, out map[string][]pricing.Offering) {
 		for i := 0; i < len(types); i += 50 {
 			chunk := types[i:min(i+50, len(types))]
 			resp, err := ec.DescribeSpotPriceHistory(ctx, &ec2.DescribeSpotPriceHistoryInput{
-				StartTime:       &start,
-				InstanceTypes:   strSliceToEc2Types(chunk),
+				StartTime:           &start,
+				InstanceTypes:       strSliceToEc2Types(chunk),
 				ProductDescriptions: []string{"Linux/UNIX"},
 			}, func(o *ec2.Options) { o.Region = region })
 			if err != nil {
@@ -195,8 +195,8 @@ func locationToRegion(loc string) string {
 type awsProduct struct {
 	Product struct {
 		Attributes struct {
-			Location       string `json:"location"`
-			InstanceType   string `json:"instanceType"`
+			Location        string `json:"location"`
+			InstanceType    string `json:"instanceType"`
 			OperatingSystem string `json:"operatingSystem"`
 		} `json:"attributes"`
 	} `json:"product"`
