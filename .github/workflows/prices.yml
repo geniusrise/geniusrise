@@ -1,0 +1,38 @@
+name: prices
+on:
+  schedule:
+    - cron: "30 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+      - run: go run ./tools/pricegen -out prices.json
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          GCP_BILLING_API_KEY: ${{ secrets.GCP_BILLING_API_KEY }}
+          RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
+          LAMBDA_API_KEY: ${{ secrets.LAMBDA_API_KEY }}
+          HYPERBOLIC_API_KEY: ${{ secrets.HYPERBOLIC_API_KEY }}
+      - name: attach to prices release
+        run: |
+          gh release delete prices --yes 2>/dev/null || true
+          gh release create prices prices.json --title "price snapshot" --notes "daily gpu price snapshot" --prerelease
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: cp prices.json internal/pricing/files/prices.json
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "pricing: refresh embedded fallback snapshot"
+          file_pattern: internal/pricing/files/prices.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

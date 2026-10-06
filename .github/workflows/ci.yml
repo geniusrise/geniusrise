@@ -1,0 +1,22 @@
+name: ci
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+      - run: gofmt -l . | tee /dev/stderr | (! read)
+      - run: go vet ./...
+      - run: go test ./... -count=1 -timeout 600s
+      - run: go build ./...
+      - run: go run ./tools/pricegen -out /tmp/prices.json && test -s /tmp/prices.json
+        env:
+          AZURE_OK: "1"
+        continue-on-error: true
